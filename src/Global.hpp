@@ -5,6 +5,7 @@
 #include "inttypes.hpp"
 #include "pbg/PbgArchive.hpp"
 #include <windows.h>
+#include <d3dx8.h>
 
 namespace th08
 {
