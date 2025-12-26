@@ -5,6 +5,7 @@
 #include "inttypes.hpp"
 #include "pbg/PbgArchive.hpp"
 #include <windows.h>
+#include <d3dx8.h>
 
 namespace th08
 {
@@ -280,7 +281,7 @@ class ZunMemory
     RegistryInfo *m_Registry[0x1000];
     BOOL m_bRegistryInUse;
 };
-
+  
 struct ControllerMapping
 {
     i16 shotButton;
@@ -293,6 +294,9 @@ struct ControllerMapping
     i16 rightButton;
     i16 skipButton;
 };
+  
+f32 AddNormalizeAngle(f32 a, f32 b);
+void Rotate(D3DXVECTOR3 *outVector, D3DXVECTOR3 *point, f32 angle);
 
 DIFFABLE_EXTERN(Rng, g_Rng);
 DIFFABLE_EXTERN(u16, g_CurFrameInput);
