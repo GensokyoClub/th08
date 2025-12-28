@@ -1,6 +1,7 @@
 #pragma once
 
 #include "diffbuild.hpp"
+#include "inttypes.hpp"
 
 namespace th08
 {
@@ -11,5 +12,6 @@ struct ReplayManager
 };
 
 DIFFABLE_EXTERN(ReplayManager *, g_ReplayManager);
+DIFFABLE_EXTERN(i32, g_UnknownCounter);
 
 } // namespace th08
