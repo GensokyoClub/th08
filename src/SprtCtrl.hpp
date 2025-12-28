@@ -112,14 +112,14 @@ struct SprtCtrl
 
     void TakeScreencaptures()
     {
-        if (m_CaptureAnmIdx > -1)
+        if (m_CaptureAnmIdx >= 0)
         {
             CaptureToTexture(m_CaptureAnmIdx, m_TextureCaptureSrcX, m_TextureCaptureSrcY, m_TextureCaptureSrcW, m_TextureCaptureSrcH,
                             m_TextureCaptureDstX, m_TextureCaptureDstY, m_TextureCaptureDstW, m_TextureCaptureDstH);
             m_CaptureAnmIdx = -1;
         }
 
-        if (m_CaptureSurfaceIdx > -1)
+        if (m_CaptureSurfaceIdx >= 0)
         {
             CaptureToSurface(m_CaptureSurfaceIdx, m_SurfaceCaptureSrcX, m_SurfaceCaptureSrcY, m_SurfaceCaptureSrcW, m_SurfaceCaptureSrcH,
                             m_SurfaceCaptureDstX, m_SurfaceCaptureDstY, m_SurfaceCaptureDstW, m_SurfaceCaptureDstH);
