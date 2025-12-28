@@ -17,6 +17,12 @@
   ],
   "units": [
     {
+      "name": "GameManager",
+      "target_path": "build/objdiff/orig/GameManager.obj",
+      "base_path": "build/objdiff/reimpl/GameManager.obj",
+      "reverse_fn_order": false
+    },
+    {
       "name": "Global",
       "target_path": "build/objdiff/orig/Global.obj",
       "base_path": "build/objdiff/reimpl/Global.obj",

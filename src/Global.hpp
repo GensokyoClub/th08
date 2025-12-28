@@ -294,7 +294,59 @@ struct ControllerMapping
     i16 rightButton;
     i16 skipButton;
 };
-  
+
+struct ZunTimer
+{
+    i32 m_Previous;
+    f32 m_SubFrame;
+    i32 m_Current;
+};
+
+struct ZunGlobals
+{
+    u32 m_DisplayScore;
+    i32 m_GrazeInStage;
+    u32 m_Score;
+    i32 m_Graze;
+    i32 m_Unk0x10;
+    u32 m_DisplayedHighScore;
+    u8 m_ContinuesUsedInHighScore;
+    /* 3 bytes pad */
+    u32 m_unk1C;
+    i16 m_YoukaiGaugeCopy;
+    i16 m_YoukaiGauge;
+    i32 m_PointItemValue;
+    u8 m_ClockTime;
+    u8 m_NumRetries;
+    /* 2 bytes pad */
+    i32 m_PointItemsCollectedInStage;
+    i32 m_PointItemsCollected;
+    i32 m_PointItemExtendsSoFar;
+    i32 m_NextPointItemExtendThreshold;
+    i32 m_CurrentTimeOrbs;
+    i32 m_LastSpellTimeOrbThreshold;
+    i32 m_TotalTimeOrbs;
+    u32 m_Rng1[7];
+    f32 m_Deaths;
+    f32 m_DeathInStage;
+    f32 m_Rng2[2];
+    f32 m_LivesRemaining;
+    f32 m_Rng3[2];
+    f32 m_BombsRemaining;
+    f32 m_BombsUsed;
+    f32 m_BombsUsedInStage;
+    f32 m_Rng4[3];
+    f32 m_PlayerPower;
+    f32 m_Rng5[2];
+    u32 m_Rng6;
+    u32 m_Rng7[8];
+    u32 m_AntiTamperValue;
+    u32 m_AntiTamperChecksum;
+    u32 m_Rng8[5];
+};
+
+C_ASSERT(sizeof(ZunGlobals) == 0xe4);
+
 f32 AddNormalizeAngle(f32 a, f32 b);
 void Rotate(D3DXVECTOR3 *outVector, D3DXVECTOR3 *point, f32 angle);
 
