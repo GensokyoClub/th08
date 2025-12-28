@@ -329,4 +329,46 @@ void Supervisor::UpdateGameTime(Supervisor *s)
     s->m_SystemTime = gameTime;
 }
 
+#pragma var_order(playTime, difference)
+void Supervisor::UpdatePlayTime(Supervisor *s)
+{
+    DWORD playTime = timeGetTime();
+
+    if (playTime < s->m_TotalPlayTime)
+    {
+        s->m_TotalPlayTime = playTime;
+    }
+
+    DWORD difference = playTime - s->m_TotalPlayTime;
+
+    g_GameManager.plst.totalHours += (difference / 3600000);
+    difference %= 3600000;
+
+    g_GameManager.plst.totalMinutes += (difference / 60000);
+    difference %= 60000;
+
+    g_GameManager.plst.totalSeconds += (difference / 1000);
+    difference %= 1000;
+
+    g_GameManager.plst.totalMilliseconds += difference;
+
+    if (g_GameManager.plst.totalMilliseconds >= 1000)
+    {
+        g_GameManager.plst.totalSeconds += (g_GameManager.plst.totalMilliseconds / 1000);
+        g_GameManager.plst.totalMilliseconds = (g_GameManager.plst.totalMilliseconds % 1000);
+    }
+    if (g_GameManager.plst.totalSeconds >= 60)
+    {
+        g_GameManager.plst.totalMinutes += (g_GameManager.plst.totalMilliseconds / 60);
+        g_GameManager.plst.totalSeconds = (g_GameManager.plst.totalMilliseconds % 60);
+    }
+    if (g_GameManager.plst.totalMinutes >= 60)
+    {
+        g_GameManager.plst.totalHours += (g_GameManager.plst.totalMinutes / 60);
+        g_GameManager.plst.totalMinutes = (g_GameManager.plst.totalMinutes % 60);
+    }
+
+    s->m_TotalPlayTime = playTime;
+}
+
 }; // namespace th08
