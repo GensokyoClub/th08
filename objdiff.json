@@ -65,6 +65,12 @@
       "reverse_fn_order": false
     },
     {
+      "name": "SprtCtrl",
+      "target_path": "build/objdiff/orig/SprtCtrl.obj",
+      "base_path": "build/objdiff/reimpl/SprtCtrl.obj",
+      "reverse_fn_order": false
+    },
+    {
       "name": "Supervisor",
       "target_path": "build/objdiff/orig/Supervisor.obj",
       "base_path": "build/objdiff/reimpl/Supervisor.obj",

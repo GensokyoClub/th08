@@ -12,3 +12,4 @@ th08::SprtCtrl::CaptureToSurface
 th08::SprtCtrl::CaptureToTexture
 th08::SprtCtrl::ClearVertexBuffer
 th08::SprtCtrl::FlushVertexBuffer
+th08::SprtCtrl::ExecuteScript
