@@ -1,5 +1,6 @@
 #include "Supervisor.hpp"
 #include "SprtCtrl.hpp"
+#include "GameManager.hpp"
 #include "Global.hpp"
 #include "i18n.hpp"
 #include "utils.hpp"
@@ -284,6 +285,48 @@ void Supervisor::SetRenderState(D3DRENDERSTATETYPE renderStateType, int value)
     g_SprtCtrl->FlushVertexBuffer();
 
     this->m_D3dDevice->SetRenderState(renderStateType, value);
+}
+
+#pragma var_order(gameTime, difference)
+void Supervisor::UpdateGameTime(Supervisor *s)
+{
+    DWORD gameTime = timeGetTime();
+
+    if (gameTime < s->m_SystemTime)
+    {
+        s->m_SystemTime = 0;
+    }
+
+    DWORD difference = gameTime - s->m_SystemTime;
+
+    g_GameManager.plst.gameHours += (difference / 3600000);
+    difference %= 3600000;
+
+    g_GameManager.plst.gameMinutes += (difference / 60000);
+    difference %= 60000;
+
+    g_GameManager.plst.gameSeconds += (difference / 1000);
+    difference %= 1000;
+
+    g_GameManager.plst.gameMilliseconds += difference;
+
+    if (g_GameManager.plst.gameMilliseconds >= 1000)
+    {
+        g_GameManager.plst.gameSeconds += (g_GameManager.plst.gameMilliseconds / 1000);
+        g_GameManager.plst.gameMilliseconds = (g_GameManager.plst.gameMilliseconds % 1000);
+    }
+    if (g_GameManager.plst.gameSeconds >= 60)
+    {
+        g_GameManager.plst.gameMinutes += (g_GameManager.plst.gameMilliseconds / 60);
+        g_GameManager.plst.gameSeconds = (g_GameManager.plst.gameMilliseconds % 60);
+    }
+    if (g_GameManager.plst.gameMinutes >= 60)
+    {
+        g_GameManager.plst.gameHours += (g_GameManager.plst.gameMinutes / 60);
+        g_GameManager.plst.gameMinutes = (g_GameManager.plst.gameMinutes % 60);
+    }
+
+    s->m_SystemTime = gameTime;
 }
 
 }; // namespace th08
