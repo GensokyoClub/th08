@@ -353,6 +353,8 @@ void Rotate(D3DXVECTOR3 *outVector, D3DXVECTOR3 *point, f32 angle);
 DIFFABLE_EXTERN(Rng, g_Rng);
 DIFFABLE_EXTERN(u16, g_CurFrameInput);
 DIFFABLE_EXTERN(u16, g_LastFrameInput);
+DIFFABLE_EXTERN(u16, g_NumOfFramesInputsWereHeld);
+DIFFABLE_EXTERN(u16, g_IsEighthFrameOfHeldInput);
 DIFFABLE_EXTERN(GameErrorContext, g_GameErrorContext);
 DIFFABLE_EXTERN(Chain, g_Chain);
 DIFFABLE_EXTERN(PbgArchive, g_PbgArchive);
