@@ -8,6 +8,7 @@
 #include "diffbuild.hpp"
 #include "inttypes.hpp"
 #include "utils.hpp"
+#include "SprtCtrl.hpp"
 #include "ZunBool.hpp"
 #include "Global.hpp"
 
@@ -113,6 +114,7 @@ struct Supervisor
     static ChainCallbackResult DrawFpsCounter(Supervisor *s);
     static ChainCallbackResult OnDraw2(Supervisor *s);
     static ChainCallbackResult OnDraw3(Supervisor *s);
+    ZunResult VerifyExeIntegrity(char *version, i32 exeSize, i32 exeChecksum);
 
     ZunResult LoadConfig(char *configFile);
     void ThreadClose();
@@ -187,6 +189,11 @@ struct Supervisor
         return m_Cfg.windowed;
     }
 
+    ZunBool IsSubthreadRunning()
+    {
+        return m_runningSubthreadHandle != NULL;
+    }
+
     void EnterCriticalSectionWrapper(int id)
     {
         EnterCriticalSection(&m_CriticalSections[id]);
@@ -197,6 +204,11 @@ struct Supervisor
     {
         LeaveCriticalSection(&m_CriticalSections[id]);
         m_LockCounts[id]--;
+    }
+
+    void ClearFogState()
+    {
+        m_FogState = FOG_UNSET;
     }
 
     HINSTANCE m_hInstance;
@@ -219,7 +231,10 @@ struct Supervisor
     i32 m_WantedState;
     i32 m_CurState;
     i32 m_WantedState2;
-    unknown_fields(0x164, 0x10);
+    i32 m_Unk164;
+    i32 m_Unk168;
+    i32 m_Unk16c;
+    i32 m_Unk170;
     i32 m_Unk174; // Commonly set for screen transitions and decremented once per frame, but never actually used for anything
     unknown_fields(0x178, 0x4);
     BOOL m_DisableVsync;
@@ -236,7 +251,7 @@ struct Supervisor
     DWORD m_runningSubthreadID;
     BOOL m_Unk28c;
     BOOL m_Unk290;
-    unknown_fields(0x294, 0x4);
+    u32 m_Unk294;
     CRITICAL_SECTION m_CriticalSections[4];
     u8 m_LockCounts[4];
     DWORD unk2fc;
@@ -252,4 +267,5 @@ struct Supervisor
 C_ASSERT(sizeof(Supervisor) == 0x364);
 
 DIFFABLE_EXTERN(Supervisor, g_Supervisor);
+DIFFABLE_EXTERN_ARRAY(Sprt, 3, g_SupervisorSprites);
 }; // namespace th08
