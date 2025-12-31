@@ -47,6 +47,8 @@ th08::Supervisor::EnterCriticalSectionWrapper
 th08::Supervisor::LeaveCriticalSectionWrapper
 th08::Supervisor::LoadConfig
 th08::Supervisor::ThreadClose
+th08::Supervisor::UpdateGameTime
+th08::Supervisor::UpdatePlayTime
 WinMain
 th08::GameWindow::Render
 th08::GameWindow::Present

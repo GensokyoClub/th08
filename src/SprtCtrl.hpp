@@ -2,7 +2,10 @@
 #include <d3d8.h>
 #include <d3dx8math.h>
 #include "diffbuild.hpp"
+#include "Global.hpp"
 #include "inttypes.hpp"
+#include "ZunResult.hpp"
+#include "ZunColor.hpp"
 #include "utils.hpp"
 
 #define GAME_WINDOW_WIDTH 640
@@ -59,26 +62,185 @@ enum SprtCameraMode
     SortCameraMode_Unset = -1
 };
 
+enum SprtZWriteMode
+{
+    SprtZWriteMode_Unset = -1
+};
+
+struct SprtEntry
+{
+    IDirect3DTexture8 *texture;
+    u8 *rawData;
+    i32 size;
+};
+
+C_ASSERT(sizeof(SprtEntry) == 0xc);
+
+struct SprtRawEntry
+{
+    i32 numSprites;
+    i32 numScripts;
+    u32 textureIdx;
+    i32 width;
+    i32 height;
+    u32 format;
+    u32 colorKey;
+    u32 nameOffset;
+    u32 spriteIdxOffset;
+    u32 mipmapNameOffset;
+    u32 version;
+    u32 unk1;
+    u32 textureOffset;
+    u8 hasData;
+    /* 3 bytes pad for alignment */
+    u32 nextOffset;
+    u32 unk2;
+};
+
+C_ASSERT(sizeof(SprtRawEntry) == 0x40);
+
+struct SprtLoadedSprite
+{
+    unknown_fields(0x0, 0x44);
+};
+
+C_ASSERT(sizeof(SprtLoadedSprite) == 0x44);
+
+struct SprtFileDesc
+{
+    i32 anmIdx;
+    SprtRawEntry *rawData;
+    i32 unk0x8;
+    SprtLoadedSprite *sprites;
+    void *scripts;
+    SprtEntry *textures;
+    int entryLoadNumber;
+};
+
+C_ASSERT(sizeof(SprtFileDesc) == 0x1c);
+
+struct SprtInterpData
+{
+    D3DXVECTOR3 posInitial;
+    D3DXVECTOR3 posFinal;
+    D3DXVECTOR3 rotateInitial;
+    D3DXVECTOR3 rotateFinal;
+    D3DXVECTOR2 scaleInitial;
+    D3DXVECTOR2 scaleFinal;
+    D3DCOLOR color1Initial;
+    D3DCOLOR color1Final;
+    D3DCOLOR color2Initial;
+    D3DCOLOR color2Final;
+};
+
+C_ASSERT(sizeof(SprtInterpData) == 0x50);
+
+struct SprtInterpTimers
+{
+    ZunTimer pos;
+    ZunTimer rgb1;
+    ZunTimer alpha1;
+    ZunTimer rotate;
+    ZunTimer scale;
+    ZunTimer rgb2;
+    ZunTimer alpha2;
+};
+
+C_ASSERT(sizeof(SprtInterpTimers) == 0x54);
+
+struct SprtInterpModes
+{
+    u8 pos;
+    u8 rgb1;
+    u8 alpha1;
+    u8 rotate;
+    u8 scale;
+    u8 rgb2;
+    u8 alpha2;
+    u8 unk0x7;
+};
+
+struct SprtPrefix
+{
+    D3DXVECTOR3 rotation;
+    D3DXVECTOR3 angleVel;
+    D3DXVECTOR2 scale;
+    D3DXVECTOR2 scaleGrowth;
+    D3DXVECTOR2 spriteSize;
+    D3DXVECTOR2 uvScrollPos;
+    ZunTimer currentTimeInScript;
+    ZunTimer waitTimer;
+    SprtInterpTimers interpCurrentTImes;
+    SprtInterpTimers interpEndTimes;
+    SprtInterpModes interpModes;
+    i32 intVars[4];
+    f32 floatVars[4];
+    i32 intVar8;
+    i32 intVar9;
+    D3DXVECTOR2 uvScrollVel;
+    D3DXMATRIX matrix1;
+    D3DXMATRIX matrix2;
+    D3DXMATRIX matrix3;
+    ZunColor color1;
+    ZunColor color2;
+    u32 flags;
+    i16 type;
+    i16 pendingInterrupt;
+    i32 playerBulletHitAnimationType;
+    SprtFileDesc *anmFile;
+    D3DXVECTOR3 pos;
+};
+
+C_ASSERT(sizeof(SprtPrefix) == 0x214);
+
+struct SprtRawInstr
+{
+};
+
 // Unofficial name: AnmVm 
 struct Sprt
 {
-    unknown_fields(0x0, 0x2a4);
+    SprtPrefix prefix;
+    i16 activeSpriteIndex;
+    i16 anmFileIndex;
+    i16 baseSpriteIndex;
+    i16 scriptIndex;
+    SprtRawInstr *beginningOfScript;
+    SprtRawInstr *currentInstruction;
+    SprtLoadedSprite *loadedSprite;
+    ZunTimer interruptReturnTime;
+    SprtRawInstr *interruptReturnInstruction;
+    SprtInterpData interpData;
+    D3DXVECTOR3 pos2;
+    i32 timeOfLastSpriteSet;
+    u8 fontWidth;
+    u8 fontHeight;
+    unknown_fields(0x29a, 0xa);
 };
+
 C_ASSERT(sizeof(Sprt) == 0x2a4);
 
 // Unofficial name: AnmManager
 struct SprtCtrl
 {
-    ~SprtCtrl() { }
+    ~SprtCtrl() {}
+    ZunResult ServicePreloadedAnims();
+    u32 ExecuteScript(Sprt *sprite);
+    void ExecuteAnms(Sprt *sprites, int count);
 
     void ClearBlendMode()
     {
-        m_CurrentBlendMode = SprtBlendMode_Unset;
+        m_CurrentBlendMode = 3;
     }
 
     void ClearColorOp()
     {
         m_CurrentColorOp = SprtColorOp_Unset;
+    }
+
+    void ClearSprite()
+    {
+        m_CurrentSprite = NULL;
     }
 
     void ClearVertexShader()
@@ -94,6 +256,19 @@ struct SprtCtrl
     void ClearCameraSettings()
     {
         m_CameraMode = SortCameraMode_Unset;
+    }
+
+    void ClearZWrite()
+    {
+        m_DisableZWrite = SprtZWriteMode_Unset;
+    }
+
+    void ResetSomeStuff()
+    {
+        m_FlushesThisFrame = 0;
+        unk0x14 = 0;
+        unk0xc = 0;
+        unk0x18 = 0;
     }
 
     void ReleaseSurfaces()
@@ -112,19 +287,25 @@ struct SprtCtrl
 
     void TakeScreencaptures()
     {
-        if (m_CaptureAnmIdx > -1)
+        if (m_CaptureAnmIdx >= 0)
         {
             CaptureToTexture(m_CaptureAnmIdx, m_TextureCaptureSrcX, m_TextureCaptureSrcY, m_TextureCaptureSrcW, m_TextureCaptureSrcH,
                             m_TextureCaptureDstX, m_TextureCaptureDstY, m_TextureCaptureDstW, m_TextureCaptureDstH);
             m_CaptureAnmIdx = -1;
         }
 
-        if (m_CaptureSurfaceIdx > -1)
+        if (m_CaptureSurfaceIdx >= 0)
         {
             CaptureToSurface(m_CaptureSurfaceIdx, m_SurfaceCaptureSrcX, m_SurfaceCaptureSrcY, m_SurfaceCaptureSrcW, m_SurfaceCaptureSrcH,
                             m_SurfaceCaptureDstX, m_SurfaceCaptureDstY, m_SurfaceCaptureDstW, m_SurfaceCaptureDstH);
             m_CaptureSurfaceIdx = -1;
         }
+    }
+
+    void ResetMoreStuff()
+    {
+        unk0x4 = 0;
+        m_Color = 0x80808080;
     }
 
     void CaptureToTexture (i32 captureAnmIdx, i32 srcX, i32 srcY, i32 srcW, i32 srcH, i32 dstX, i32 dstY, i32 dstW, i32 dstH);
@@ -133,9 +314,15 @@ struct SprtCtrl
     void ClearVertexBuffer();
     void FlushVertexBuffer();
 
-    unknown_fields(0x0, 0x8);
+    D3DCOLOR m_Color;
+    i32 unk0x4;
     i32 m_CaptureSurfaceIdx;
-    unknown_fields(0xc, 0x1c18);
+    u32 unk0xc;
+    u32 m_FlushesThisFrame;
+    u32 unk0x14;
+    u32 unk0x18;
+    D3DXVECTOR2 unk0x1c;
+    unknown_fields(0x24, 0x1c00);
     D3DXVECTOR3 unk0x1c24;
     unknown_fields(0x1c30, 0x34);
     Sprt unk0x1c64;

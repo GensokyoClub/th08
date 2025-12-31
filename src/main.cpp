@@ -490,7 +490,7 @@ LRESULT __stdcall GameWindow::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
     {
         case WM_ERASEBKGND:
             return 1; // Indicates that IN can erase the background
-        case 0x3c9:
+        case MM_MOM_DONE:
             if (g_Supervisor.midiOutput != NULL)
             {
                 g_Supervisor.midiOutput->UnprepareHeader((LPMIDIHDR) lParam);

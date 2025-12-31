@@ -105,6 +105,17 @@ class SoundPlayer
     void StopBGM();
     void FadeOut(f32 seconds);
 
+    void UpdateFades()
+    {
+        if (this->bgm != NULL)
+        {
+            this->bgm->UpdateFadeOut();
+            this->bgm->UpdateFadeIn();
+            this->bgm->UpdateShortFadeOut();
+            this->bgm->UpdateShortFadeIn();
+        }
+    }
+
     static DWORD WINAPI BGMPlayerThread(LPVOID lpThreadParameter);
 
     i32 GetFmtIndexByName(char *name);

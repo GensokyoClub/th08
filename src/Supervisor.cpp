@@ -1,13 +1,22 @@
-#include "Supervisor.hpp"
-#include "SprtCtrl.hpp"
+#include "Ending.hpp"
+#include "GameManager.hpp"
 #include "Global.hpp"
 #include "i18n.hpp"
+#include "MusicRoom.hpp"
+#include "ReplayManager.hpp"
+#include "ResultSysInf.hpp"
+#include "SoundPlayer.hpp"
+#include "SprtCtrl.hpp"
+#include "Supervisor.hpp"
+#include "Title.hpp"
 #include "utils.hpp"
 #include <WinBase.h>
 
 namespace th08
 {
 DIFFABLE_STATIC(Supervisor, g_Supervisor);
+DIFFABLE_STATIC_ARRAY(Sprt, 3, g_SupervisorSprites);
+
 
 #pragma var_order(elem, result, supervisor)
 ZunResult Supervisor::RegisterChain()
@@ -44,6 +53,292 @@ ZunResult Supervisor::RegisterChain()
     g_Chain.AddToDrawChain(elem, 2);
 
     return ZUN_SUCCESS;
+}
+
+ChainCallbackResult Supervisor::OnUpdate(Supervisor *s)
+{
+    if (s->m_Flags.receivedCloseMsg && !s->IsSubthreadRunning())
+    {
+        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+    }
+
+    g_SprtCtrl->ClearVertexShader();
+    g_SprtCtrl->ClearSprite();
+    g_SprtCtrl->ClearTexture();
+    g_SprtCtrl->ClearColorOp();
+    g_SprtCtrl->ClearBlendMode();
+    g_SprtCtrl->ClearZWrite();
+
+    g_SprtCtrl->ResetSomeStuff();
+    g_SprtCtrl->ClearCameraSettings();
+    g_SprtCtrl->ResetMoreStuff();
+    g_SprtCtrl->unk0x1c.x = g_SprtCtrl->unk0x1c.y = 0.0f;
+
+    g_SprtCtrl->ExecuteAnms(g_SupervisorSprites, ARRAY_SIZE(g_SupervisorSprites));
+
+    if (g_SprtCtrl->ServicePreloadedAnims() != ZUN_SUCCESS)
+    {
+        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+    }
+
+    if (s->m_Unk294 != 0)
+    {
+        if (s->m_Unk294 == 2)
+        {
+            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+        }
+        if (s->m_Unk290 == 0)
+        {
+            s->m_Unk294 = 0;
+        }
+        else
+        {
+            return CHAIN_CALLBACK_RESULT_CONTINUE;
+        }
+    }
+
+    g_Supervisor.ClearFogState();
+    g_SoundPlayer.UpdateFades();
+
+    if (!g_GameManager.IsUnknown())
+    {
+        g_LastFrameInput = g_CurFrameInput;
+        g_CurFrameInput = Controller::GetInput();
+
+        g_IsEighthFrameOfHeldInput = 0;
+        if (g_LastFrameInput == g_CurFrameInput)
+        {
+            if (g_NumOfFramesInputsWereHeld >= 0x1e)
+            {
+                if (g_NumOfFramesInputsWereHeld % 8 == 0)
+                {
+                    g_IsEighthFrameOfHeldInput = 1;
+                }
+                if (0x26 <= g_NumOfFramesInputsWereHeld)
+                {
+                    g_NumOfFramesInputsWereHeld = 0x1e;
+                }
+            }
+
+            g_NumOfFramesInputsWereHeld++;
+        }
+        else
+        {
+            g_NumOfFramesInputsWereHeld = 0;
+        }
+    }
+    else
+    {
+        g_CurFrameInput |= Controller::GetInput();
+    }
+
+    if (s->m_WantedState != s->m_CurState)
+    {
+        s->m_WantedState2 = s->m_WantedState;
+        utils::GuiDebugPrint("scene %d -> %d\r\n", s->m_WantedState, s->m_CurState);
+        switch (s->m_WantedState)
+        {
+            case 0:
+init_titlescreen:
+                s->m_CurState = 1;
+                g_Supervisor.m_D3dDevice->ResourceManagerDiscardBytes(0);
+                if (Title::RegisterChain(0) != ZUN_SUCCESS)
+                {
+                    return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                }
+                break;
+            case 1:
+                switch (s->m_CurState)
+                {
+                    case -1:
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                    case 2:
+                        if (GameManager::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                    case 4:
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_ERROR;
+                    case 5:
+                        if (ResultSysInf::RegisterChain(0) != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                    case 8:
+                        if (MusicRoom::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                    case 9:
+                        GameManager::CutChain();
+                        if (EndingInf::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                }
+                break;
+            case 5:
+                switch (s->m_CurState)
+                {
+                    case -1:
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                    case 1:
+                        s->m_CurState = 0;
+                        goto init_titlescreen;
+                }
+                break;
+            case 2:
+                switch (s->m_CurState)
+                {
+                    case -1:
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                    case 1:
+                        GameManager::CutChain();
+                        s->m_CurState = 0;
+                        ReplayManager::SaveReplay(NULL, NULL);
+
+                        goto init_titlescreen;
+                    case 6:
+                        GameManager::CutChain();
+                        if (ResultSysInf::RegisterChain(1) != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                    case 10:
+                        GameManager::CutChain();
+                        if ((g_GameManager.m_Flags & 1) == 0 && g_GameManager.m_Difficulty < 4)
+                        {
+                            g_GameManager.m_CurrentStage = 0;
+                        }
+                        ReplayManager::SaveReplay(NULL, NULL);
+                        if (GameManager::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        s->m_CurState = 2;
+                        break;
+                    case 11:
+                        g_Supervisor.m_CurState = 3;
+                        g_Supervisor.m_Unk16c = 1;
+
+                        GameManager::CutChain();
+
+                        if (GameManager::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        s->m_CurState = 2;
+                        break;
+                    case 12:
+                        g_Supervisor.m_CurState = 3;
+                        GameManager::CutChain();
+                        g_GameManager.AdvanceToNextStage();
+
+                        if (GameManager::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        s->m_CurState = 2;
+                        break;
+                    case 3:
+                        GameManager::CutChain();
+
+                        if (GameManager::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+
+                        s->m_CurState = 2;
+                        break;
+                    case 7:
+                        GameManager::CutChain();
+
+                        s->m_CurState = 0;
+                        ReplayManager::SaveReplay(NULL, NULL);
+                        s->m_CurState = 1;
+
+                        g_Supervisor.m_D3dDevice->ResourceManagerDiscardBytes(0);
+
+                        if (Title::RegisterChain(1) != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                    case 9:
+                        GameManager::CutChain();
+                        if (EndingInf::RegisterChain() != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                }
+                break;
+            case 6:
+                switch (s->m_CurState)
+                {
+                    case -1:
+                        ReplayManager::SaveReplay(NULL, NULL);
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                    case 1:
+                        s->m_CurState = 0;
+
+                        ReplayManager::SaveReplay(NULL, NULL);
+
+                        goto init_titlescreen;
+                }
+                break;
+            case 8:
+                switch (s->m_CurState)
+                {
+                    case -1:
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                    case 1:
+                        s->m_CurState = 0;
+
+                        goto init_titlescreen;
+                }
+                break;
+            case 9:
+                switch (s->m_CurState)
+                {
+                    case -1:
+                        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                    case 1:
+                        s->m_CurState = 0;
+
+                        goto init_titlescreen;
+                    case 6:
+                        if (ResultSysInf::RegisterChain(1) != ZUN_SUCCESS)
+                        {
+                            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+                        }
+                        break;
+                }
+                break;
+        }
+        g_LastFrameInput = g_CurFrameInput = g_IsEighthFrameOfHeldInput = 0;
+    }
+
+    s->m_WantedState = s->m_CurState;
+    s->m_CalcCount++;
+
+    if ((s->m_CalcCount % 4000) == 3999
+        && g_Supervisor.VerifyExeIntegrity("100d", g_Supervisor.m_ExeSize, g_Supervisor.m_ExeChecksum) != ZUN_SUCCESS)
+    {
+        return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+    }
+
+    if (g_UnknownCounter != 0)
+    {
+        g_UnknownCounter--;
+    }
+
+    return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
 #pragma var_order(fileSize, configFileBuffer, bgmHandle, bytesRead, bgmBuffer, bgmHandle2, bytesRead2, bgmBuffer2)
@@ -284,6 +579,90 @@ void Supervisor::SetRenderState(D3DRENDERSTATETYPE renderStateType, int value)
     g_SprtCtrl->FlushVertexBuffer();
 
     this->m_D3dDevice->SetRenderState(renderStateType, value);
+}
+
+#pragma var_order(gameTime, difference)
+void Supervisor::UpdateGameTime(Supervisor *s)
+{
+    DWORD gameTime = timeGetTime();
+
+    if (gameTime < s->m_SystemTime)
+    {
+        s->m_SystemTime = 0;
+    }
+
+    DWORD difference = gameTime - s->m_SystemTime;
+
+    g_GameManager.plst.gameHours += (difference / 3600000);
+    difference %= 3600000;
+
+    g_GameManager.plst.gameMinutes += (difference / 60000);
+    difference %= 60000;
+
+    g_GameManager.plst.gameSeconds += (difference / 1000);
+    difference %= 1000;
+
+    g_GameManager.plst.gameMilliseconds += difference;
+
+    if (g_GameManager.plst.gameMilliseconds >= 1000)
+    {
+        g_GameManager.plst.gameSeconds += (g_GameManager.plst.gameMilliseconds / 1000);
+        g_GameManager.plst.gameMilliseconds = (g_GameManager.plst.gameMilliseconds % 1000);
+    }
+    if (g_GameManager.plst.gameSeconds >= 60)
+    {
+        g_GameManager.plst.gameMinutes += (g_GameManager.plst.gameMilliseconds / 60);
+        g_GameManager.plst.gameSeconds = (g_GameManager.plst.gameMilliseconds % 60);
+    }
+    if (g_GameManager.plst.gameMinutes >= 60)
+    {
+        g_GameManager.plst.gameHours += (g_GameManager.plst.gameMinutes / 60);
+        g_GameManager.plst.gameMinutes = (g_GameManager.plst.gameMinutes % 60);
+    }
+
+    s->m_SystemTime = gameTime;
+}
+
+#pragma var_order(playTime, difference)
+void Supervisor::UpdatePlayTime(Supervisor *s)
+{
+    DWORD playTime = timeGetTime();
+
+    if (playTime < s->m_TotalPlayTime)
+    {
+        s->m_TotalPlayTime = playTime;
+    }
+
+    DWORD difference = playTime - s->m_TotalPlayTime;
+
+    g_GameManager.plst.totalHours += (difference / 3600000);
+    difference %= 3600000;
+
+    g_GameManager.plst.totalMinutes += (difference / 60000);
+    difference %= 60000;
+
+    g_GameManager.plst.totalSeconds += (difference / 1000);
+    difference %= 1000;
+
+    g_GameManager.plst.totalMilliseconds += difference;
+
+    if (g_GameManager.plst.totalMilliseconds >= 1000)
+    {
+        g_GameManager.plst.totalSeconds += (g_GameManager.plst.totalMilliseconds / 1000);
+        g_GameManager.plst.totalMilliseconds = (g_GameManager.plst.totalMilliseconds % 1000);
+    }
+    if (g_GameManager.plst.totalSeconds >= 60)
+    {
+        g_GameManager.plst.totalMinutes += (g_GameManager.plst.totalMilliseconds / 60);
+        g_GameManager.plst.totalSeconds = (g_GameManager.plst.totalMilliseconds % 60);
+    }
+    if (g_GameManager.plst.totalMinutes >= 60)
+    {
+        g_GameManager.plst.totalHours += (g_GameManager.plst.totalMinutes / 60);
+        g_GameManager.plst.totalMinutes = (g_GameManager.plst.totalMinutes % 60);
+    }
+
+    s->m_TotalPlayTime = playTime;
 }
 
 }; // namespace th08

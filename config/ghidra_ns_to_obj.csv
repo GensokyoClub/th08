@@ -1,13 +1,14 @@
 Background,th08::Background
 Global,th08::Chain,th08::ChainElem,th08::Controller,th08::FileSystem,th08::GameErrorContext,th08::Rng,th08::ZunMemory,th08::Rotate,th08::AddNormalizeAngle
+GameManager,th08::GameManager
 Lzss,th08::Lzss
-main,WinMain,th08::GameWindow
+main,WinMain,th08::GameWindow,th08::GameErrorContext::ResetContext,th08::GameErrorContext::Flush,th08::Supervisor::IsHardwareBlendingDisabled,th08::Supervisor::IsVertexBufferDisabled,th08::Supervisor::Is16bitColorMode,th08::Supervisor::IsReferenceRasterizerMode,th08::Supervisor::IsWindowed,th08::SprtCtrl::`scalar_deleting_destructor',th08::SprtCtrl::ReleaseSurfaces,th08::SprtCtrl::TakeScreencaptures
 Midi,th08::MidiDevice,th08::MidiTimer,th08::MidiOutput
 PbgArchive,th08::PbgArchive,th08::PbgArchiveEntry
 PbgFile,th08::IPbgFile,th08::CPbgFile
 ScreenEffect,th08::ScreenEffect
 SoundPlayer,th08::SoundPlayer
-Supervisor,th08::Supervisor
+Supervisor,th08::Supervisor,th08::SoundPlayer::UpdateFades
 TextHelper,th08::TextHelper
 Supervisor,th08::Supervisor
 SprtCtrl,th08::SprtCtrl,th08::Sprt,th08::SprtLoaded
