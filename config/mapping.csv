@@ -35,9 +35,9 @@ th08::Supervisor::IsSoftwareTexturing,0x406550,0x28,__thiscall,,u32,Supervisor*
 th08::Supervisor::IsFogDisabled,0x406580,0x1a,__thiscall,,u32,Supervisor*
 th08::ZunTimer::ZunTimer,0x4065a0,0x16,__thiscall,,u32,ZunTimer*
 th08::ZunTimer::Initialize,0x4065c0,0x28,__thiscall,,void,ZunTimer*
-th08::ZunTimer::SetCurrent,0x4065f0,0x19,__thiscall,,void,ZunTimer*,i32
+th08::ZunTimer::operator=,0x4065f0,0x19,__thiscall,,void,ZunTimer*,i32
 th08::ZunTimer::SetCurrentImpl,0x406610,0x29,__thiscall,,void,ZunTimer*,i32
-th08::ZunTimer::Tick,0x406640,0x15,__thiscall,,void,ZunTimer*
+th08::ZunTimer::operator++(int),0x406640,0x15,__thiscall,,void,ZunTimer*
 th08::ZunTimer::TickImpl,0x406660,0x34,__thiscall,,u32,ZunTimer*
 th08::ZunTimer::operator<,0x4066a0,0x1b,__thiscall,,bool,ZunTimer*,i32
 th08::ZunTimer::operator>,0x4066c0,0x1b,__thiscall,,bool,ZunTimer*,i32
@@ -114,8 +114,8 @@ th08::Background::SetCamera2,0x40b6d0,0x11b,__thiscall,,void,Background*
 FUN_0040b7f0,0x40b7f0,0x84,unknown,,u8,u8
 th08::ZunMemory::Alloc,0x40b880,0x19,__thiscall,,void*,ZunMemory*,u32,char*
 th08::ZunMemory::Free,0x40b8a0,0x19,__thiscall,,u8,ZunMemory*,void*
-th08::ZunTimer::AsFramesFloat,0x40b8c0,0x17,__thiscall,,float10,ZunTimer*
-FUN_0040b8e0,0x40b8e0,0x1b,unknown,,u8,u8
+th08::ZunTimer::operator_float,0x40b8c0,0x17,__thiscall,,float10,ZunTimer*
+th08::ZunTimer::operator>=,0x40b8e0,0x1b,__thiscall,,bool,ZunTimer*,i32
 FUN_0040b900,0x40b900,0xa,unknown,,u8
 th08::AnmFileDesc::ExecuteAnmIdx,0x40b910,0x98,__thiscall,,void,AnmFileDesc*,AnmVm*,i32
 th08::AnmManager::ClearBlendMode,0x40b9b0,0x15,__thiscall,,void,AnmManager*
@@ -146,7 +146,7 @@ FUN_0040d010,0x40d010,0xe9,unknown,,u8
 FUN_0040d100,0x40d100,0x209,unknown,,u8
 FUN_0040d310,0x40d310,0x79,unknown,,u8
 th08::Rng::GetRandomF32InRange,0x40d390,0x18,__thiscall,,float10,Rng*,f32
-th08::ZunTimer::AsFrames,0x40d3b0,0x11,__thiscall,,i32,ZunTimer*
+th08::ZunTimer::operator_int,0x40d3b0,0x11,__thiscall,,i32,ZunTimer*
 FUN_0040d3d0,0x40d3d0,0x1b,unknown,,u8
 FUN_0040d3f0,0x40d3f0,0x1b,unknown,,u8,u8
 FUN_0040d410,0x40d410,0x19,unknown,,u8,u8
@@ -159,7 +159,7 @@ FUN_0040e120,0x40e120,0xd1,unknown,,u8
 FUN_0040e200,0x40e200,0xc4,unknown,,u8
 FUN_0040e2d0,0x40e2d0,0x77,unknown,,u8
 FUN_0040e350,0x40e350,0x3a,unknown,,u8,u8
-FUN_0040e390,0x40e390,0x1b,unknown,,u8,u8
+th08::ZunTimer::operator<=,0x40e390,0x1b,__thiscall,,bool,ZunTimer*,i32
 FUN_0040e3b0,0x40e3b0,0x258,unknown,,u8
 FUN_0040e610,0x40e610,0x16a,unknown,,u8
 FUN_0040e780,0x40e780,0x3c8,unknown,,u8
@@ -224,7 +224,7 @@ FUN_00418010,0x418010,0x13,unknown,,u8
 FUN_00418030,0x418030,0x13,unknown,,u8
 FUN_00418050,0x418050,0x9d,unknown,,u8
 th08::Spellcard::CutChain,0x4180f0,0x1e,__stdcall,,void
-th08::ZunTimer::operator--,0x418110,0x17,__thiscall,,u8,ZunTimer*
+th08::ZunTimer::operator--(int),0x418110,0x17,__thiscall,,u8,ZunTimer*
 th08::GameManager::FUN_00418130,0x418130,0x43,__thiscall,,bool,GameManager*,i32
 th08::GameManager::FUN_00418180,0x418180,0x62,__thiscall,,u32,GameManager*,i32,i32
 th08::GameManager::AddScore,0x4181f0,0x2c,__thiscall,,void,GameManager*,i32
@@ -702,7 +702,7 @@ th08::Supervisor::StartupThread,0x4464c8,0x56f,__cdecl,,void
 th08::Supervisor::SetupDInput,0x446a37,0x290,__thiscall,,ZunResult,Supervisor*
 FUN_00446cc7,0x446cc7,0x3f,__stdcall,,i32,i32
 th08::Supervisor::DeletedCallback,0x446d06,0x205,__fastcall,,ZunResult,Supervisor*
-th08::AnmManager::FUN_00446f0b,0x446f0b,0x37,__thiscall,,u8,AnmManager*
+th08::AnmManager::ReleaseVertexBuffer,0x446f0b,0x37,__thiscall,,u8,AnmManager*
 FUN_00446f42,0x446f42,0x11,__fastcall,,void,u32
 th08::Supervisor::CalculateFps,0x446f53,0x342,__fastcall,,void,ZunBool
 th08::ZunTimer::Increment,0x447295,0xc6,__thiscall,,void,ZunTimer*,i32
@@ -1209,7 +1209,7 @@ FUN_0047a586,0x47a586,0xdf,unknown,,u8,u8,u8,u8,u8,u8,u8,u8,u8,u8,u8
 FUN_0047a668,0x47a668,0xd3,unknown,,u8,u8,u8,u8,u8,u8,u8,u8,u8,u8,u8,u8
 FUN_0047a73b,0x47a73b,0x32a,unknown,,u8,u8,u8,u8,u8,u8,u8,u8,u8
 FUN_0047aa65,0x47aa65,0x28,unknown,,u8,u8,u8,u8,u8,u8,u8,u8
-FUN_0047aa8d,0x47aa8d,0x66,__stdcall,,long,IDirect3DDevice8*,u32,u32,u32,u32,_D3DFORMAT,u8,IDirect3DTexture8**
+D3DXCreateTexture,0x47aa8d,0x66,__stdcall,,long,IDirect3DDevice8*,u32,u32,u32,u32,_D3DFORMAT,u8,IDirect3DTexture8**
 D3DXLoadSurfaceFromFileInMemory,0x47aaf3,0xb8,__stdcall,,long,IDirect3DSurface8*,tagPALETTEENTRY*,tagRECT*,void*,u32,tagRECT*,unsigned long,unsigned long,_D3DXIMAGE_INFO*
 D3DXLoadSurfaceFromSurface,0x47abab,0x1a6,__stdcall,,long,IDirect3DSurface8*,tagPALETTEENTRY*,tagRECT*,IDirect3DSurface8*,tagPALETTEENTRY*,tagRECT*,unsigned long,unsigned long
 FUN_0047ad51,0x47ad51,0x86,unknown,,u8,u8,u8,u8,u8,u8,u8,u8,u8
