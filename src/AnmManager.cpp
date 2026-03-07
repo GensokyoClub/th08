@@ -24,8 +24,8 @@ void AnmManager::ExecuteScriptOnVmArray(AnmVm *sprite, int count)
 }
 
 // STUB: th08 0x465070
-AnmManager::AnmManager()
-{
+AnmManager::AnmManager() {
+    
 }
 
 // STUB: th08 0x465250
@@ -49,7 +49,15 @@ static i32 GetAnmFormat(i32 format)
 // STUB: th08 0x465570
 ZunResult AnmManager::CreateTextureFromFile(IDirect3DTexture8 **outTexture, i32 format, i32 colorKey)
 {
-    return ZUN_ERROR;
+    if (D3DXCreateTextureFromFileInMemoryEx(
+        g_Supervisor.m_D3dDevice, outTexture[1], (UINT)outTexture[2], 0, 0, 0, 0,
+        g_TextureFormatD3D8Mapping[GetAnmFormat(format)], D3DPOOL_MANAGED, 3, 0xffffffff, colorKey,
+        NULL, NULL, outTexture) == D3D_OK) {
+        return ZUN_SUCCESS;
+    }
+    else {
+        return ZUN_ERROR;
+    }
 }
 
 // STUB: th08 0x4655e0
