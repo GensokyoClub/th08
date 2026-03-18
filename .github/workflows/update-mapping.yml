@@ -36,7 +36,7 @@ jobs:
     - name: Update mapping
       run: |
         echo "$GHIDRA_SSH_AUTH" > ssh_key
-        python scripts/update_mapping.py --username github-action --ssh-key ssh_key --program "$GHIDRA_FILE_NAME" --project-name "$GHIDRA_PROJECT_NAME" "ghidra://$GHIDRA_SERVER/$GHIDRA_PROJECT_NAME/$GHIDRA_FOLDER"
+        python scripts/export_ghidra_to_reccmp.py --username github-action --ssh-key ssh_key --program "$GHIDRA_FILE_NAME" --project-name "$GHIDRA_PROJECT_NAME" "ghidra://$GHIDRA_SERVER/$GHIDRA_PROJECT_NAME/$GHIDRA_FOLDER"
         rm ssh_key
       env: # Or as an environment variable
         GHIDRA_SSH_AUTH: ${{ secrets.GHIDRA_SSH_AUTH }}
