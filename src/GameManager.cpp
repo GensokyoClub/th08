@@ -8,6 +8,11 @@ DIFFABLE_STATIC(GameManager, g_GameManager);
 DIFFABLE_STATIC(ChainElem, g_GameManagerCalcChain);
 DIFFABLE_STATIC(ChainElem, g_GameManagerDrawChain);
 
+ZunResult GameManager::RegisterChain()
+{
+    return ZUN_ERROR;
+}
+
 void GameManager::CutChain()
 {
     g_Chain.Cut(&g_GameManagerCalcChain);

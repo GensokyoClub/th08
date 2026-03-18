@@ -8,7 +8,7 @@ namespace th08
 
 struct ReplayManager
 {
-    static void SaveReplay(char *replayPath, char *replayName);
+    static void SaveReplay(const char *replayPath, const char *replayName);
 };
 
 DIFFABLE_EXTERN(ReplayManager *, g_ReplayManager);

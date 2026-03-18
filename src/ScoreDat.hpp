@@ -8,7 +8,7 @@ namespace th08
 
 struct ScoreDat
 {
-    static ScoreDat *OpenScore(char *filename);
+    static ScoreDat *OpenScore(const char *filename);
     static ZunResult ParsePLST(ScoreDat *score, Plst *outPlst);
     static ZunResult ParseCLRD(ScoreDat *score, Clrd *outClrd);
     static ZunResult ParsePSCR(ScoreDat *score, Pscr *outPscr);
