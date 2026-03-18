@@ -124,17 +124,17 @@ def configure(build_type):
             "GameManager",
             "utils",
             "Global",
-            "TextHelper",   # grpfont.obj
+            "TextHelper",  # grpfont.obj
             "main",
             "Midi",
-            "Supervisor",   # mother.obj
+            "Supervisor",  # mother.obj
             "MusicRoom",
             "ReplayManager",
             "ResultScreen",
             "ScoreDat",
             "ScreenEffect",
             "SoundPlayer",
-            "AnmManager",   # sprtlib.obj
+            "AnmManager",  # sprtlib.obj
             "Title",
             "zwave",
         ]
@@ -259,10 +259,7 @@ def configure(build_type):
         writer.build(
             "$builddir/th08.def",
             "gendef",
-            inputs=[
-                "$builddir/" + x + ".obj"
-                for x in (cxx_sources + pbg_sources)
-            ],
+            inputs=["$builddir/" + x + ".obj" for x in (cxx_sources + pbg_sources)],
             implicit=["scripts/gendef.py"],
         )
         objfiles = (
