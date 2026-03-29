@@ -3,34 +3,53 @@
 namespace th08
 {
 
-ScoreDat *ScoreDat::OpenScore(const char *path)
+i32 ScoreDat::LinkScore(ScoreListNode *prevNode, Hscr *newScore)
+{
+    return 0;
+}
+
+void ScoreDat::FreeAllScores(ScoreDat *score)
+{
+}
+
+ScoreDat *ScoreDat::OpenScore(const char *filename)
 {
     return NULL;
 }
 
-ZunResult ScoreDat::ParseCATK(ScoreDat *score, Catk *outCatk)
+u32 ScoreDat::GetHighScore(ScoreDat *score, ScoreListNode *node, u32 character, u32 difficulty, u8 *continuesUsed)
 {
-    return ZUN_ERROR;
+    return 0;
 }
 
-BOOL ScoreDat::ParseFLSP(ScoreDat *score, Flsp *outFlsp)
+i32 ScoreDat::ParseCATK(ScoreDat *score, Catk *outCatk)
 {
-    return FALSE;
+    return 0;
 }
 
-ZunResult ScoreDat::ParseCLRD(ScoreDat *score, Clrd *outClrd)
+i32 ScoreDat::ParseLSNM(ScoreDat *score, Lsnm *outLsnm)
 {
-    return ZUN_ERROR;
+    return 0;
 }
 
-ZunResult ScoreDat::ParsePSCR(ScoreDat *score, Pscr *outPscr)
+i32 ScoreDat::ParseFLSP(ScoreDat *score, Flsp *outFlsp)
 {
-    return ZUN_ERROR;
+    return 0;
 }
 
-ZunResult ScoreDat::ParsePLST(ScoreDat *score, Plst *outPlst)
+i32 ScoreDat::ParseCLRD(ScoreDat *score, Clrd *outClrd)
 {
-    return ZUN_ERROR;
+    return 0;
+}
+
+i32 ScoreDat::ParsePSCR(ScoreDat *score, Pscr *outPscr)
+{
+    return 0;
+}
+
+i32 ScoreDat::ParsePLST(ScoreDat *score, Plst *outPlst)
+{
+    return 0;
 }
 
 void ScoreDat::ReleaseScore(ScoreDat *score)

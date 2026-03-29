@@ -91,21 +91,25 @@ def configure(build_type):
             "Background": "/Od",
             "Ending": "/Od",
             "EnemyManager": "/Od",
+            "BulletManager": "/Od",
+            "Gui": "/Os",
             "GameManager": "/Os",
             "utils": "/Od",
             "Global": "/Od",
             "TextHelper": "/Os",
+            "ItemManager": "/Od",
             "main": "/Od",
             "Midi": "/Od",
             "Supervisor": "/Os /Ob1",
-            "MusicRoom": "/Od",
+            "MusicRoom": "/Os",
+            "Player": "/Od",
             "ReplayManager": "/Od",
-            "ResultScreen": "/Os",
+            "ResultScreen": "/Os /Oi-",
             "ScoreDat": "/Od",
             "ScreenEffect": "/Od",
             "SoundPlayer": "/Od",
             "AnmManager": "/Od",
-            "Title": "/Od",
+            "TitleScreen": "/Os /Oi-",
             "zwave": "/Od",
         }
 
@@ -123,21 +127,25 @@ def configure(build_type):
             "Background",
             "Ending",
             "EnemyManager",
+            "BulletManager",  # etama.obj
+            "Gui",  # front.obj
             "GameManager",
             "utils",
             "Global",
             "TextHelper",  # grpfont.obj
+            "ItemManager",
             "main",
             "Midi",
             "Supervisor",  # mother.obj
             "MusicRoom",
+            "Player",
             "ReplayManager",
             "ResultScreen",
             "ScoreDat",
             "ScreenEffect",
             "SoundPlayer",
             "AnmManager",  # sprtlib.obj
-            "Title",
+            "TitleScreen",
             "zwave",
         ]
 

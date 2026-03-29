@@ -112,18 +112,28 @@ struct Supervisor
     static ZunResult RegisterChain();
 
     static ChainCallbackResult OnUpdate(Supervisor *s);
+    static BOOL CALLBACK ControllerCallback(LPCDIDEVICEOBJECTINSTANCEA lpddoi, LPVOID pvRef);
     static int AddedCallback(Supervisor *s);
     static ZunResult LoadDat();
     static i32 CheckFps();
     static void StartupThread(Supervisor *s);
     ZunResult SetupDInput();
+    static BOOL CALLBACK EnumGameControllersCb(LPCDIDEVICEINSTANCE pdidInstance, LPVOID pContext);
     static ZunResult DeletedCallback(Supervisor *s);
     static ChainCallbackResult DrawFpsCounter(Supervisor *s);
     static ChainCallbackResult OnDraw2(Supervisor *s);
-    static ChainCallbackResult OnDraw3(Supervisor *s);
+    static ChainCallbackResult DrawLoadingVms(Supervisor *s);
+    static void CalculateFps(ZunBool shouldDraw);
     ZunResult VerifyExeIntegrity(const char *version, i32 exeSize, i32 exeChecksum);
 
     ZunResult LoadConfig(char *configFile);
+    ZunBool LoadMusic(int param_1, char *param_2);
+    ZunBool PlayMusic(int param_1, char *param_2);
+    ZunResult PlayAudio(char *path, int param_2);
+    ZunResult StopAudio();
+    ZunBool IsSlowModeEnabled();
+    ZunResult FadeOutMusic(float param_1);
+
     void ThreadClose();
     void SetupLoadingVms(D3DXVECTOR3 *position);
     void InitializeCriticalSections();
@@ -279,6 +289,8 @@ struct Supervisor
 };
 C_ASSERT(sizeof(Supervisor) == 0x364);
 DIFFABLE_EXTERN(Supervisor, g_Supervisor);
+
+#define CRASH_GAME() memset(&g_Supervisor, -1, sizeof(g_Supervisor))
 
 struct ZunTimer
 {

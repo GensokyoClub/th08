@@ -352,6 +352,14 @@ struct ZunVec2
     float y;
 };
 
+struct ZunRect
+{
+    f32 left;
+    f32 top;
+    f32 right;
+    f32 bottom;
+};
+
 f32 AddNormalizeAngle(f32 a, f32 b);
 void Rotate(D3DXVECTOR3 *outVector, D3DXVECTOR3 *point, f32 angle);
 

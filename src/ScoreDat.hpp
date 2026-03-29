@@ -6,14 +6,22 @@
 namespace th08
 {
 
+struct ScoreListNode
+{
+};
+
 struct ScoreDat
 {
+    static i32 LinkScore(ScoreListNode *prevNode, Hscr *newScore);
+    static void FreeAllScores(ScoreDat *score);
     static ScoreDat *OpenScore(const char *filename);
-    static ZunResult ParsePLST(ScoreDat *score, Plst *outPlst);
-    static ZunResult ParseCLRD(ScoreDat *score, Clrd *outClrd);
-    static ZunResult ParsePSCR(ScoreDat *score, Pscr *outPscr);
-    static ZunResult ParseCATK(ScoreDat *score, Catk *outCatk);
-    static BOOL ParseFLSP(ScoreDat *score, Flsp *outFlsp);
+    static u32 GetHighScore(ScoreDat *score, ScoreListNode *node, u32 character, u32 difficulty, u8 *continuesUsed);
+    static i32 ParseCATK(ScoreDat *score, Catk *outCatk);
+    static i32 ParseLSNM(ScoreDat *score, Lsnm *outLsnm);
+    static i32 ParseFLSP(ScoreDat *score, Flsp *outFlsp);
+    static i32 ParseCLRD(ScoreDat *score, Clrd *outClrd);
+    static i32 ParsePSCR(ScoreDat *score, Pscr *outPscr);
+    static i32 ParsePLST(ScoreDat *score, Plst *outPlst);
     static void ReleaseScore(ScoreDat *score);
 };
 

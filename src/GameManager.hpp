@@ -130,6 +130,14 @@ struct Hscr
 
 C_ASSERT(sizeof(Hscr) == 0x168);
 
+struct Lsnm
+{
+    Th8k base;
+    unknown_fields(0xc, 0xc);
+};
+
+C_ASSERT(sizeof(Lsnm) == 0x18);
+
 struct GameManagerFlags
 {
     u32 unk0 : 1;
@@ -154,14 +162,80 @@ struct GameManagerFlags
 
 struct GameManager
 {
+    GameManager();
+
+    ZunBool IsWithinPlayfield();
+    i32 CalcAntiTamperChecksum();
+    static i32 CalcChecksum(u8 *param_1, i32 param_2);
+    void CollectExtend();
+
+    static ChainCallbackResult OnUpdate(GameManager *gameManager);
+    static ChainCallbackResult OnDraw(GameManager *gameManager);
+
     static ZunResult RegisterChain();
-    static void CutChain();
-    void AdvanceToNextStage()
+
+    static ZunResult AddedCallback(GameManager *gameManager);
+    static void GameplaySetupThread();
+
+    void InitRankParams()
     {
     }
+
+    void InitializeAntiTamper()
+    {
+    }
+
+    void UpdateAntiTamper()
+    {
+    }
+
+    ZunBool IsTampered()
+    {
+        return FALSE;
+    }
+
+    static ZunResult DeletedCallback(GameManager *gameManager);
+
+    static void CutChain();
+
+    void IncreaseSubrank(int amount);
+    void DecreaseSubrank(int amount);
+    void AddToYoukaiGauge(u16 param_1, i32 param_2);
+
+    ZunBool FinalBCleared();
     ZunBool FinalBClearedWithAnyTeam();
+    ZunBool FinalACleared();
     ZunBool FinalAClearedWithAnyTeam();
-    ZunBool FinalBClearedWithAllTeams();
+
+    ZunBool FinalBClearedWithAllTeams()
+    {
+        return FALSE;
+    }
+
+    i32 GetClockIncrement();
+    void AdvanceToNextStage();
+
+    void AddLives(int lives)
+    {
+        if (this->IsTampered())
+        {
+            CRASH_GAME();
+        }
+        this->globals->livesRemaining += lives;
+        this->UpdateAntiTamper();
+    }
+
+    void AddPower(int power)
+    {
+        if (this->IsTampered())
+        {
+            CRASH_GAME();
+        }
+        this->globals->playerPower += power;
+        this->UpdateAntiTamper();
+    }
+
+    void InitArcadeRegionParams();
 
     ZunBool IsUnknown()
     {
