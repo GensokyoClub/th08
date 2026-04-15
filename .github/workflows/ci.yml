@@ -89,3 +89,99 @@ jobs:
         path: |
           build/th08.dll
           build/th08.pdb
+
+  compare:
+    needs: ['build']
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Fetch game binary from cache.
+      uses: actions/cache@v4
+      id: cache
+      with:
+        path: resources/th08.exe
+        key: 9f76483c46256804792399296619c1274363c31cd8f1775fafb55106fb852245
+    - name: Download original game binary for comparison
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        curl -L $env:ORIGINAL_URL -o resources/th08.exe
+        $hash = (Get-FileHash resources/th08.exe).Hash
+        if ($hash -ne $env:EXPECTED_HASH) {
+          Write-Host "Downloaded file with unexpected hash."
+          Write-Host "Expected: " $env:EXPECTED_HASH
+          Write-Host "Got: $hash"
+          exit 1
+        }
+      env:
+        ORIGINAL_URL: ${{ secrets.ORIGINAL_URL }}
+        EXPECTED_HASH: 330fbdbf58a710829d65277b4f312cfbb38d5448b3df523e79350b879213d924
+
+    - uses: actions/download-artifact@main
+      with:
+       name: th08
+       path: build
+
+    - name: Install reccmp
+      run: pip install reccmp
+    - name: Setup reccmp
+      run: |
+        reccmp-project detect --search-path resources/
+        cd build
+        reccmp-project detect --what recompiled
+    - name: Print diff summary
+      working-directory: build
+      run: python ../scripts/generate_reccmp_diff.py > $env:GITHUB_STEP_SUMMARY
+
+    - name: Reccmp save
+      working-directory: build
+      run: |
+        reccmp-reccmp --target th08 --json th08.json --silent
+
+    - name: Reccmp diff
+      env:
+        RELEASE_URL: https://github.com/GensokyoClub/th08/releases/download/continuous
+      working-directory: build
+      run: |
+        # Download the current master state
+        curl -fLSs -o saved-th08.json $RELEASE_URL/th08.json
+
+        reccmp-reccmp --target th08 --diff saved-th08.json
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Accuracy Report
+        path: |
+          build/th08.json
+
+
+  upload:
+    name: Upload artifacts
+    needs: [build, build-dll, compare]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.repository.fork
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: probonopd/uploadtool
+
+    - uses: actions/download-artifact@main
+      with:
+       name: th08
+       path: build
+
+    - uses: actions/download-artifact@main
+      with:
+       name: th08-dll
+       path: build-dll
+
+    - uses: actions/download-artifact@main
+      with:
+        name: Accuracy Report
+
+    - name: Upload Continuous Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        ./upload.sh \
+          build-dll/* \
+          build/* \
+          th08.json
