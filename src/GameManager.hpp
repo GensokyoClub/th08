@@ -1,18 +1,17 @@
 #pragma once
 
-#include "Supervisor.hpp"
 #include "SpellCard.hpp"
+#include "Supervisor.hpp"
 #include "ZunResult.hpp"
 #include "diffbuild.hpp"
 #include "inttypes.hpp"
 #include "utils.hpp"
 #include <windows.h>
 
-#define EXTRA_UNLOCKED_FLAG    ZUN_BIT(14)
-#define SPELL_PRACTICE_UNLOCKED_FLAG    ZUN_BIT(15)
+#define EXTRA_UNLOCKED_FLAG ZUN_BIT(14)
+#define SPELL_PRACTICE_UNLOCKED_FLAG ZUN_BIT(15)
 
-#define IS_STAGE_CLEARED(difficulty, stage)     (difficulty & ZUN_BIT(stage))
-
+#define IS_STAGE_CLEARED(difficulty, stage) (difficulty & ZUN_BIT(stage))
 
 namespace th08
 {
@@ -41,7 +40,7 @@ enum ShotType
     SHOT_REMILIA,
     SHOT_YOUMU,
     SHOT_YUYUKO,
-    SHOT_ALL            = 12,
+    SHOT_ALL = 12,
 };
 
 enum Stage
@@ -294,44 +293,44 @@ struct GameManager
 
     ZunBool IsExtraUnlockedForCharacter(i32 character)
     {
-        return (character > SHOT_YOUMU_YUYUKO)
-               || (this->clrdData[character].difficultiesClearedWithoutRetries[EASY] & EXTRA_UNLOCKED_FLAG
-               || this->clrdData[character].difficultiesClearedWithoutRetries[NORMAL] & EXTRA_UNLOCKED_FLAG
-               || this->clrdData[character].difficultiesClearedWithoutRetries[HARD] & EXTRA_UNLOCKED_FLAG
-               || this->clrdData[character].difficultiesClearedWithoutRetries[LUNATIC] & EXTRA_UNLOCKED_FLAG);
+        return (character > SHOT_YOUMU_YUYUKO) ||
+               (this->clrdData[character].difficultiesClearedWithoutRetries[EASY] & EXTRA_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithoutRetries[NORMAL] & EXTRA_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithoutRetries[HARD] & EXTRA_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithoutRetries[LUNATIC] & EXTRA_UNLOCKED_FLAG);
     }
 
     ZunBool IsExtraUnlocked()
     {
-        return this->IsExtraUnlockedForCharacter(SHOT_REIMU_YUKARI)
-               || this->IsExtraUnlockedForCharacter(SHOT_MARISA_ALICE)
-               || this->IsExtraUnlockedForCharacter(SHOT_SAKUYA_REMILIA)
-               || this->IsExtraUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
+        return this->IsExtraUnlockedForCharacter(SHOT_REIMU_YUKARI) ||
+               this->IsExtraUnlockedForCharacter(SHOT_MARISA_ALICE) ||
+               this->IsExtraUnlockedForCharacter(SHOT_SAKUYA_REMILIA) ||
+               this->IsExtraUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
     }
 
     ZunBool IsSpellPracticeUnlockedForCharacter(i32 character)
     {
-        return (character > SHOT_YOUMU_YUYUKO)
-               || (this->clrdData[character].difficultiesClearedWithRetries[EASY] & SPELL_PRACTICE_UNLOCKED_FLAG
-               || this->clrdData[character].difficultiesClearedWithRetries[NORMAL] & SPELL_PRACTICE_UNLOCKED_FLAG
-               || this->clrdData[character].difficultiesClearedWithRetries[HARD] & SPELL_PRACTICE_UNLOCKED_FLAG
-               || this->clrdData[character].difficultiesClearedWithRetries[LUNATIC] & SPELL_PRACTICE_UNLOCKED_FLAG);
+        return (character > SHOT_YOUMU_YUYUKO) ||
+               (this->clrdData[character].difficultiesClearedWithRetries[EASY] & SPELL_PRACTICE_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithRetries[NORMAL] & SPELL_PRACTICE_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithRetries[HARD] & SPELL_PRACTICE_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithRetries[LUNATIC] & SPELL_PRACTICE_UNLOCKED_FLAG);
     }
 
     ZunBool IsSpellPracticeUnlocked()
     {
-        return this->IsSpellPracticeUnlockedForCharacter(SHOT_REIMU_YUKARI)
-               || this->IsSpellPracticeUnlockedForCharacter(SHOT_MARISA_ALICE)
-               || this->IsSpellPracticeUnlockedForCharacter(SHOT_SAKUYA_REMILIA)
-               || this->IsSpellPracticeUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
+        return this->IsSpellPracticeUnlockedForCharacter(SHOT_REIMU_YUKARI) ||
+               this->IsSpellPracticeUnlockedForCharacter(SHOT_MARISA_ALICE) ||
+               this->IsSpellPracticeUnlockedForCharacter(SHOT_SAKUYA_REMILIA) ||
+               this->IsSpellPracticeUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
     }
 
     ZunBool IsExtraUnlockedWithAllTeams()
     {
-        return this->IsExtraUnlockedForCharacter(SHOT_REIMU_YUKARI)
-               && this->IsExtraUnlockedForCharacter(SHOT_MARISA_ALICE)
-               && this->IsExtraUnlockedForCharacter(SHOT_SAKUYA_REMILIA)
-               && this->IsExtraUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
+        return this->IsExtraUnlockedForCharacter(SHOT_REIMU_YUKARI) &&
+               this->IsExtraUnlockedForCharacter(SHOT_MARISA_ALICE) &&
+               this->IsExtraUnlockedForCharacter(SHOT_SAKUYA_REMILIA) &&
+               this->IsExtraUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
     }
 
     ZunBool HasSpellCardBeenEncountered(i32 spellCardNumber, i32 shotType)
@@ -343,10 +342,10 @@ struct GameManager
 
     ZunBool IsLastWordSpellCardAttempted(i32 spellCardNumber)
     {
-        return spellCardNumber < SPELL_CARD_LAST_WORD_START
-                && (this->catkData[spellCardNumber].inGameHistory.attempts[SHOT_ALL] != 0
-                    || this->catkData[spellCardNumber].spellPracticeHistory.attempts[SHOT_ALL] != 0)
-                    || this->flsp.unlockedLastWordSpellCards[spellCardNumber - SPELL_CARD_LAST_WORD_START] == spellCardNumber;
+        return spellCardNumber < SPELL_CARD_LAST_WORD_START &&
+                   (this->catkData[spellCardNumber].inGameHistory.attempts[SHOT_ALL] != 0 ||
+                    this->catkData[spellCardNumber].spellPracticeHistory.attempts[SHOT_ALL] != 0) ||
+               this->flsp.unlockedLastWordSpellCards[spellCardNumber - SPELL_CARD_LAST_WORD_START] == spellCardNumber;
     }
 
     i32 GetPower()

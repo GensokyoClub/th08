@@ -504,9 +504,9 @@ struct AnmManager
     void ReleaseAnm(i32 anmIdx);
     void ReleaseAnmEntry(AnmEntry *anmEntry);
 
-    void DrawTextInner(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth, i32 fontHeight,
-                       COLORREF textColor, COLORREF outlineColor, const char *buffer, float scaleFactorX,
-                       float scaleFactorY);
+    void DrawTextInner(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth,
+                       i32 fontHeight, COLORREF textColor, COLORREF outlineColor, const char *buffer,
+                       float scaleFactorX, float scaleFactorY);
     void DrawTextLeft(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...);
     void DrawTextCentered(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...);
     ZunResult LoadSurface(i32 surfaceIdx, const char *path);
@@ -625,7 +625,7 @@ struct AnmManager
     }
 
     void RequestCapture(i32 captureSurfaceIdx, i32 srcX, i32 srcY, i32 srcW, i32 srcH, i32 dstX, i32 dstY, i32 dstW,
-                          i32 dstH)
+                        i32 dstH)
     {
         if (this->captureSurfaceIdx >= 0)
         {

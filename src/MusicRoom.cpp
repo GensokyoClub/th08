@@ -9,8 +9,7 @@ namespace th08
 
 const char *g_BgmNotUnlockedWarning[] = {
     TH_WARN_BGM_NOT_UNLOCKED0, TH_WARN_BGM_NOT_UNLOCKED1, TH_WARN_BGM_NOT_UNLOCKED2, TH_WARN_BGM_NOT_UNLOCKED3,
-    TH_WARN_BGM_NOT_UNLOCKED4, TH_WARN_BGM_NOT_UNLOCKED5, TH_WARN_BGM_NOT_UNLOCKED6, TH_WARN_BGM_NOT_UNLOCKED4
-};
+    TH_WARN_BGM_NOT_UNLOCKED4, TH_WARN_BGM_NOT_UNLOCKED5, TH_WARN_BGM_NOT_UNLOCKED6, TH_WARN_BGM_NOT_UNLOCKED4};
 
 ZunResult MusicRoom::CheckInputEnable()
 {
@@ -531,7 +530,7 @@ out:
         if (musicRoom->bgmUnlocked[i])
         {
             g_AnmManager->DrawTextLeft(&musicRoom->songNameVms[i], 0xc0e0ff, 0x302080,
-                                        musicRoom->trackDescriptors[i].title);
+                                       musicRoom->trackDescriptors[i].title);
         }
         else
         {

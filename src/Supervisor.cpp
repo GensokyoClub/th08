@@ -7,8 +7,8 @@
 #include "MusicRoom.hpp"
 #include "ReplayManager.hpp"
 #include "ResultScreen.hpp"
-#include "ScreenEffect.hpp"
 #include "ScoreDat.hpp"
+#include "ScreenEffect.hpp"
 #include "SoundPlayer.hpp"
 #include "TextHelper.hpp"
 #include "TitleScreen.hpp"
@@ -1321,7 +1321,8 @@ void Supervisor::StartEffect(i32 idx)
 {
     if (g_SupervisorScreenEffect == NULL)
     {
-        //g_SupervisorScreenEffect = ScreenEffect::RegisterChain(((ScreenEffectType) idx) + SCREEN_EFFECT_UNK5, 60, 0, 0, 0, 1);
+        // g_SupervisorScreenEffect = ScreenEffect::RegisterChain(((ScreenEffectType) idx) + SCREEN_EFFECT_UNK5, 60, 0,
+        // 0, 0, 1);
     }
 }
 

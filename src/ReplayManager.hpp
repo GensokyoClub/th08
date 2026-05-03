@@ -19,5 +19,4 @@ struct ReplayManager
 
 DIFFABLE_EXTERN(ReplayManager *, g_ReplayManager);
 
-
 } // namespace th08

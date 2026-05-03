@@ -1811,8 +1811,8 @@ void AnmLoaded::LoadSprite(i32 spriteIdx, AnmLoadedSprite *loadedSprite)
 }
 
 void AnmManager::DrawTextInner(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth,
-                            i32 fontHeight, COLORREF textColor, COLORREF outlineColor, const char *buffer,
-                            float scaleFactorX, float scaleFactorY)
+                               i32 fontHeight, COLORREF textColor, COLORREF outlineColor, const char *buffer,
+                               float scaleFactorX, float scaleFactorY)
 {
     if (fontWidth <= 0)
     {
@@ -1848,9 +1848,9 @@ void AnmManager::DrawTextLeft(AnmVm *vm, COLORREF textColor, COLORREF shadowColo
     va_end(args);
 
     this->DrawTextInner(vm->loadedSprite->texture, vm->loadedSprite->startPixelInclusive.x,
-                   vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width, vm->loadedSprite->height,
-                   fontWidth, vm->fontHeight, textColor, shadowColor, buf, vm->loadedSprite->scaleFactor.x,
-                   vm->loadedSprite->scaleFactor.y);
+                        vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width, vm->loadedSprite->height,
+                        fontWidth, vm->fontHeight, textColor, shadowColor, buf, vm->loadedSprite->scaleFactor.x,
+                        vm->loadedSprite->scaleFactor.y);
 
     vm->prefix.visible = true;
 }
@@ -1961,7 +1961,7 @@ ZunResult AnmManager::PreloadSurface(i32 surfaceIdx, const char *path)
         this->ReleaseSurface(surfaceIdx);
     }
 
-    fileData = FileSystem::OpenFile(path, (i32 *) &fileSize, 0);
+    fileData = FileSystem::OpenFile(path, (i32 *)&fileSize, 0);
     if (fileData == NULL)
     {
         g_GameErrorContext.Fatal(TH_ERR_CANNOT_BE_LOADED, path);
@@ -2081,48 +2081,32 @@ void AnmManager::CaptureToSurface(i32 captureSurfaceIdx, i32 srcX, i32 srcY, i32
 
     if (g_Supervisor.d3dDevice->CreateRenderTarget(this->surfaceInfo[captureSurfaceIdx].Width,
                                                    this->surfaceInfo[captureSurfaceIdx].Height,
-                                                   g_Supervisor.presentParameters.BackBufferFormat,
-                                                   D3DMULTISAMPLE_NONE,
-                                                   1,
-                                                   &this->surfaces[captureSurfaceIdx]) != D3D_OK)
+                                                   g_Supervisor.presentParameters.BackBufferFormat, D3DMULTISAMPLE_NONE,
+                                                   1, &this->surfaces[captureSurfaceIdx]) != D3D_OK)
     {
-        if (g_Supervisor.d3dDevice->CreateImageSurface(this->surfaceInfo[captureSurfaceIdx].Width,
-                                                   this->surfaceInfo[captureSurfaceIdx].Height,
-                                                   g_Supervisor.presentParameters.BackBufferFormat,
-                                                   &this->surfaces[captureSurfaceIdx]) != D3D_OK)
+        if (g_Supervisor.d3dDevice->CreateImageSurface(
+                this->surfaceInfo[captureSurfaceIdx].Width, this->surfaceInfo[captureSurfaceIdx].Height,
+                g_Supervisor.presentParameters.BackBufferFormat, &this->surfaces[captureSurfaceIdx]) != D3D_OK)
         {
             goto out;
         }
     }
 
-    if (g_Supervisor.d3dDevice->CreateImageSurface(this->surfaceInfo[captureSurfaceIdx].Width,
-                                                   this->surfaceInfo[captureSurfaceIdx].Height,
-                                                   g_Supervisor.presentParameters.BackBufferFormat,
-                                                   &this->surfacesBis[captureSurfaceIdx]) != D3D_OK)
+    if (g_Supervisor.d3dDevice->CreateImageSurface(
+            this->surfaceInfo[captureSurfaceIdx].Width, this->surfaceInfo[captureSurfaceIdx].Height,
+            g_Supervisor.presentParameters.BackBufferFormat, &this->surfacesBis[captureSurfaceIdx]) != D3D_OK)
     {
         goto out;
     }
 
-    if (D3DXLoadSurfaceFromSurface(this->surfaces[captureSurfaceIdx],
-                                   NULL,
-                                   &dstRect,
-                                   backbuffer,
-                                   NULL,
-                                   &srcRect,
-                                   -1,
+    if (D3DXLoadSurfaceFromSurface(this->surfaces[captureSurfaceIdx], NULL, &dstRect, backbuffer, NULL, &srcRect, -1,
                                    0) != D3D_OK)
     {
         goto out;
     }
 
-    D3DXLoadSurfaceFromSurface(this->surfacesBis[captureSurfaceIdx],
-                               NULL,
-                               NULL,
-                               this->surfaces[captureSurfaceIdx],
-                               NULL,
-                               NULL,
-                               -1,
-                               0);
+    D3DXLoadSurfaceFromSurface(this->surfacesBis[captureSurfaceIdx], NULL, NULL, this->surfaces[captureSurfaceIdx],
+                               NULL, NULL, -1, 0);
 
 out:
     SAFE_RELEASE(backbuffer);
