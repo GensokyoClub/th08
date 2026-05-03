@@ -435,7 +435,7 @@ void SoundPlayer::StopBGM()
         if (this->bgmThreadHandle != NULL)
         {
             PostThreadMessageA(this->bgmThreadId, WM_QUIT, 0, 0);
-            utils::DebugPrint("stop this->dwNotifyThreadID\r\n");
+            utils::DebugPrint("stop m_dwNotifyThreadID\r\n");
 
             while (WaitForSingleObject(this->bgmThreadHandle, 256))
                 PostThreadMessageA(this->bgmThreadId, WM_QUIT, 0, 0);
