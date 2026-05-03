@@ -20,7 +20,91 @@ import java.nio.file.Files;
 
 public class ExportGhidraToReccmp extends GhidraScript
 {
-    private String makeReccmpSymbolCSV()
+    private String makeReccmpFunctionsCSV()
+    {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("name,address,type\n");
+        SymbolTable symbolTable = currentProgram.getSymbolTable();
+
+        SymbolIterator symbolIter = symbolTable.getAllSymbols(true);
+
+        while (symbolIter.hasNext())
+        {
+            long size = 0;
+
+            Symbol symbol = symbolIter.next();
+
+            SymbolType type = symbol.getSymbolType();
+            String strType = "";
+            String symbolName = symbol.getName(true);
+
+            if (type == SymbolType.FUNCTION)
+            {
+                /* This is a nice ole hack to get rid of library functions in the reccmp report. */
+                if (symbol.getAddress().getOffset() >= 0x476ce0)
+                {
+                    strType = "library";
+                }
+                else
+                {
+                    strType = "function";
+                }
+                if (symbol instanceof FunctionSymbol)
+                {
+                    Function function = (Function)((FunctionSymbol)symbol).getObject();
+
+                    /* we don't care about external functions */
+                    if (function.isExternal())
+                    {
+                        continue;
+                    }
+
+                    /* or thunks */
+                    if (function.isThunk())
+                    {
+                        continue;
+                    }
+
+                    size = function.getBody().getNumAddresses();
+
+                    /* some symbol names need to "demangled" in order to match with reccmp. */
+
+                    if (symbolName.startsWith("_"))
+                    {
+                        /* remove the leading _ */
+                        symbolName = symbolName.substring(1);
+                    }
+                    /* operator_new and operator_delete */
+                    if (symbolName.startsWith("operator"))
+                    {
+                        symbolName = symbolName.replace('_', ' ');
+                    }
+
+                    /* e.g. `eh_vector_constructor_iterator' or `scalar_deleting_destructor' */
+                    if (symbolName.indexOf('`') != -1 && symbolName.indexOf('\'') != -1)
+                    {
+                        symbolName = symbolName.replace('_', ' ');
+                    }
+                }
+            }
+            else
+            {
+                continue;
+            }
+
+            builder.append(symbolName);
+            builder.append(",0x");
+            builder.append(Long.toHexString(symbol.getAddress().getOffset()));
+            builder.append(",");
+            builder.append(strType);
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
+    private String makeReccmpGlobalsCSV()
     {
         StringBuilder builder = new StringBuilder();
 
@@ -37,41 +121,7 @@ public class ExportGhidraToReccmp extends GhidraScript
             String strType = "";
             String symbolName = symbol.getName(true);
 
-            if (type == SymbolType.FUNCTION)
-            {
-                strType = "function";
-                if (symbol instanceof FunctionSymbol)
-                {
-                    Function function = (Function)((FunctionSymbol)symbol).getObject();
-
-                    /* we don't care about external functions */
-                    if (function.isExternal())
-                    {
-                        continue;
-                    }
-
-                    /* some symbol names need to "demangled" in order to match with reccmp. */
-
-                    if (symbolName.startsWith("_"))
-                    {
-                        /* remove the leading _ */
-                        symbolName = symbolName.substring(1);
-                    }
-                    /* operator_new and operator_delete */
-                    if (symbolName.startsWith("operator"))
-                    {
-                        symbolName = symbolName.replace('_', ' ');
-                    }
-
-                    /* e.g. `eh_vector_constructor_iterator' or `scalar_deleting_destructor' */
-                    if (symbolName.indexOf('`') != -1 && symbolName.indexOf('`') != 0 /* must not start with `*/
-                        && symbolName.indexOf('\'') != -1)
-                    {
-                        symbolName = symbolName.replace('_', ' ');
-                    }
-                }
-            }
-            else if (type == SymbolType.LABEL)
+            if (type == SymbolType.LABEL)
             {
                 /* filters out switch labels */
                 if (symbol.getSource() != SourceType.USER_DEFINED)
@@ -79,8 +129,10 @@ public class ExportGhidraToReccmp extends GhidraScript
                     continue;
                 }
 
+                Data data = currentProgram.getListing().getDefinedDataAt(symbol.getAddress());
+
                 /* filter out instruction labels */
-                if (currentProgram.getListing().getDefinedDataAt(symbol.getAddress()) == null)
+                if (data == null)
                 {
                     continue;
                 }
@@ -227,8 +279,15 @@ public class ExportGhidraToReccmp extends GhidraScript
 
     @Override public void run() throws Exception
     {
-        String fileContents = makeReccmpSymbolCSV();
-        File outputFile = askFile("reccmp-symbols.csv", "Save");
+        String fileContents;
+        File outputFile;
+
+        fileContents = makeReccmpFunctionsCSV();
+        outputFile = askFile("reccmp-functions.csv", "Save");
+        Files.write(outputFile.toPath(), fileContents.getBytes());
+
+        fileContents = makeReccmpGlobalsCSV();
+        outputFile = askFile("reccmp-globals.csv", "Save");
         Files.write(outputFile.toPath(), fileContents.getBytes());
 
         fileContents = makeReccmpStringsCSV();

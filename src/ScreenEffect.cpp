@@ -3,6 +3,7 @@
 namespace th08
 {
 
+DIFFABLE_STATIC(i32, g_ScreenEffectCounter);
 DIFFABLE_STATIC(ScreenEffect, g_ScreenEffect);
 
 void ScreenEffect::Clear(D3DCOLOR color)

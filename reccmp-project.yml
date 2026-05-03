@@ -5,7 +5,8 @@ targets:
     hash:
       sha256: 330fbdbf58a710829d65277b4f312cfbb38d5448b3df523e79350b879213d924
     data_sources:
-      - config/reccmp-symbols.csv
+      - config/reccmp-functions.csv
+      - config/reccmp-globals.csv
       - config/reccmp-floats.csv
       - config/reccmp-strings.csv
     ghidra:

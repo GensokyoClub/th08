@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SpellCard.hpp"
 #include "Supervisor.hpp"
 #include "ZunResult.hpp"
 #include "diffbuild.hpp"
@@ -7,8 +8,56 @@
 #include "utils.hpp"
 #include <windows.h>
 
+#define EXTRA_UNLOCKED_FLAG ZUN_BIT(14)
+#define SPELL_PRACTICE_UNLOCKED_FLAG ZUN_BIT(15)
+
+#define IS_STAGE_CLEARED(difficulty, stage) (difficulty & ZUN_BIT(stage))
+
 namespace th08
 {
+
+enum Difficulty
+{
+    EASY,
+    NORMAL,
+    HARD,
+    LUNATIC,
+    EXTRA,
+    MAX_DIFFICULTIES
+};
+
+enum ShotType
+{
+    SHOT_REIMU_YUKARI,
+    SHOT_MARISA_ALICE,
+    SHOT_SAKUYA_REMILIA,
+    SHOT_YOUMU_YUYUKO,
+    SHOT_REIMU,
+    SHOT_YUKARI,
+    SHOT_MARISA,
+    SHOT_ALICE,
+    SHOT_SAKUYA,
+    SHOT_REMILIA,
+    SHOT_YOUMU,
+    SHOT_YUYUKO,
+    SHOT_ALL = 12,
+};
+
+enum Stage
+{
+    STAGE1,
+    STAGE2,
+    STAGE3,
+    STAGE4A,
+    STAGE4B,
+    STAGE5,
+    STAGE6A,
+    STAGE6B,
+    EXTRASTAGE,
+    MAX_STAGES,
+    STAGE_LAST_WORD = MAX_STAGES
+};
+
 struct Th8k
 {
     u32 magic;
@@ -21,7 +70,7 @@ C_ASSERT(sizeof(Th8k) == 0xC);
 
 struct PlstPlayCounts
 {
-    i32 attemptsTotal;
+    u32 attemptsTotal;
     i32 attemptsPerCharacter[12];
     unknown_fields(0x34, 0x4);
     i32 clears;
@@ -51,20 +100,16 @@ C_ASSERT(sizeof(Plst) == 0x228);
 struct Flsp
 {
     Th8k base;
-    BYTE idx[17];
-    unknown_fields(0x1d, 0x3);
+    BYTE unlockedLastWordSpellCards[SPELL_CARD_COUNT_LAST_WORD_SPELL_CARDS];
 };
 
 C_ASSERT(sizeof(Flsp) == 0x20);
 
 struct CatkHistory
 {
-    i32 maxBonusPerShot[12];
-    i32 maxBonusBest;
-    i32 attemptsPerShot[12];
-    i32 attemptsTotal;
-    i32 capturesPerShot[12];
-    i32 capturesTotal;
+    i32 maxBonus[SHOT_ALL + 1];
+    u32 attempts[SHOT_ALL + 1];
+    u32 captures[SHOT_ALL + 1];
 };
 
 struct Catk
@@ -86,7 +131,8 @@ C_ASSERT(sizeof(Catk) == 0x22c);
 struct Clrd
 {
     Th8k base;
-    u16 flags[10];
+    u16 difficultiesClearedWithoutRetries[5];
+    u16 difficultiesClearedWithRetries[5];
     bool unk_20;
 };
 
@@ -96,7 +142,9 @@ struct Pscr
 {
     Th8k base;
 
-    unknown_fields(0xc, 0x16c);
+    i32 attempts[MAX_STAGES][MAX_DIFFICULTIES];
+    i32 highScores[MAX_STAGES][MAX_DIFFICULTIES];
+    unknown_fields(0x174, 4);
 };
 
 C_ASSERT(sizeof(Pscr) == 0x178);
@@ -140,10 +188,10 @@ C_ASSERT(sizeof(Lsnm) == 0x18);
 
 struct GameManagerFlags
 {
-    u32 unk0 : 1;
-    u32 unk1 : 1;
+    u32 isPracticeMode : 1;
+    u32 isDemoMode : 1;
     u32 unk2 : 1;
-    u32 unk3 : 1;
+    u32 isReplay : 1;
     u32 unk4 : 1;
     u32 unk5 : 1;
     u32 unk6 : 1;
@@ -154,10 +202,11 @@ struct GameManagerFlags
     u32 unk11 : 1;
     u32 unk12 : 1;
     u32 unk13 : 1;
-    u32 unk14 : 1;
-    u32 finalBClearedWithAnyTeam : 1;
-    u32 finalAClearedWithAnyTeam : 1;
-    u32 finalBClearedWithAllTeams : 1;
+    u32 isSpellPractice : 1;
+
+    u32 isExtraUnlocked : 1;
+    u32 isSpellPracticeUnlocked : 1;
+    u32 isExtraUnlockedWithAllTeams : 1;
 };
 
 struct GameManager
@@ -202,14 +251,101 @@ struct GameManager
     void DecreaseSubrank(int amount);
     void AddToYoukaiGauge(u16 param_1, i32 param_2);
 
-    ZunBool FinalBCleared();
-    ZunBool FinalBClearedWithAnyTeam();
-    ZunBool FinalACleared();
-    ZunBool FinalAClearedWithAnyTeam();
+    ZunBool IsPhantasmUnlocked();
 
-    ZunBool FinalBClearedWithAllTeams()
+    /* I know it's dumb but this is the only way to get it matching */
+    void SetIsReplayWeird(ZunBool value)
     {
-        return FALSE;
+        ZunBool res = value;
+
+        this->flags.isReplay = res;
+    }
+
+    ZunBool IsPracticeMode()
+    {
+        return this->flags.isPracticeMode;
+    }
+
+    ZunBool IsReplay()
+    {
+        return this->flags.isReplay;
+    }
+
+    ZunBool IsSpellPractice()
+    {
+        return this->flags.isSpellPractice;
+    }
+
+    ZunBool IsDemoMode()
+    {
+        return this->flags.isDemoMode;
+    }
+
+    ZunBool IsStageClearedWithRetries(i32 stage, i32 character, i32 difficulty)
+    {
+        return IS_STAGE_CLEARED(this->clrdData[character].difficultiesClearedWithRetries[difficulty], stage);
+    }
+
+    ZunBool IsStageClearedWithoutRetries(i32 stage, i32 character, i32 difficulty)
+    {
+        return IS_STAGE_CLEARED(this->clrdData[character].difficultiesClearedWithoutRetries[difficulty], stage);
+    }
+
+    ZunBool IsExtraUnlockedForCharacter(i32 character)
+    {
+        return (character > SHOT_YOUMU_YUYUKO) ||
+               (this->clrdData[character].difficultiesClearedWithoutRetries[EASY] & EXTRA_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithoutRetries[NORMAL] & EXTRA_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithoutRetries[HARD] & EXTRA_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithoutRetries[LUNATIC] & EXTRA_UNLOCKED_FLAG);
+    }
+
+    ZunBool IsExtraUnlocked()
+    {
+        return this->IsExtraUnlockedForCharacter(SHOT_REIMU_YUKARI) ||
+               this->IsExtraUnlockedForCharacter(SHOT_MARISA_ALICE) ||
+               this->IsExtraUnlockedForCharacter(SHOT_SAKUYA_REMILIA) ||
+               this->IsExtraUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
+    }
+
+    ZunBool IsSpellPracticeUnlockedForCharacter(i32 character)
+    {
+        return (character > SHOT_YOUMU_YUYUKO) ||
+               (this->clrdData[character].difficultiesClearedWithRetries[EASY] & SPELL_PRACTICE_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithRetries[NORMAL] & SPELL_PRACTICE_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithRetries[HARD] & SPELL_PRACTICE_UNLOCKED_FLAG ||
+                this->clrdData[character].difficultiesClearedWithRetries[LUNATIC] & SPELL_PRACTICE_UNLOCKED_FLAG);
+    }
+
+    ZunBool IsSpellPracticeUnlocked()
+    {
+        return this->IsSpellPracticeUnlockedForCharacter(SHOT_REIMU_YUKARI) ||
+               this->IsSpellPracticeUnlockedForCharacter(SHOT_MARISA_ALICE) ||
+               this->IsSpellPracticeUnlockedForCharacter(SHOT_SAKUYA_REMILIA) ||
+               this->IsSpellPracticeUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
+    }
+
+    ZunBool IsExtraUnlockedWithAllTeams()
+    {
+        return this->IsExtraUnlockedForCharacter(SHOT_REIMU_YUKARI) &&
+               this->IsExtraUnlockedForCharacter(SHOT_MARISA_ALICE) &&
+               this->IsExtraUnlockedForCharacter(SHOT_SAKUYA_REMILIA) &&
+               this->IsExtraUnlockedForCharacter(SHOT_YOUMU_YUYUKO);
+    }
+
+    ZunBool HasSpellCardBeenEncountered(i32 spellCardNumber, i32 shotType)
+    {
+        Catk *catk = &this->catkData[spellCardNumber];
+
+        return catk->inGameHistory.attempts[shotType] > 0 || catk->spellPracticeHistory.attempts[shotType] != 0;
+    }
+
+    ZunBool IsLastWordSpellCardAttempted(i32 spellCardNumber)
+    {
+        return spellCardNumber < SPELL_CARD_LAST_WORD_START &&
+                   (this->catkData[spellCardNumber].inGameHistory.attempts[SHOT_ALL] != 0 ||
+                    this->catkData[spellCardNumber].spellPracticeHistory.attempts[SHOT_ALL] != 0) ||
+               this->flsp.unlockedLastWordSpellCards[spellCardNumber - SPELL_CARD_LAST_WORD_START] == spellCardNumber;
     }
 
     i32 GetPower()
@@ -273,10 +409,10 @@ struct GameManager
     u8 fullShotType;
     u8 unk3dbaa;
     GameManagerFlags flags;
-    u16 unk3DBB0;
+    i16 currentSpellCardNumber;
     u8 isInGameMenu;
     u8 showRetryMenu;
-    u8 unk3DBB4;
+    i8 currentDemoReplay;
     u8 unk3DBB5;
     u8 unk3DBB6;
     u8 unk3DBB7;

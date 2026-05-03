@@ -93,6 +93,7 @@ def configure(build_type):
         cxx_flags_per_source = {
             "AsciiManager": debug_codegen,
             "Background": debug_codegen,
+            "SpellCard": debug_codegen,
             "Ending": debug_codegen,
             "EnemyManager": debug_codegen,
             "BulletManager": debug_codegen,
@@ -113,7 +114,7 @@ def configure(build_type):
             "ScreenEffect": debug_codegen,
             "SoundPlayer": debug_codegen,
             "AnmManager": debug_codegen,
-            "TitleScreen": small_codegen + " /Oi-",
+            "TitleScreen": small_codegen + " /Oi- /Ob1",
             "zwave": debug_codegen,
         }
 
@@ -129,6 +130,7 @@ def configure(build_type):
         cxx_sources = [
             "AsciiManager",
             "Background",
+            "SpellCard",  # card.obj
             "Ending",
             "EnemyManager",
             "BulletManager",  # etama.obj

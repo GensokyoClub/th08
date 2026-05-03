@@ -67,22 +67,7 @@ void GameManager::AddToYoukaiGauge(u16 param_1, i32 param_2)
 {
 }
 
-ZunBool GameManager::FinalBCleared()
-{
-    return FALSE;
-}
-
-ZunBool GameManager::FinalBClearedWithAnyTeam()
-{
-    return FALSE;
-}
-
-ZunBool GameManager::FinalACleared()
-{
-    return FALSE;
-}
-
-ZunBool GameManager::FinalAClearedWithAnyTeam()
+ZunBool GameManager::IsPhantasmUnlocked()
 {
     return FALSE;
 }

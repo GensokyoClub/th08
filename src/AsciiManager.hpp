@@ -92,7 +92,7 @@ struct AsciiManager
     void CreateTimePopup(D3DXVECTOR3 *position, i32 number, i32 param3, D3DCOLOR color);
     void CreateFamiliarPopup(D3DXVECTOR3 *position, i32 number, i32 param3, D3DCOLOR color);
     void OnDrawHighPrioImpl();
-    void DrawPercentage(i32 param1, i32 param2, D3DCOLOR color);
+    void DrawPercentage(D3DXVECTOR3 *position, i32 percentage, D3DCOLOR color);
     void UpdateVms();
     void SetGaugeInterrupt(i32 interrupt);
     i32 GetGaugeInterrupt();
@@ -102,6 +102,17 @@ struct AsciiManager
     void SetColor(D3DCOLOR color)
     {
         this->color = color;
+    }
+
+    void SetIsSelected(ZunBool selected)
+    {
+        this->isSelected = selected;
+    }
+
+    void SetScale(float scaleX, float scaleY)
+    {
+        this->scaleX = scaleX;
+        this->scaleY = scaleY;
     }
 
     AnmVm largeText;

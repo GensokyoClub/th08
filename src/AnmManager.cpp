@@ -898,7 +898,20 @@ stop:
     return FALSE;
 }
 
-void AnmManager::ExecuteScriptOnVmArray(AnmVm *sprite, int count)
+void AnmManager::SetInterruptArray(AnmVm *vm, int count, i16 interrupt)
+{
+    while (count != 0)
+    {
+        if (g_AnmManager->SpriteHasTexture(vm))
+        {
+            vm->SetInterrupt(interrupt);
+        }
+        vm++;
+        count--;
+    }
+}
+
+void AnmManager::ExecuteScriptArray(AnmVm *sprite, int count)
 {
     while (count != 0)
     {
@@ -907,6 +920,19 @@ void AnmManager::ExecuteScriptOnVmArray(AnmVm *sprite, int count)
             g_AnmManager->ExecuteScript(sprite);
         }
         sprite++;
+        count--;
+    }
+}
+
+void AnmLoaded::ExecuteAnmIdxArray(AnmVm *vm, i32 scriptIdx, i32 count)
+{
+    while (count != 0)
+    {
+        this->ExecuteAnmIdx(vm, scriptIdx);
+        vm->baseSpriteIndex = vm->activeSpriteIndex;
+
+        scriptIdx++;
+        vm++;
         count--;
     }
 }
@@ -1284,6 +1310,51 @@ ZunResult AnmManager::DrawNoRotationNoRound(AnmVm *vm)
     g_QuadVertices[0].pos.z = g_QuadVertices[1].pos.z = g_QuadVertices[2].pos.z = g_QuadVertices[3].pos.z = vm->pos.z;
 
     return this->DrawInner(vm, 0);
+}
+
+ZunResult AnmManager::DrawTriangleFan(AnmVm *vm, VertexDiffuseXyzrhw *vertices, i32 vertexCount)
+{
+    if (this->spritesToDraw != 0)
+    {
+        this->FlushVertexBuffer();
+    }
+
+    if (this->currentVertexShader != 4)
+    {
+        g_Supervisor.d3dDevice->SetVertexShader(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
+        this->currentVertexShader = 4;
+    }
+
+    this->SetRenderStateForVm(vm);
+
+    if (!g_Supervisor.IsColorCompositingDisabled())
+    {
+        g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+        g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+    }
+
+    g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
+    g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+
+    g_Supervisor.SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+    g_Supervisor.d3dDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, vertexCount - 2, vertices, sizeof(VertexDiffuseXyzrhw));
+
+    g_AnmManager->ClearVertexShader();
+    g_AnmManager->ClearColorOp();
+    g_AnmManager->ClearBlendMode();
+    g_AnmManager->ClearZWrite();
+
+    if (!g_Supervisor.IsColorCompositingDisabled())
+    {
+        g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+        g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+    }
+
+    g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+    g_Supervisor.d3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+
+    return ZUN_SUCCESS;
 }
 
 // STUB: th08 0x465070
@@ -1739,9 +1810,9 @@ void AnmLoaded::LoadSprite(i32 spriteIdx, AnmLoadedSprite *loadedSprite)
         (loadedSprite->scaleFactor.y);
 }
 
-void AnmManager::DrawVmText(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth,
-                            i32 fontHeight, COLORREF textColor, COLORREF outlineColor, const char *buffer,
-                            float scaleFactorX, float scaleFactorY)
+void AnmManager::DrawTextInner(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth,
+                               i32 fontHeight, COLORREF textColor, COLORREF outlineColor, const char *buffer,
+                               float scaleFactorX, float scaleFactorY)
 {
     if (fontWidth <= 0)
     {
@@ -1765,7 +1836,7 @@ void AnmManager::DrawVmText(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 wid
 }
 
 #pragma var_order(buf, fontWidth)
-void AnmManager::DrawVmTextFmt(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...)
+void AnmManager::DrawTextLeft(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...)
 {
     char buf[128];
     int fontWidth = vm->fontWidth;
@@ -1776,12 +1847,17 @@ void AnmManager::DrawVmTextFmt(AnmVm *vm, COLORREF textColor, COLORREF shadowCol
     vsprintf(buf, fmt, args);
     va_end(args);
 
-    this->DrawVmText(vm->loadedSprite->texture, vm->loadedSprite->startPixelInclusive.x,
-                     vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width, vm->loadedSprite->height,
-                     fontWidth, vm->fontHeight, textColor, shadowColor, buf, vm->loadedSprite->scaleFactor.x,
-                     vm->loadedSprite->scaleFactor.y);
+    this->DrawTextInner(vm->loadedSprite->texture, vm->loadedSprite->startPixelInclusive.x,
+                        vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width, vm->loadedSprite->height,
+                        fontWidth, vm->fontHeight, textColor, shadowColor, buf, vm->loadedSprite->scaleFactor.x,
+                        vm->loadedSprite->scaleFactor.y);
 
     vm->prefix.visible = true;
+}
+
+// STUB: th08 0x466650
+void AnmManager::DrawTextCentered(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...)
+{
 }
 
 #pragma var_order(surface, fileSize, fileData)
@@ -1874,6 +1950,30 @@ err:
     return ZUN_ERROR;
 }
 
+#pragma var_order(fileSize, fileData)
+ZunResult AnmManager::PreloadSurface(i32 surfaceIdx, const char *path)
+{
+    u32 fileSize;
+    u8 *fileData;
+
+    if (this->surfaces[surfaceIdx] != NULL)
+    {
+        this->ReleaseSurface(surfaceIdx);
+    }
+
+    fileData = FileSystem::OpenFile(path, (i32 *)&fileSize, 0);
+    if (fileData == NULL)
+    {
+        g_GameErrorContext.Fatal(TH_ERR_CANNOT_BE_LOADED, path);
+        return ZUN_ERROR;
+    }
+
+    this->surfaceData[surfaceIdx] = fileData;
+    this->surfaceDataSizes[surfaceIdx] = fileSize;
+
+    return ZUN_SUCCESS;
+}
+
 void AnmManager::ReleaseSurface(i32 surfaceIdx)
 {
     if (this->surfaces[surfaceIdx] != NULL)
@@ -1945,9 +2045,71 @@ void AnmManager::CaptureToTexture(i32 captureAnmIdx, i32 srcX, i32 srcY, i32 src
                                   i32 dstW, i32 dstH)
 {
 }
+
+#pragma var_order(srcRect, backbuffer, dstRect)
 void AnmManager::CaptureToSurface(i32 captureSurfaceIdx, i32 srcX, i32 srcY, i32 srcW, i32 srcH, i32 dstX, i32 dstY,
                                   i32 dstW, i32 dstH)
 {
+    IDirect3DSurface8 *backbuffer;
+    RECT srcRect;
+    RECT dstRect;
+
+    this->FlushVertexBuffer();
+
+    if (this->surfaces[captureSurfaceIdx] != NULL)
+    {
+        this->ReleaseSurface(captureSurfaceIdx);
+    }
+
+    srcRect.left = srcX;
+    srcRect.top = srcY;
+    srcRect.right = srcX + srcW;
+    srcRect.bottom = srcY + srcH;
+
+    dstRect.left = dstX;
+    dstRect.top = dstY;
+    dstRect.right = dstX + dstW;
+    dstRect.bottom = dstY + dstH;
+
+    if (g_Supervisor.d3dDevice->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &backbuffer) != D3D_OK)
+    {
+        return;
+    }
+
+    this->surfaceInfo[captureSurfaceIdx].Width = dstW;
+    this->surfaceInfo[captureSurfaceIdx].Height = dstH;
+
+    if (g_Supervisor.d3dDevice->CreateRenderTarget(this->surfaceInfo[captureSurfaceIdx].Width,
+                                                   this->surfaceInfo[captureSurfaceIdx].Height,
+                                                   g_Supervisor.presentParameters.BackBufferFormat, D3DMULTISAMPLE_NONE,
+                                                   1, &this->surfaces[captureSurfaceIdx]) != D3D_OK)
+    {
+        if (g_Supervisor.d3dDevice->CreateImageSurface(
+                this->surfaceInfo[captureSurfaceIdx].Width, this->surfaceInfo[captureSurfaceIdx].Height,
+                g_Supervisor.presentParameters.BackBufferFormat, &this->surfaces[captureSurfaceIdx]) != D3D_OK)
+        {
+            goto out;
+        }
+    }
+
+    if (g_Supervisor.d3dDevice->CreateImageSurface(
+            this->surfaceInfo[captureSurfaceIdx].Width, this->surfaceInfo[captureSurfaceIdx].Height,
+            g_Supervisor.presentParameters.BackBufferFormat, &this->surfacesBis[captureSurfaceIdx]) != D3D_OK)
+    {
+        goto out;
+    }
+
+    if (D3DXLoadSurfaceFromSurface(this->surfaces[captureSurfaceIdx], NULL, &dstRect, backbuffer, NULL, &srcRect, -1,
+                                   0) != D3D_OK)
+    {
+        goto out;
+    }
+
+    D3DXLoadSurfaceFromSurface(this->surfacesBis[captureSurfaceIdx], NULL, NULL, this->surfaces[captureSurfaceIdx],
+                               NULL, NULL, -1, 0);
+
+out:
+    SAFE_RELEASE(backbuffer);
 }
 
 }; // Namespace th08

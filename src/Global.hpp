@@ -24,6 +24,13 @@ namespace th08
     g_ZunMemory.RemoveFromRegistry(p);                                                                                 \
     delete p;                                                                                                          \
     p = NULL;
+#define ZUN_DELETE2(p)                                                                                                 \
+    delete p;                                                                                                          \
+    p = NULL;
+
+#define ZUN_FREE(p)                                                                                                    \
+    g_ZunMemory.Free(p);                                                                                               \
+    p = NULL;
 
 enum ChainCallbackResult
 {

@@ -2,9 +2,15 @@
 
 #include "diffbuild.hpp"
 #include "inttypes.hpp"
+#include "utils.hpp"
 
 namespace th08
 {
+
+struct ReplayData
+{
+    unknown_fields(0x0, 0x134);
+};
 
 struct ReplayManager
 {
@@ -12,6 +18,5 @@ struct ReplayManager
 };
 
 DIFFABLE_EXTERN(ReplayManager *, g_ReplayManager);
-DIFFABLE_EXTERN(i32, g_UnknownCounter);
 
 } // namespace th08

@@ -10,6 +10,14 @@ namespace th08
 
 enum ScreenEffectType
 {
+    SCREEN_EFFECT_FULL_FADE_IN,
+    SCREEN_EFFECT_SHAKE,
+    SCREEN_EFFECT_ARCADE_FADE_OUT,
+    SCREEN_EFFECT_UNK3,
+    SCREEN_EFFECT_FULL_FADE_OUT,
+    SCREEN_EFFECT_UNK5,
+    SCREEN_EFFECT_UNK6,
+    SCREEN_EFFECT_UNK7,
 };
 
 struct ScreenEffect
@@ -36,4 +44,7 @@ struct ScreenEffect
 
     unknown_fields(0x0, 0x34);
 };
+
+DIFFABLE_EXTERN(i32, g_ScreenEffectCounter);
+
 }; // Namespace th08

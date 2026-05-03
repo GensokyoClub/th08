@@ -11,27 +11,27 @@ void BulletManager::Initialize()
 {
 }
 
-ZunResult RegisterChain()
+ZunResult BulletManager::RegisterChain()
 {
     return ZUN_SUCCESS;
 }
 
-ChainCallbackResult OnUpdate(BulletManager *bulletManager)
+ChainCallbackResult BulletManager::OnUpdate(BulletManager *bulletManager)
 {
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-ChainCallbackResult OnDraw(BulletManager *bulletManager)
+ChainCallbackResult BulletManager::OnDraw(BulletManager *bulletManager)
 {
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-ZunResult AddedCallback(BulletManager *bulletManager)
+ZunResult BulletManager::AddedCallback(BulletManager *bulletManager)
 {
     return ZUN_SUCCESS;
 }
 
-ZunResult DeletedCallback(BulletManager *bulletManager)
+ZunResult BulletManager::DeletedCallback(BulletManager *bulletManager)
 {
     return ZUN_SUCCESS;
 }

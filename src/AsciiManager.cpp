@@ -85,7 +85,7 @@ void AsciiManager::InitializeVms()
     this->asciiAnm->SetAndExecuteScriptIdx(&this->bossMarkers[3], 10);
 
     this->youkaiGaugeHumanIcon.pos.x -= (g_GameManager.youkaiGaugeHumanLimit * 56.0f) / -10000.0f;
-    this->youkaiGaugeYoukaiIcon.pos.x += (g_GameManager.youkaiGaugeYoukaiLimit * 56.0f) / -10000.0f;
+    this->youkaiGaugeYoukaiIcon.pos.x += (g_GameManager.youkaiGaugeYoukaiLimit * 56.0f) / 10000.0f;
 
     this->SetGaugeInterrupt(this->GetGaugeInterrupt());
 }
@@ -601,7 +601,7 @@ void AsciiManager::OnDrawHighPrioImpl()
 {
 }
 
-void AsciiManager::DrawPercentage(i32 param1, i32 param2, D3DCOLOR color)
+void AsciiManager::DrawPercentage(D3DXVECTOR3 *position, i32 percentage, D3DCOLOR color)
 {
 }
 
