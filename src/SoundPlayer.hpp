@@ -121,6 +121,11 @@ class SoundPlayer
         }
     }
 
+    void QueueSetVolumeCommand()
+    {
+        this->QueueCommand(8, 0, "SetVol");
+    }
+
     static DWORD WINAPI BGMPlayerThread(LPVOID lpThreadParameter);
 
     i32 GetFmtIndexByName(char *name);

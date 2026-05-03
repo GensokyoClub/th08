@@ -114,7 +114,7 @@ def configure(build_type):
             "ScreenEffect": debug_codegen,
             "SoundPlayer": debug_codegen,
             "AnmManager": debug_codegen,
-            "TitleScreen": small_codegen + " /Oi-",
+            "TitleScreen": small_codegen + " /Oi- /Ob1",
             "zwave": debug_codegen,
         }
 
