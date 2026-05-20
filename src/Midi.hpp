@@ -140,6 +140,13 @@ class MidiOutput : MidiTimer
     static u16 Ntohs(u16 val);
     static u32 SkipVariableLength(LPBYTE *curTrackDataCursor);
 
+    void PlayFile(i32 idx)
+    {
+        this->StopPlayback();
+        this->ParseFile(idx);
+        this->Play();
+    }
+
     static u32 Ntohl(u32 val)
     {
         u8 tmp[4];

@@ -23,15 +23,6 @@ enum MusicMode
     MIDI = 2
 };
 
-enum Difficulty
-{
-    EASY,
-    NORMAL,
-    HARD,
-    LUNATIC,
-    EXTRA,
-};
-
 enum EffectQuality
 {
     MINIMUM,
@@ -142,7 +133,7 @@ struct Supervisor
     static ChainCallbackResult OnDraw2(Supervisor *s);
     static ChainCallbackResult DrawLoadingVms(Supervisor *s);
     static void CalculateFps(ZunBool shouldDraw);
-    ZunResult VerifyExeIntegrity(const char *version, i32 exeSize, i32 exeChecksum);
+    ZunResult CheckVersion(const char *version, i32 exeSize, i32 exeChecksum);
 
     ZunResult LoadConfig(char *configFile);
     ZunBool LoadMusic(int param_1, char *param_2);
@@ -153,8 +144,10 @@ struct Supervisor
     ZunResult FadeOutMusic(float param_1);
 
     void ThreadClose();
-    void SetupLoadingVms(D3DXVECTOR3 *position);
-    void SetupLoadingVmsAndInitCapture(D3DXVECTOR3 *position);
+    void SetupLoadingVms(Float3 *position);
+    void HideLoadingVms(void);
+    void SetupLoadingVmsAndInitCapture(Float3 *position);
+    void StartEffect(i32 idx);
     void InitializeCriticalSections();
     void DeleteCriticalSections();
     void TickTimer(i32 *frames, float *subframes);
@@ -166,6 +159,15 @@ struct Supervisor
     static void UpdateGameTime(Supervisor *s);
 
     ZunResult ThreadStart(LPTHREAD_START_ROUTINE startFunction, void *startParam);
+
+    void ResetUnknownStuff()
+    {
+        this->unk0x338 = 0;
+        this->unk0x340 = 0;
+        this->unk0x34c = 0;
+        this->unk0x344 = 0;
+        this->unk0x348 = 0;
+    }
 
     ZunBool IsShotSlowEnabled()
     {
@@ -300,16 +302,23 @@ struct Supervisor
     u32 unk294;
     CRITICAL_SECTION criticalSections[4];
     u8 lockCounts[4];
-    DWORD loadingVmsHaveBeenSetup;
+    i32 loadingVmsHaveBeenSetup;
 
-    unknown_fields(0x300, 0x50);
+    unknown_fields(0x300, 0x38);
+
+    u32 unk0x338;
+    u32 unk0x33c;
+    u32 unk0x340;
+    u32 unk0x344;
+    u32 unk0x348;
+    u32 unk0x34c;
 
     FogState fogState;
     u32 exeChecksum;
     u32 exeSize;
 
     i32 versionDataSize;
-    void *versionData;
+    char *versionData;
 };
 C_ASSERT(sizeof(Supervisor) == 0x364);
 DIFFABLE_EXTERN(Supervisor, g_Supervisor);

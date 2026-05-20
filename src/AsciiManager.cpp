@@ -85,7 +85,7 @@ void AsciiManager::InitializeVms()
     this->asciiAnm->SetAndExecuteScriptIdx(&this->bossMarkers[3], 10);
 
     this->youkaiGaugeHumanIcon.pos.x -= (g_GameManager.youkaiGaugeHumanLimit * 56.0f) / -10000.0f;
-    this->youkaiGaugeYoukaiIcon.pos.x += (g_GameManager.youkaiGaugeYoukaiLimit * 56.0f) / -10000.0f;
+    this->youkaiGaugeYoukaiIcon.pos.x += (g_GameManager.youkaiGaugeYoukaiLimit * 56.0f) / 10000.0f;
 
     this->SetGaugeInterrupt(this->GetGaugeInterrupt());
 }
@@ -152,7 +152,7 @@ void AsciiManager::CutChain()
 }
 
 #pragma var_order(nextString)
-void AsciiManager::AddString(D3DXVECTOR3 *position, const char *string)
+void AsciiManager::AddString(Float3 *position, const char *string)
 {
     AsciiManagerString *nextString;
 
@@ -183,7 +183,7 @@ void AsciiManager::AddString(D3DXVECTOR3 *position, const char *string)
     }
 }
 
-void AsciiManager::AddFormatText(D3DXVECTOR3 *position, const char *fmt, ...)
+void AsciiManager::AddFormatText(Float3 *position, const char *fmt, ...)
 {
     char buf[512];
     va_list va;
@@ -194,7 +194,7 @@ void AsciiManager::AddFormatText(D3DXVECTOR3 *position, const char *fmt, ...)
     va_end(va);
 }
 
-int AsciiManager::AddFormatText2(D3DXVECTOR3 *position, const char *fmt, ...)
+int AsciiManager::AddFormatText2(Float3 *position, const char *fmt, ...)
 {
     char buf[512];
     va_list args;
@@ -210,25 +210,27 @@ int AsciiManager::AddFormatText2(D3DXVECTOR3 *position, const char *fmt, ...)
     return strlen(buf);
 }
 
+#pragma var_order(spaceWidth, i, curString, text, isGui, vector)
 void AsciiManager::OnDrawLowPrioImpl()
 {
-    D3DXVECTOR3 vector;
+    Float3 vector;
     ZunBool isGui = TRUE;
     int i;
-    int t1 = this->numStrings;
     AsciiManagerString *curString = &this->strings[0];
-    const char *text;
+    u8 *text;
     float spaceWidth;
 
     this->largeText.prefix.visible = true;
     this->largeText.prefix.anchor = 3;
 
-    for (i = 0; i < this->numStrings; i++)
+    for (i = 0; i < this->numStrings; i++, curString++)
     {
         this->largeText.pos = curString->position;
 
-        text = curString->text;
+        text = (u8 *)curString->text;
 
+        this->largeText.prefix.scale.x = curString->scaleX;
+        this->largeText.prefix.scale.y = curString->scaleY;
         spaceWidth = this->spaceWidth * curString->scaleX;
 
         if (isGui != curString->isGui)
@@ -259,7 +261,7 @@ void AsciiManager::OnDrawLowPrioImpl()
         {
             if (*text == '\n')
             {
-                this->largeText.pos.y += curString->scaleY * 16.0f;
+                this->largeText.pos.y += 16.0f * curString->scaleY;
                 this->largeText.pos.x = curString->position.x;
             }
             else if (*text == ' ')
@@ -268,15 +270,15 @@ void AsciiManager::OnDrawLowPrioImpl()
             }
             else
             {
-                if (curString->isSelected)
+                if (!curString->isSelected)
                 {
-                    this->largeText.loadedSprite = this->asciiAnm->GetSprite((u8)*text + (170 - ' '));
-                    this->largeText.prefix.color1.d3dColor = 0xffffffff;
+                    this->largeText.loadedSprite = this->asciiAnm->GetSprite(*text + (31 - ' '));
+                    this->largeText.prefix.color1.d3dColor = curString->color;
                 }
                 else
                 {
-                    this->largeText.loadedSprite = this->asciiAnm->GetSprite((u8)*text + (31 - ' '));
-                    this->largeText.prefix.color1.d3dColor = this->color;
+                    this->largeText.loadedSprite = this->asciiAnm->GetSprite(*text + (170 - ' '));
+                    this->largeText.prefix.color1.d3dColor = 0xffffffff;
                 }
 
                 g_AnmManager->DrawNoRotation(&this->largeText);
@@ -285,59 +287,336 @@ void AsciiManager::OnDrawLowPrioImpl()
 
             text++;
         }
+    }
 
-        curString++;
+    if (isGui)
+    {
+        g_AnmManager->FlushVertexBuffer();
+        g_Supervisor.viewport.X = 0;
+        g_Supervisor.viewport.Y = 0;
+        g_Supervisor.viewport.Width = 640;
+        g_Supervisor.viewport.Height = 480;
+        g_Supervisor.d3dDevice->SetViewport(&g_Supervisor.viewport);
+    }
+
+    for (i = 0; i < ARRAY_SIZE_SIGNED(this->bossMarkers); i++)
+    {
+        if (this->bossMarkers[i].pos.x >= 56.0f && this->bossMarkers[i].pos.x <= 392.0f)
+        {
+            // TODO: This line is not done! The player position is needed in this calculation
+            spaceWidth = fabsf(this->bossMarkers[i].pos.x - 32.0f);
+
+            this->bossMarkers[i].loadedSprite = this->asciiAnm->GetSprite(157);
+
+            switch (this->bossMarkerStates[i])
+            {
+            case 0:
+            no_flicker:
+                this->bossMarkers[i].prefix.color1.r = 255;
+                this->bossMarkers[i].prefix.color1.g = 255;
+                this->bossMarkers[i].prefix.color1.b = 255;
+                if (spaceWidth < 64.0f)
+                {
+                    this->bossMarkers[i].prefix.color1.a = (spaceWidth * 64.0f) / 64.0f + 96.0f;
+                }
+                else
+                {
+                    this->bossMarkers[i].prefix.color1.a = 160;
+                }
+                break;
+            case 1:
+                this->bossMarkers[i].prefix.color1.a = 128;
+                this->bossMarkers[i].prefix.color1.r = 255;
+                this->bossMarkers[i].prefix.color1.g = 64;
+                this->bossMarkers[i].prefix.color1.b = 64;
+                break;
+            case 2:
+                if (this->unk_8284 % 8 == 0)
+                {
+                    this->bossMarkers[i].loadedSprite = this->asciiAnm->GetSprite(158);
+                    this->bossMarkers[i].prefix.color1.a = 255;
+                    this->bossMarkers[i].prefix.color1.r = 255;
+                    this->bossMarkers[i].prefix.color1.g = 255;
+                    this->bossMarkers[i].prefix.color1.b = 255;
+                }
+                else
+                {
+                    goto no_flicker;
+                }
+                break;
+            case 3:
+                if (this->unk_8284 % 4 == 0)
+                {
+                    this->bossMarkers[i].loadedSprite = this->asciiAnm->GetSprite(158);
+                    this->bossMarkers[i].prefix.color1.a = 255;
+                    this->bossMarkers[i].prefix.color1.r = 255;
+                    this->bossMarkers[i].prefix.color1.g = 255;
+                    this->bossMarkers[i].prefix.color1.b = 255;
+                }
+                else
+                {
+                    goto no_flicker;
+                }
+                break;
+            case 4:
+                if (this->unk_8284 % 2 == 0)
+                {
+                    this->bossMarkers[i].loadedSprite = this->asciiAnm->GetSprite(158);
+                    this->bossMarkers[i].prefix.color1.a = 255;
+                    this->bossMarkers[i].prefix.color1.r = 255;
+                    this->bossMarkers[i].prefix.color1.g = 255;
+                    this->bossMarkers[i].prefix.color1.b = 255;
+                }
+                else
+                {
+                    goto no_flicker;
+                }
+                break;
+            }
+
+            g_AnmManager->DrawNoRotation(&this->bossMarkers[i]);
+        }
     }
 }
 
-void AsciiManager::CreateScorePopup(D3DXVECTOR3 *position, i32 number, D3DCOLOR color)
+void AsciiManager::CreateScorePopup(Float3 *position, i32 number, D3DCOLOR color)
 {
+    AsciiManagerPopup *popup;
+    int characterCount;
+
+    if (this->nextScorePopupIndex >= ASCII_MAX_SCORE_POPUPS)
+    {
+        this->nextScorePopupIndex = 0;
+    }
+    popup = &this->scorePopups[nextScorePopupIndex];
+    popup->inUse = true;
+
+    characterCount = 0;
+    if (number >= 0)
+    {
+        while (number != 0)
+        {
+            popup->text[characterCount] = number % 10;
+            characterCount++;
+            number /= 10;
+        }
+    }
+    else
+    {
+        popup->text[characterCount] = 10;
+        characterCount++;
+    }
+
+    if (characterCount == 0)
+    {
+        popup->text[characterCount] = 0;
+        characterCount++;
+    }
+
+    popup->characterCount = characterCount;
+    popup->color = color;
+    popup->timer = 0;
+    popup->position = *position;
+    popup->position.x += g_GameManager.arcadeRegionTopLeftPos.x;
+    popup->position.y += g_GameManager.arcadeRegionTopLeftPos.y;
+    this->nextScorePopupIndex++;
 }
 
-void AsciiManager::CreatePlayerPointPopup(D3DXVECTOR3 *position, i32 number, D3DCOLOR color)
+void AsciiManager::CreatePlayerPointPopup(Float3 *position, i32 number, D3DCOLOR color)
 {
+    AsciiManagerPopup *popup;
+    int characterCount;
+
+    if (this->nextPlayerPointPopupIndex >= ASCII_MAX_PLAYER_POPUPS)
+    {
+        this->nextPlayerPointPopupIndex = 0;
+    }
+    popup = &this->scorePopups[ASCII_MAX_SCORE_POPUPS + nextPlayerPointPopupIndex];
+    popup->inUse = true;
+
+    characterCount = 0;
+    if (number >= 0)
+    {
+        while (number != 0)
+        {
+            popup->text[characterCount] = number % 10;
+            characterCount++;
+            number /= 10;
+        }
+    }
+    else
+    {
+        popup->text[characterCount] = 10;
+        characterCount++;
+    }
+
+    if (characterCount == 0)
+    {
+        popup->text[characterCount] = 0;
+        characterCount++;
+    }
+
+    popup->characterCount = characterCount;
+    popup->color = color;
+    popup->timer = 0;
+    popup->position = *position;
+    popup->position.x += g_GameManager.arcadeRegionTopLeftPos.x;
+    popup->position.y += g_GameManager.arcadeRegionTopLeftPos.y;
+    this->nextPlayerPointPopupIndex++;
 }
 
-void AsciiManager::CreateTimePopup(D3DXVECTOR3 *position, i32 number, i32 param3, D3DCOLOR color)
+void AsciiManager::CreateTimePopup(Float3 *position, i32 number, i32 param3, D3DCOLOR color)
 {
+    AsciiManagerPopup *popup;
+    int characterCount;
+
+    if (this->nextTimePopupIndex >= ASCII_MAX_TIME_POPUPS)
+    {
+        this->nextTimePopupIndex = 0;
+    }
+    popup = &this->timePopups[nextTimePopupIndex];
+    popup->inUse = true;
+
+    characterCount = 0;
+    if (param3 > 0)
+    {
+        popup->text[characterCount] = 15;
+        characterCount++;
+        while (param3 != 0)
+        {
+            popup->text[characterCount] = param3 % 10;
+            characterCount++;
+            param3 /= 10;
+        }
+        popup->text[characterCount] = 14;
+        characterCount++;
+    }
+
+    if (number > 0)
+    {
+        while (number != 0)
+        {
+            popup->text[characterCount] = number % 10;
+            characterCount++;
+            number /= 10;
+        }
+    }
+    else
+    {
+        popup->text[characterCount] = 0;
+        characterCount++;
+    }
+
+    popup->text[characterCount] = 13;
+    characterCount++;
+
+    popup->characterCount = characterCount;
+    popup->color = color;
+    popup->timer = 0;
+    popup->position = *position;
+    popup->position.x += g_GameManager.arcadeRegionTopLeftPos.x;
+    popup->position.y += g_GameManager.arcadeRegionTopLeftPos.y;
+    popup->scaleX = this->scaleX;
+    popup->scaleY = this->scaleY;
+    this->nextTimePopupIndex++;
 }
 
-void AsciiManager::CreateFamiliarPopup(D3DXVECTOR3 *position, i32 param1, i32 param2)
+void AsciiManager::CreateFamiliarPopup(Float3 *position, i32 number, i32 param3, D3DCOLOR color)
 {
+    AsciiManagerPopup *popup;
+    int characterCount;
+
+    if (this->nextTimePopupIndex >= ASCII_MAX_TIME_POPUPS)
+    {
+        this->nextTimePopupIndex = 0;
+    }
+    popup = &this->timePopups[nextTimePopupIndex];
+    popup->inUse = true;
+
+    characterCount = 0;
+    if (param3 > 0)
+    {
+        popup->text[characterCount] = 15;
+        characterCount++;
+        while (param3 != 0)
+        {
+            popup->text[characterCount] = param3 % 10;
+            characterCount++;
+            param3 /= 10;
+        }
+        popup->text[characterCount] = 14;
+        characterCount++;
+    }
+
+    if (number > 0)
+    {
+        while (number != 0)
+        {
+            popup->text[characterCount] = number % 10;
+            characterCount++;
+            number /= 10;
+        }
+    }
+    else
+    {
+        popup->text[characterCount] = 0;
+        characterCount++;
+    }
+
+    popup->text[characterCount] = 13;
+    characterCount++;
+
+    popup->characterCount = characterCount;
+    popup->color = color;
+    popup->timer = 88;
+    popup->position = *position;
+    popup->position.x += g_GameManager.arcadeRegionTopLeftPos.x + 3.5f * characterCount;
+    popup->position.y += g_GameManager.arcadeRegionTopLeftPos.y;
+    popup->scaleX = this->scaleX;
+    popup->scaleY = this->scaleY;
+    this->nextTimePopupIndex++;
 }
 
+// STUB: th08 0x4037b0
 i32 PauseMenu::OnUpdate()
 {
     return 0;
 }
 
+// STUB: th08 0x404750
 i32 PauseMenu::OnDraw()
 {
     return 0;
 }
 
+// STUB: th08 0x404890
 i32 RetryMenu::OnUpdate()
 {
     return 0;
 }
 
+// STUB: th08 0x4052b0
 i32 RetryMenu::OnDraw()
 {
     return 0;
 }
 
+// STUB: th08 0x405420
 void AsciiManager::OnDrawHighPrioImpl()
 {
 }
 
-void AsciiManager::DrawPercentage(i32 param1, i32 param2, D3DCOLOR color)
+// STUB: th08 0x405e10
+void AsciiManager::DrawPercentage(Float3 *position, i32 percentage, D3DCOLOR color)
 {
 }
 
+// STUB: th08 0x406fd0
 void AsciiManager::UpdateVms()
 {
 }
 
+// STUB: th08 0x4070b0
 void AsciiManager::SetGaugeInterrupt(i32 interrupt)
 {
     this->youkaiGauge.SetInterrupt(interrupt);

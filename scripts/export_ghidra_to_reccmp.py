@@ -11,7 +11,7 @@ SCRIPT_PATH = Path(os.path.realpath(__file__)).parent
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Export Ghidra symbols to a CSV file compatible with reccmp",
+        description="Export Ghidra symbols to CSV files compatible with reccmp",
     )
     parser.add_argument("GHIDRA_REPO_NAME")
     parser.add_argument(
@@ -27,15 +27,13 @@ def main():
     parser.add_argument("--project-name")
     args = parser.parse_args()
 
-    mapping_path = SCRIPT_PATH.parent / "config" / "reccmp.csv"
-
     ghidra_helpers.runAnalyze(
         args.GHIDRA_REPO_NAME,
         project_name=args.project_name,
         process=args.program,
         username=args.username,
         ssh_key=args.ssh_key,
-        pre_scripts=[["ExportGhidraToReccmp.java", str(mapping_path)]],
+        pre_scripts=[["ExportGhidraToReccmp.java"]],
     )
 
 

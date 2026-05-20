@@ -24,6 +24,13 @@ namespace th08
     g_ZunMemory.RemoveFromRegistry(p);                                                                                 \
     delete p;                                                                                                          \
     p = NULL;
+#define ZUN_DELETE2(p)                                                                                                 \
+    delete p;                                                                                                          \
+    p = NULL;
+
+#define ZUN_FREE(p)                                                                                                    \
+    g_ZunMemory.Free(p);                                                                                               \
+    p = NULL;
 
 enum ChainCallbackResult
 {
@@ -350,7 +357,73 @@ struct ZunGlobals
 
 C_ASSERT(sizeof(ZunGlobals) == 0xe4);
 
-struct ZunVec2
+/* ZUN name: FVector */
+struct Float3
+{
+    Float3()
+    {
+    }
+
+    Float3(float x, float y, float z)
+    {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
+
+    void FromAngleMagnitude(float angle, float magnitude)
+    {
+        __asm
+        {
+            mov eax, this
+            fld angle
+            fsincos
+            fmul [magnitude]
+            fstp [eax] /* this->x */
+            fmul [magnitude]
+            fstp [eax + 4] /* this->y */
+        }
+    }
+
+    void FromRotatedVec2(float angle, float vecX, float vecY)
+    {
+        __asm
+        {
+            mov eax, this
+            fld angle
+            fsincos
+            fmul [vecX]
+            fstp [eax] /* this->x */
+            fmul [vecY]
+            fstp [eax + 4] /* this->y */
+        }
+    }
+
+    Float3 *operator+=(const Float3 &other)
+    {
+        this->x += other.x;
+        this->y += other.y;
+        this->z += other.z;
+
+        return this;
+    }
+
+    Float3 *operator-=(const Float3 &other)
+    {
+        this->x -= other.x;
+        this->y -= other.y;
+        this->z -= other.z;
+
+        return this;
+    }
+
+    float x;
+    float y;
+    float z;
+};
+
+/* ZUN name: FVector2 */
+struct Float2
 {
     float x;
     float y;
@@ -365,7 +438,7 @@ struct ZunRect
 };
 
 f32 AddNormalizeAngle(f32 a, f32 b);
-void Rotate(D3DXVECTOR3 *outVector, D3DXVECTOR3 *point, f32 angle);
+void Rotate(Float3 *outVector, Float3 *point, f32 angle);
 
 DIFFABLE_EXTERN(Rng, g_Rng);
 DIFFABLE_EXTERN(u16, g_CurFrameInput);

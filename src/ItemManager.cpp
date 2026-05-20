@@ -9,7 +9,7 @@ namespace th08
 DIFFABLE_STATIC(ItemManager, g_ItemManager);
 
 #pragma var_order(i, item)
-Item *ItemManager::SpawnItem(D3DXVECTOR3 *position, ItemType itemType, i32 state)
+Item *ItemManager::SpawnItem(Float3 *position, ItemType itemType, i32 state)
 {
     i32 i;
     Item *item = &this->items[this->nextIndex];
@@ -154,35 +154,43 @@ void ItemManager::UpdatePointItemExtendThreshold()
     }
 }
 
+// STUB: th08 0x440500
 void ItemManager::OnUpdate()
 {
     // TODO: NEEDS WORK ON Gui
 }
 
+// STUB: th08 0x440cf0
 void Item::CollectPowerSmall()
 {
 }
 
+// STUB: th08 0x440e40
 void Item::CollectPoint()
 {
 }
 
+// STUB: th08 0x441020
 void Item::CollectPointSmall()
 {
 }
 
+// STUB: th08 0x441170
 void Item::CollectPowerBig()
 {
 }
 
+// STUB: th08 0x4412b0
 void Item::CollectTimeOrb()
 {
 }
 
+// STUB: th08 0x4413e0
 void ItemManager::AutoCollectAllItems()
 {
 }
 
+// STUB: th08 0x441450
 void ItemManager::ConvertAllPowerItemsToTimeOrbs(Item *item)
 {
     // TODO: NEEDS WORK ON EffectManager
@@ -204,6 +212,7 @@ void ItemManager::CancelAutoCollect()
     }
 }
 
+// STUB: th08 0x4415a0
 void ItemManager::OnDraw()
 {
 }

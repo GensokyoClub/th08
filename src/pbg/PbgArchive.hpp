@@ -16,6 +16,7 @@ struct PbgArchiveHeader
 
 struct PbgArchiveEntry
 {
+    // FUNCTION: th08 0x4716e0 FOLDED
     PbgArchiveEntry()
     {
         filename = NULL;

@@ -9,8 +9,7 @@ namespace th08
 
 const char *g_BgmNotUnlockedWarning[] = {
     TH_WARN_BGM_NOT_UNLOCKED0, TH_WARN_BGM_NOT_UNLOCKED1, TH_WARN_BGM_NOT_UNLOCKED2, TH_WARN_BGM_NOT_UNLOCKED3,
-    TH_WARN_BGM_NOT_UNLOCKED4, TH_WARN_BGM_NOT_UNLOCKED5, TH_WARN_BGM_NOT_UNLOCKED6, NULL,
-};
+    TH_WARN_BGM_NOT_UNLOCKED4, TH_WARN_BGM_NOT_UNLOCKED5, TH_WARN_BGM_NOT_UNLOCKED6, TH_WARN_BGM_NOT_UNLOCKED4};
 
 ZunResult MusicRoom::CheckInputEnable()
 {
@@ -179,7 +178,7 @@ i32 MusicRoom::ProcessInput()
             if (buf1[0] != '\0')
             {
                 this->descriptionVms[i].prefix.flag1 = true;
-                g_AnmManager->DrawVmTextFmt(&this->descriptionVms[i], 0xffe0c0, 0x300000, buf1);
+                g_AnmManager->DrawTextLeft(&this->descriptionVms[i], 0xffe0c0, 0x300000, buf1);
             }
             else
             {
@@ -208,14 +207,14 @@ i32 MusicRoom::ProcessInput()
 
         memcpy(buf2, this->trackDescriptors[this->cursor].descriptors[0], 64);
 
-        g_AnmManager->DrawVmTextFmt(&this->descriptionVms[7], 0xffe0c0, 0x300000, buf2);
+        g_AnmManager->DrawTextLeft(&this->descriptionVms[7], 0xffe0c0, 0x300000, buf2);
     }
 
     if (WAS_PRESSED(TH_BUTTON_BOMB | TH_BUTTON_MENU))
     {
         g_Supervisor.curState = SupervisorState_TitleScreen;
 
-        g_Supervisor.SetupLoadingVmsAndInitCapture(&D3DXVECTOR3(500.0, 440.0f, 0.0f));
+        g_Supervisor.SetupLoadingVmsAndInitCapture(&Float3(500.0, 440.0f, 0.0f));
 
         return 1;
     }
@@ -315,7 +314,7 @@ start:
 ChainCallbackResult MusicRoom::OnDraw(MusicRoom *musicRoom)
 {
     int i;
-    D3DXVECTOR3 position;
+    Float3 position;
     D3DCOLOR color;
     char arrowText[4];
 
@@ -530,12 +529,12 @@ out:
         musicRoom->musicAnm->SetAndExecuteScriptIdx(&musicRoom->songNameVms[i], 1 + i);
         if (musicRoom->bgmUnlocked[i])
         {
-            g_AnmManager->DrawVmTextFmt(&musicRoom->songNameVms[i], 0xc0e0ff, 0x302080,
-                                        musicRoom->trackDescriptors[i].title);
+            g_AnmManager->DrawTextLeft(&musicRoom->songNameVms[i], 0xc0e0ff, 0x302080,
+                                       musicRoom->trackDescriptors[i].title);
         }
         else
         {
-            g_AnmManager->DrawVmTextFmt(&musicRoom->songNameVms[i], 0x80a0c0, 0x100040, TH_SONG_NAME_NOT_UNLOCKED);
+            g_AnmManager->DrawTextLeft(&musicRoom->songNameVms[i], 0x80a0c0, 0x100040, TH_SONG_NAME_NOT_UNLOCKED);
         }
 
         musicRoom->songNameVms[i].pos.x = 93.0f;

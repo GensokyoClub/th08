@@ -7,31 +7,37 @@ DIFFABLE_STATIC(BulletManager, g_BulletManager);
 DIFFABLE_STATIC(ChainElem, g_BulletManagerCalcChain);
 DIFFABLE_STATIC(ChainElem, g_BulletManagerDrawChain);
 
+// STUB: th08 0x42f360
 void BulletManager::Initialize()
 {
 }
 
-ZunResult RegisterChain()
+// STUB: th08 0x4311a0
+ZunResult BulletManager::RegisterChain()
 {
     return ZUN_SUCCESS;
 }
 
-ChainCallbackResult OnUpdate(BulletManager *bulletManager)
+// STUB: th08 0x431240
+ChainCallbackResult BulletManager::OnUpdate(BulletManager *bulletManager)
 {
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-ChainCallbackResult OnDraw(BulletManager *bulletManager)
+// STUB: th08 0x432b50
+ChainCallbackResult BulletManager::OnDraw(BulletManager *bulletManager)
 {
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-ZunResult AddedCallback(BulletManager *bulletManager)
+// STUB: th08 0x433070
+ZunResult BulletManager::AddedCallback(BulletManager *bulletManager)
 {
     return ZUN_SUCCESS;
 }
 
-ZunResult DeletedCallback(BulletManager *bulletManager)
+// STUB: th08 0x433820
+ZunResult BulletManager::DeletedCallback(BulletManager *bulletManager)
 {
     return ZUN_SUCCESS;
 }

@@ -35,9 +35,9 @@ struct Item
 {
     AnmVm sprite;
 
-    D3DXVECTOR3 currentPosition;
-    D3DXVECTOR3 startPositionOrVelocity;
-    D3DXVECTOR3 targetPosition;
+    Float3 currentPosition;
+    Float3 startPositionOrVelocity;
+    Float3 targetPosition;
 
     ZunTimer timer;
 
@@ -72,7 +72,7 @@ struct ItemManager
     Item itemListHead;
     Item *itemListTail;
 
-    Item *SpawnItem(D3DXVECTOR3 *position, ItemType itemType, int state);
+    Item *SpawnItem(Float3 *position, ItemType itemType, int state);
     static void UpdatePointItemExtendThreshold();
     void OnUpdate();
     void AutoCollectAllItems();

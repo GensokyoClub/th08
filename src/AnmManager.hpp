@@ -4,10 +4,10 @@
 #include "ZunColor.hpp"
 #include "ZunResult.hpp"
 #include "diffbuild.hpp"
+#include "dxutil.hpp"
 #include "inttypes.hpp"
 #include "utils.hpp"
 #include <d3d8.h>
-#include <d3dx8math.h>
 
 #define GAME_WINDOW_WIDTH 640
 #define GAME_WINDOW_HEIGHT 480
@@ -16,16 +16,17 @@ namespace th08
 {
 struct VertexDiffuseXyzrhw
 {
-    D3DXVECTOR3 pos;
+    Float3 pos;
     f32 w;
     D3DCOLOR diffuse;
 };
 
 struct VertexTex1DiffuseXyzrhw
 {
-    D3DXVECTOR4 pos;
+    Float3 pos;
+    float w;
     D3DCOLOR diffuse;
-    D3DXVECTOR2 textureUV;
+    Float2 textureUV;
 };
 
 // Touhou 8 uses DirectX 8.1, but evidently Zun used some mismatched DirectX 8 headers as well
@@ -246,17 +247,17 @@ struct AnmTextureHeader
 
 struct AnmLoadedSprite
 {
-    u32 anmIdx;
+    i32 anmIdx;
     IDirect3DTexture8 *texture;
-    ZunVec2 startPixelInclusive;
-    ZunVec2 endPixelInclusive;
+    Float2 startPixelInclusive;
+    Float2 endPixelInclusive;
     float height;
     float width;
-    ZunVec2 uvStart;
-    ZunVec2 uvEnd;
+    Float2 uvStart;
+    Float2 uvEnd;
     float heightPx;
     float widthPx;
-    ZunVec2 scaleFactor;
+    Float2 scaleFactor;
     u32 unk0x40;
 };
 
@@ -279,12 +280,12 @@ struct AnmRawInstr
 
 struct AnmPrefix
 {
-    D3DXVECTOR3 rotation;
-    D3DXVECTOR3 angleVel;
-    D3DXVECTOR2 scale;
-    D3DXVECTOR2 scaleGrowth;
-    D3DXVECTOR2 spriteSize;
-    D3DXVECTOR2 uvScrollPos;
+    Float3 rotation;
+    Float3 angleVel;
+    Float2 scale;
+    Float2 scaleGrowth;
+    Float2 spriteSize;
+    Float2 uvScrollPos;
     ZunTimer currentTimeInScript;
     ZunTimer waitTimer;
     ZunTimer interpCurrentTimers[AnmInterp_Last];
@@ -300,7 +301,7 @@ struct AnmPrefix
     f32 floatVar3;
     i32 counterVar0;
     i32 counterVar1;
-    D3DXVECTOR2 uvScrollVel;
+    Float2 uvScrollVel;
     D3DXMATRIX matrix1;
     D3DXMATRIX matrix2;
     D3DXMATRIX matrix3;
@@ -308,6 +309,7 @@ struct AnmPrefix
     ZunColor color2;
     union {
         u32 flags;
+        u16 flagsAsU16;
         struct
         {
             u32 visible : 1;
@@ -340,7 +342,7 @@ C_ASSERT(sizeof(AnmPrefix) == 0x208);
 struct AnmVm
 {
     AnmPrefix prefix;
-    D3DXVECTOR3 pos;
+    Float3 pos;
     i16 activeSpriteIndex;
     i16 anmFileIndex;
     i16 baseSpriteIndex;
@@ -351,18 +353,18 @@ struct AnmVm
     ZunTimer interruptReturnTime;
     AnmRawInstr *interruptReturnInstruction;
 
-    D3DXVECTOR3 posInitial;
-    D3DXVECTOR3 posFinal;
-    D3DXVECTOR3 rotateInitial;
-    D3DXVECTOR3 rotateFinal;
-    D3DXVECTOR2 scaleInitial;
-    D3DXVECTOR2 scaleFinal;
+    Float3 posInitial;
+    Float3 posFinal;
+    Float3 rotateInitial;
+    Float3 rotateFinal;
+    Float2 scaleInitial;
+    Float2 scaleFinal;
     ZunColor color1Initial;
     ZunColor color1Final;
     ZunColor color2Initial;
     ZunColor color2Final;
 
-    D3DXVECTOR3 pos2;
+    Float3 pos2;
     i32 timeOfLastSpriteSet;
     u8 fontWidth;
     u8 fontHeight;
@@ -391,13 +393,13 @@ struct AnmVm
 
     void Initialize()
     {
-        memset(this, 0, sizeof(AnmVm));
+        memset(&this->prefix, 0, sizeof(AnmPrefix));
 
         this->prefix.scale.x = 1.0f;
         this->prefix.scale.y = 1.0f;
         this->prefix.color1.d3dColor = COLOR_WHITE;
         D3DXMatrixIdentity(&this->prefix.matrix1);
-        this->prefix.flags |= 7;
+        this->prefix.flagsAsU16 = 7;
         this->prefix.currentTimeInScript.Initialize();
     }
 };
@@ -420,8 +422,8 @@ struct AnmLoaded
     {
         vm->scriptIndex = scriptIdx;
 
-        vm->pos = D3DXVECTOR3(0, 0, 0);
-        vm->pos2 = D3DXVECTOR3(0, 0, 0);
+        vm->pos = Float3(0, 0, 0);
+        vm->pos2 = Float3(0, 0, 0);
 
         vm->fontHeight = 15;
         vm->fontWidth = 15;
@@ -448,6 +450,7 @@ struct AnmLoaded
         return &this->sprites[sprite];
     }
 
+    void ExecuteAnmIdxArray(AnmVm *vm, i32 scriptIdx, i32 count);
     ZunResult SetSprite(AnmVm *vm, int spriteIdx);
     void SetAndExecuteScript(AnmVm *vm, AnmRawInstr *beginningOfScript);
 };
@@ -473,11 +476,13 @@ struct AnmManager
 {
     AnmManager();
     void SetupVertexBuffer();
+
+    // FUNCTION: th08 0x43ef40 FOLDED
     ~AnmManager()
     {
     }
     ZunBool ExecuteScript(AnmVm *vm);
-    void ExecuteScriptOnVmArray(AnmVm *sprites, int count);
+    void ExecuteScriptArray(AnmVm *sprites, int count);
     void SetRenderStateForVm(AnmVm *vm);
     ZunResult DrawInner(AnmVm *vm, i32 flags);
     ZunResult AddSpriteToDrawBuffer(VertexTex1DiffuseXyzrhw *vertices);
@@ -486,6 +491,7 @@ struct AnmManager
                            float yOffset);
     ZunResult Draw2D(AnmVm *vm);
     ZunResult DrawNoRotationNoRound(AnmVm *vm);
+    ZunResult DrawTriangleFan(AnmVm *vm, VertexDiffuseXyzrhw *vertices, i32 vertexCount);
     ZunResult CreateTextureFromFile(IDirect3DTexture8 **outTexture, i32 format, i32 colorKey);
     ZunResult CreateTextureFromAnm(IDirect3DTexture8 **outTexture, AnmTextureHeader *textureData, i32 format);
     ZunResult CreateEmptyTexture(IDirect3DTexture8 **outTexture, i32 width, i32 height, i32 format);
@@ -499,13 +505,21 @@ struct AnmManager
     ZunResult ServicePreloadedAnims();
     void ReleaseAnm(i32 anmIdx);
     void ReleaseAnmEntry(AnmEntry *anmEntry);
-    void DrawVmText(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth, i32 fontHeight,
-                    COLORREF textColor, COLORREF outlineColor, const char *buffer, float scaleFactorX,
-                    float scaleFactorY);
-    void DrawVmTextFmt(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...);
+
+    void DrawTextInner(IDirect3DTexture8 *outTexture, i32 x, i32 y, i32 width, i32 height, i32 fontWidth,
+                       i32 fontHeight, COLORREF textColor, COLORREF outlineColor, const char *buffer,
+                       float scaleFactorX, float scaleFactorY);
+    void DrawTextLeft(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...);
+    void DrawTextCentered(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...);
     ZunResult LoadSurface(i32 surfaceIdx, const char *path);
+    ZunResult PreloadSurface(i32 surfaceIdx, const char *path);
     void ReleaseSurface(i32 surfaceIdx);
     void CopySurfaceToBackbuffer(int surfaceIdx, int left, int top, int x, int y);
+
+    void ReleaseVertexBuffer()
+    {
+        SAFE_RELEASE(this->quadVertexBuffer);
+    }
 
     void ClearBlendMode()
     {
@@ -548,6 +562,23 @@ struct AnmManager
         this->renderStateChangesThisFrame = 0;
         this->unk0xc = 0;
         this->flushesThisFrame = 0;
+    }
+
+    void SetInterruptArray(AnmVm *vm, int count, i16 interrupt);
+
+    ZunBool SpriteHasTexture(AnmVm *vm)
+    {
+        if (vm->loadedSprite == NULL)
+        {
+            return FALSE;
+        }
+
+        if (vm->loadedSprite->anmIdx < 0)
+        {
+            return FALSE;
+        }
+
+        return this->anmFiles[vm->loadedSprite->anmIdx].textures != NULL;
     }
 
     void ReleaseSurfaces()
@@ -595,6 +626,25 @@ struct AnmManager
         this->color.d3dColor = color;
     }
 
+    void RequestCapture(i32 captureSurfaceIdx, i32 srcX, i32 srcY, i32 srcW, i32 srcH, i32 dstX, i32 dstY, i32 dstW,
+                        i32 dstH)
+    {
+        if (this->captureSurfaceIdx >= 0)
+        {
+            return;
+        }
+
+        this->captureSurfaceIdx = captureSurfaceIdx;
+        this->surfaceCaptureSrcX = srcX;
+        this->surfaceCaptureSrcY = srcY;
+        this->surfaceCaptureSrcW = srcW;
+        this->surfaceCaptureSrcH = srcH;
+        this->surfaceCaptureDstX = dstX;
+        this->surfaceCaptureDstY = dstY;
+        this->surfaceCaptureDstW = dstW;
+        this->surfaceCaptureDstH = dstH;
+    }
+
     void CaptureToTexture(i32 captureAnmIdx, i32 srcX, i32 srcY, i32 srcW, i32 srcH, i32 dstX, i32 dstY, i32 dstW,
                           i32 dstH);
     void CaptureToSurface(i32 captureSurfaceIdx, i32 srcX, i32 srcY, i32 srcW, i32 srcH, i32 dstX, i32 dstY, i32 dstW,
@@ -610,9 +660,9 @@ struct AnmManager
     u32 scriptsExecutedThisFrame;
     u32 renderStateChangesThisFrame;
     u32 flushesThisFrame;
-    D3DXVECTOR2 screenShakeOffset;
+    Float2 screenShakeOffset;
     AnmLoaded anmFiles[256];
-    D3DXVECTOR3 unk0x1c24;
+    Float3 unk0x1c24;
     unknown_fields(0x1c30, 0x34);
     AnmVm unk0x1c64;
     unknown_fields(0x1f08, 0x130);
@@ -633,7 +683,7 @@ struct AnmManager
     u8 cameraMode;
     unknown_fields(0x24c5, 3); // Padding?
     void *currentSprite;
-    unknown_fields(0x24cc, 4);
+    IDirect3DVertexBuffer8 *quadVertexBuffer;
     VertexDiffuseXyzrhw untexturedVector[4];
     u32 spritesToDraw;
     VertexTex1DiffuseXyzrhw vertexBuffer[0x18000];

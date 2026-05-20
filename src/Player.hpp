@@ -23,6 +23,7 @@ struct Player
     static ZunResult RegisterChain(u32 param);
     static ChainCallbackResult OnUpdate(Player *player);
     static ChainCallbackResult OnDrawHighPrio(Player *player);
+    static ChainCallbackResult OnDrawLowPrio(Player *player);
     static ZunResult AddedCallback(Player *player);
     static ZunResult DeletedCallback(Player *player);
     static void CutChain();

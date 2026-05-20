@@ -47,7 +47,7 @@ C_ASSERT(sizeof(RetryMenu) == 0x1284);
 struct AsciiManagerString
 {
     char text[64];
-    D3DXVECTOR3 position;
+    Float3 position;
     D3DCOLOR color;
     f32 scaleX;
     f32 scaleY;
@@ -60,7 +60,7 @@ C_ASSERT(sizeof(AsciiManagerString) == 0x60);
 struct AsciiManagerPopup
 {
     char text[12];
-    D3DXVECTOR3 position;
+    Float3 position;
     D3DCOLOR color;
     ZunTimer timer;
     f32 scaleX;
@@ -83,16 +83,16 @@ struct AsciiManager
     static ZunResult AddedCallback(AsciiManager *mgr);
     static ZunResult DeletedCallback(AsciiManager *mgr);
     static void CutChain();
-    void AddString(D3DXVECTOR3 *position, const char *string);
-    void AddFormatText(D3DXVECTOR3 *position, const char *fmt, ...);
-    int AddFormatText2(D3DXVECTOR3 *position, const char *fmt, ...);
+    void AddString(Float3 *position, const char *string);
+    void AddFormatText(Float3 *position, const char *fmt, ...);
+    int AddFormatText2(Float3 *position, const char *fmt, ...);
     void OnDrawLowPrioImpl();
-    void CreateScorePopup(D3DXVECTOR3 *position, i32 number, D3DCOLOR color);
-    void CreatePlayerPointPopup(D3DXVECTOR3 *position, i32 number, D3DCOLOR color);
-    void CreateTimePopup(D3DXVECTOR3 *position, i32 number, i32 param3, D3DCOLOR color);
-    void CreateFamiliarPopup(D3DXVECTOR3 *position, i32 param1, i32 param2);
+    void CreateScorePopup(Float3 *position, i32 number, D3DCOLOR color);
+    void CreatePlayerPointPopup(Float3 *position, i32 number, D3DCOLOR color);
+    void CreateTimePopup(Float3 *position, i32 number, i32 param3, D3DCOLOR color);
+    void CreateFamiliarPopup(Float3 *position, i32 number, i32 param3, D3DCOLOR color);
     void OnDrawHighPrioImpl();
-    void DrawPercentage(i32 param1, i32 param2, D3DCOLOR color);
+    void DrawPercentage(Float3 *position, i32 percentage, D3DCOLOR color);
     void UpdateVms();
     void SetGaugeInterrupt(i32 interrupt);
     i32 GetGaugeInterrupt();
@@ -102,6 +102,17 @@ struct AsciiManager
     void SetColor(D3DCOLOR color)
     {
         this->color = color;
+    }
+
+    void SetIsSelected(ZunBool selected)
+    {
+        this->isSelected = selected;
+    }
+
+    void SetScale(float scaleX, float scaleY)
+    {
+        this->scaleX = scaleX;
+        this->scaleY = scaleY;
     }
 
     AnmVm largeText;
@@ -128,7 +139,7 @@ struct AsciiManager
 
     i32 gaugeInterrupt;
     i32 spaceWidth;
-    i32 unk_8284;
+    u32 unk_8284;
 
     AnmLoaded *asciiAnm;
     AnmLoaded *captureAnm;
