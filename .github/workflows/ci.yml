@@ -107,23 +107,19 @@ jobs:
       working-directory: build
       run: |
         reccmp-reccmp --target th08 --json th08.json --silent
-
     - name: Reccmp diff
       env:
-        RELEASE_URL: https://github.com/GensokyoClub/th08/releases/download/continuous
+        RELEASE_URL: https://github.com/GensokyoClub/th08/releases/download/continuous/th08.json
       working-directory: build
       run: |
         # Download the current master state
-        curl -fLSs -o saved-th08.json $RELEASE_URL/th08.json
-
+        curl -fLSs -o saved-th08.json $env:RELEASE_URL
         reccmp-reccmp --target th08 --diff saved-th08.json
     - uses: actions/upload-artifact@v4
       with:
         name: Accuracy Report
         path: |
           build/th08.json
-
-
   upload:
     name: Upload artifacts
     needs: [build, compare]
@@ -141,11 +137,6 @@ jobs:
 
     - uses: actions/download-artifact@main
       with:
-       name: th08-dll
-       path: build-dll
-
-    - uses: actions/download-artifact@main
-      with:
         name: Accuracy Report
 
     - name: Upload Continuous Release
@@ -153,7 +144,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         ./upload.sh \
-          build-dll/* \
           build/* \
           th08.json
 
@@ -185,4 +175,3 @@ jobs:
 #        path: |
 #          build/th08.dll
 #          build/th08.pdb
-
