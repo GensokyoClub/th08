@@ -395,7 +395,7 @@ ZunResult MusicRoom::AddedCallback(MusicRoom *musicRoom)
         return ZUN_ERROR;
     }
 
-    musicRoom->musicAnm = g_AnmManager->LoadAnm(23, "music00.anm");
+    musicRoom->musicAnm = g_AnmManager->LoadAnm(ANM_FILE_MUSIC, "music00.anm");
     if (musicRoom->musicAnm == NULL)
     {
         return ZUN_ERROR;
@@ -556,7 +556,7 @@ ZunResult MusicRoom::DeletedCallback(MusicRoom *musicRoom)
     ZUN_DELETE(musicRoom->trackDescriptors);
 
     g_AnmManager->ReleaseSurface(0);
-    g_AnmManager->ReleaseAnm(23);
+    g_AnmManager->ReleaseAnm(ANM_FILE_MUSIC);
 
     g_Chain.Cut(musicRoom->drawChain);
     musicRoom->drawChain = NULL;

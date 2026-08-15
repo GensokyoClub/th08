@@ -499,7 +499,7 @@ ZunResult Ending::AddedCallback(Ending *ending)
     ScreenEffect::Clear(COLOR_WHITE);
     g_Supervisor.unk178 = 1;
 
-    ending->anmFile = g_AnmManager->LoadAnm(0x18, "staff01.anm");
+    ending->anmFile = g_AnmManager->LoadAnm(ANM_FILE_STAFF, "staff01.anm");
 
     if (g_GameManager.flags.unk4)
     {
@@ -588,7 +588,7 @@ execute_anms:
 
 ZunResult Ending::DeletedCallback(Ending *ending)
 {
-    g_AnmManager->ReleaseAnm(24);
+    g_AnmManager->ReleaseAnm(ANM_FILE_STAFF);
     g_Supervisor.curState = SupervisorState_ResultScreenFromGame;
     g_AnmManager->ReleaseSurface(0);
     ZUN_FREE(ending->fileData);

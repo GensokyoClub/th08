@@ -2663,13 +2663,13 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
             return ZUN_ERROR;
         }
 
-        result->resultAnm = g_AnmManager->LoadAnm(21, "result00.anm");
+        result->resultAnm = g_AnmManager->LoadAnm(ANM_FILE_RESULT, "result00.anm");
         if (result->resultAnm == NULL)
         {
             return ZUN_ERROR;
         }
 
-        result->resultTextAnm = g_AnmManager->LoadAnm(22, "resulttext.anm");
+        result->resultTextAnm = g_AnmManager->LoadAnm(ANM_FILE_RESULTTEXT, "resulttext.anm");
         if (result->resultTextAnm == NULL)
         {
             return ZUN_ERROR;
@@ -2851,8 +2851,8 @@ ZunResult ResultScreen::DeletedCallback(ResultScreen *result)
         }
     }
 
-    g_AnmManager->ReleaseAnm(21);
-    g_AnmManager->ReleaseAnm(22);
+    g_AnmManager->ReleaseAnm(ANM_FILE_RESULT);
+    g_AnmManager->ReleaseAnm(ANM_FILE_RESULTTEXT);
 
     g_AnmManager->ReplaceSurface(8, 0);
 

@@ -286,13 +286,13 @@ ZunResult AsciiManager::AddedCallback(AsciiManager *ascii)
 {
     memset(ascii, 0, sizeof(AsciiManager));
 
-    ascii->asciiAnm = g_AnmManager->PreloadAnm(1, "ascii.anm");
+    ascii->asciiAnm = g_AnmManager->PreloadAnm(ANM_FILE_ASCII, "ascii.anm");
     if (ascii->asciiAnm == NULL)
     {
         return ZUN_ERROR;
     }
 
-    ascii->captureAnm = g_AnmManager->PreloadAnm(3, "capture.anm");
+    ascii->captureAnm = g_AnmManager->PreloadAnm(ANM_FILE_CAPTURE, "capture.anm");
     if (ascii->captureAnm == NULL)
     {
         return ZUN_ERROR;
@@ -306,8 +306,8 @@ ZunResult AsciiManager::AddedCallback(AsciiManager *ascii)
 
 ZunResult AsciiManager::DeletedCallback(AsciiManager *ascii)
 {
-    g_AnmManager->ReleaseAnm(1);
-    g_AnmManager->ReleaseAnm(3);
+    g_AnmManager->ReleaseAnm(ANM_FILE_ASCII);
+    g_AnmManager->ReleaseAnm(ANM_FILE_CAPTURE);
 
     return ZUN_SUCCESS;
 }

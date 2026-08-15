@@ -483,7 +483,7 @@ int Supervisor::AddedCallback(Supervisor *s)
     }
 
     g_AnmManager->LoadSurface(8, "title/th08logo.jpg");
-    s->loadingAnm = g_AnmManager->LoadAnm(2, "nowloading.anm");
+    s->loadingAnm = g_AnmManager->LoadAnm(ANM_FILE_NOWLOADING, "nowloading.anm");
     if (s->loadingAnm == NULL)
     {
         g_AnmManager->ReleaseSurface(0);
@@ -577,7 +577,7 @@ void Supervisor::StartupThread(Supervisor *s)
         g_Supervisor.midiOutput->ReadFileData(30, "bgm/init.mid");
     }
     g_SoundPlayer.InitSoundBuffers();
-    g_Supervisor.textAnm = g_AnmManager->PreloadAnm(0, "text.anm");
+    g_Supervisor.textAnm = g_AnmManager->PreloadAnm(ANM_FILE_TEXT, "text.anm");
     if (g_Supervisor.textAnm == NULL)
     {
         goto err;
@@ -751,8 +751,8 @@ ZunResult Supervisor::DeletedCallback(Supervisor *s)
     }
 
     g_AnmManager->ReleaseVertexBuffer();
-    g_AnmManager->ReleaseAnm(0);
-    g_AnmManager->ReleaseAnm(2);
+    g_AnmManager->ReleaseAnm(ANM_FILE_TEXT);
+    g_AnmManager->ReleaseAnm(ANM_FILE_NOWLOADING);
     g_AnmManager->ReleaseSurface(8);
 
     AsciiManager::CutChain();

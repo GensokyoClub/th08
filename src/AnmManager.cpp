@@ -1619,7 +1619,7 @@ AnmLoaded *AnmManager::ReadAnmEntries(int anmIdx, const char *filename)
 
     utils::DebugPrint("::preloadAnim : %s\n", filename);
 
-    if (anmIdx >= 25)
+    if (anmIdx >= ANM_FILE_MAX)
     {
         g_GameErrorContext.Fatal(TH_ERR_ANMMANAGER_NO_TEXTURE_STORAGE);
         return NULL;

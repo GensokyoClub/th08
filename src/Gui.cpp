@@ -1484,15 +1484,15 @@ ZunResult Gui::DeletedCallback(Gui *gui)
 {
     if (!KeepStageResources())
     {
-        g_AnmManager->ReleaseAnm(13);
+        g_AnmManager->ReleaseAnm(ANM_FILE_STAGE_TEXT);
     }
     gui->FreeMsgFile();
     if (ReleaseResourcesOnRestart())
     {
-        g_AnmManager->ReleaseAnm(10);
-        g_AnmManager->ReleaseAnm(12);
+        g_AnmManager->ReleaseAnm(ANM_FILE_FRONT);
+        g_AnmManager->ReleaseAnm(ANM_FILE_LOADING);
         g_AnmManager->ReleaseAnm(11);
-        g_AnmManager->ReleaseAnm(14);
+        g_AnmManager->ReleaseAnm(ANM_FILE_TIMES);
         ZUN_DELETE(gui->impl);
     }
     return ZUN_SUCCESS;
@@ -1839,18 +1839,18 @@ ZunResult Gui::ActualAddedCallback()
     if (IsInitialStageLoad())
     {
         memset(this->impl, 0, sizeof(GuiImpl));
-        this->frontAnm = g_AnmManager->PreloadAnm(10, "front.anm");
+        this->frontAnm = g_AnmManager->PreloadAnm(ANM_FILE_FRONT, "front.anm");
         if (!this->frontAnm)
         {
             return ZUN_ERROR;
         }
         InitStageClearScreen();
-        this->timesAnm = g_AnmManager->PreloadAnm(14, "times.anm");
+        this->timesAnm = g_AnmManager->PreloadAnm(ANM_FILE_TIMES, "times.anm");
         if (!this->timesAnm)
         {
             return ZUN_ERROR;
         }
-        this->loadingPortraitAnm = g_AnmManager->PreloadAnm(12, g_LoadingAnms[g_GameManager.shotType]);
+        this->loadingPortraitAnm = g_AnmManager->PreloadAnm(ANM_FILE_LOADING, g_LoadingAnms[g_GameManager.shotType]);
         if (!this->loadingPortraitAnm)
         {
             return ZUN_ERROR;
@@ -1903,7 +1903,7 @@ ZunResult Gui::ActualAddedCallback()
     {
         if (!g_GameManager.flags.isSpellPractice || g_GameManager.currentSpellCardNumber < 205)
         {
-            this->stageTextAnm = g_AnmManager->PreloadAnm(13, g_StageTextAnms[g_GameManager.currentStage]);
+            this->stageTextAnm = g_AnmManager->PreloadAnm(ANM_FILE_STAGE_TEXT, g_StageTextAnms[g_GameManager.currentStage]);
             if (!this->stageTextAnm)
             {
                 return ZUN_ERROR;
@@ -1911,7 +1911,7 @@ ZunResult Gui::ActualAddedCallback()
         }
         else
         {
-            this->stageTextAnm = g_AnmManager->PreloadAnm(13, g_StageTextAnms[8]);
+            this->stageTextAnm = g_AnmManager->PreloadAnm(ANM_FILE_STAGE_TEXT, g_StageTextAnms[8]);
             if (!this->stageTextAnm)
             {
                 return ZUN_ERROR;
