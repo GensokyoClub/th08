@@ -1510,14 +1510,14 @@ ZunResult Gui::RegisterChain()
     g_GuiCalcChain.addedCallback = (ChainLifetimeCallback)AddedCallback;
     g_GuiCalcChain.deletedCallback = (ChainLifetimeCallback)DeletedCallback;
     g_GuiCalcChain.arg = gui;
-    if (g_Chain.AddToCalcChain(&g_GuiCalcChain, 15) != 0)
+    if (g_Chain.AddToCalcChain(&g_GuiCalcChain, CHAIN_PRIO_CALC_GUI) != 0)
     {
         return ZUN_ERROR;
     }
 
     g_GuiDrawChain.SetCallback((ChainCallback)OnDraw);
     g_GuiDrawChain.arg = gui;
-    g_Chain.AddToDrawChain(&g_GuiDrawChain, 17);
+    g_Chain.AddToDrawChain(&g_GuiDrawChain, CHAIN_PRIO_DRAW_GUI);
 
     return ZUN_SUCCESS;
 }

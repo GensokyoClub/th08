@@ -332,7 +332,7 @@ ChainCallbackResult Supervisor::DrawFpsCounter(Supervisor *s)
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-ChainCallbackResult Supervisor::OnDraw2(Supervisor *s)
+ChainCallbackResult Supervisor::OnDraw(Supervisor *s)
 {
     if (s->loadingVmsHaveBeenSetup >= 2)
     {
@@ -431,7 +431,7 @@ ZunResult Supervisor::RegisterChain()
     elem->addedCallback = (ChainLifetimeCallback)Supervisor::AddedCallback;
     elem->deletedCallback = (ChainLifetimeCallback)Supervisor::DeletedCallback;
 
-    ZunResult result = (ZunResult)g_Chain.AddToCalcChain(elem, 0);
+    ZunResult result = (ZunResult)g_Chain.AddToCalcChain(elem, CHAIN_PRIO_CALC_SUPERVISOR);
 
     if (result != ZUN_SUCCESS)
     {
@@ -440,15 +440,15 @@ ZunResult Supervisor::RegisterChain()
 
     elem = g_Chain.CreateElem((ChainCallback)Supervisor::DrawFpsCounter);
     elem->arg = supervisor;
-    g_Chain.AddToDrawChain(elem, 16);
+    g_Chain.AddToDrawChain(elem, CHAIN_PRIO_DRAW_SUPERVISOR_DRAW_FPS_COUNTER);
 
-    elem = g_Chain.CreateElem((ChainCallback)Supervisor::OnDraw2);
+    elem = g_Chain.CreateElem((ChainCallback)Supervisor::OnDraw);
     elem->arg = supervisor;
-    g_Chain.AddToDrawChain(elem, 0);
+    g_Chain.AddToDrawChain(elem, CHAIN_PRIO_DRAW_SUPERVISOR);
 
     elem = g_Chain.CreateElem((ChainCallback)Supervisor::DrawLoadingVms);
     elem->arg = supervisor;
-    g_Chain.AddToDrawChain(elem, 2);
+    g_Chain.AddToDrawChain(elem, CHAIN_PRIO_DRAW_SUPERVISOR_LOADING_VMS);
 
     return ZUN_SUCCESS;
 }

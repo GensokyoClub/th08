@@ -131,7 +131,7 @@ struct Supervisor
     static BOOL CALLBACK EnumGameControllersCb(LPCDIDEVICEINSTANCE pdidInstance, LPVOID pContext);
     static ZunResult DeletedCallback(Supervisor *s);
     static ChainCallbackResult DrawFpsCounter(Supervisor *s);
-    static ChainCallbackResult OnDraw2(Supervisor *s);
+    static ChainCallbackResult OnDraw(Supervisor *s);
     static ChainCallbackResult DrawLoadingVms(Supervisor *s);
     static void CalculateFps(ZunBool shouldDraw);
     ZunResult CheckVersion(const char *version, i32 exeSize, i32 exeChecksum);
