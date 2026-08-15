@@ -49,7 +49,7 @@ struct ResultScreen
 
     ~ResultScreen()
     {
-        g_ZunMemory.Free(this->scoreDat);
+        ZUN_FREE(this->scoreDat);
     }
 
     static const char *GetStageName(i32 stage);

@@ -1659,10 +1659,10 @@ AnmLoaded *AnmManager::ReadAnmEntries(int anmIdx, const char *filename)
 
     anmLoaded->totalEntries = totalEntries;
 
-    anmLoaded->textures = (AnmEntry *)g_ZunMemory.Alloc(totalEntries * sizeof(AnmEntry));
+    anmLoaded->textures = (AnmEntry *)ZUN_ALLOC(totalEntries * sizeof(AnmEntry));
     memset(anmLoaded->textures, 0, sizeof(AnmEntry) * totalEntries);
-    anmLoaded->sprites = (AnmLoadedSprite *)g_ZunMemory.Alloc(totalSprites * sizeof(AnmLoadedSprite));
-    anmLoaded->scripts = (AnmRawInstr **)g_ZunMemory.Alloc(totalScripts * sizeof(void *));
+    anmLoaded->sprites = (AnmLoadedSprite *)ZUN_ALLOC(totalSprites * sizeof(AnmLoadedSprite));
+    anmLoaded->scripts = (AnmRawInstr **)ZUN_ALLOC(totalScripts * sizeof(AnmRawInstr *));
 
     curEntry = entry;
     totalEntries = 0;
@@ -1892,10 +1892,10 @@ void AnmManager::ReleaseAnm(i32 anmIdx)
             this->ReleaseAnmEntry(&this->anmFiles[anmIdx].textures[i]);
         }
 
-        g_ZunMemory.Free(this->anmFiles[anmIdx].textures);
-        g_ZunMemory.Free(this->anmFiles[anmIdx].sprites);
-        g_ZunMemory.Free(this->anmFiles[anmIdx].scripts);
-        g_ZunMemory.Free(this->anmFiles[anmIdx].rawData);
+        ZUN_FREE(this->anmFiles[anmIdx].textures);
+        ZUN_FREE(this->anmFiles[anmIdx].sprites);
+        ZUN_FREE(this->anmFiles[anmIdx].scripts);
+        ZUN_FREE(this->anmFiles[anmIdx].rawData);
 
         memset(&this->anmFiles[anmIdx], 0, sizeof(AnmLoaded));
     }
@@ -1910,7 +1910,7 @@ void AnmManager::ReleaseAnmEntry(AnmEntry *entry)
     }
     if (entry->rawData != NULL)
     {
-        g_ZunMemory.Free(entry->rawData);
+        ZUN_FREE(entry->rawData);
         /* there should be a entry->rawData = NULL */
     }
 }
@@ -2059,7 +2059,7 @@ ZunResult AnmManager::LoadSurface(i32 surfaceIdx, const char *filename)
         surface->Release();
         surface = NULL;
     }
-    g_ZunMemory.Free(fileData);
+    ZUN_FREE(fileData);
 
     return ZUN_SUCCESS;
 err:
@@ -2068,7 +2068,7 @@ err:
         surface->Release();
         surface = NULL;
     }
-    g_ZunMemory.Free(fileData);
+    ZUN_FREE(fileData);
 
     return ZUN_ERROR;
 }
@@ -2111,7 +2111,7 @@ void AnmManager::ReleaseSurface(i32 surfaceIdx)
     }
     if (this->surfaceData[surfaceIdx] != NULL)
     {
-        g_ZunMemory.Free(this->surfaceData[surfaceIdx]);
+        ZUN_FREE(this->surfaceData[surfaceIdx]);
     }
     this->surfaceData[surfaceIdx] = NULL;
 }

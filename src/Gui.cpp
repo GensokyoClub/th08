@@ -1994,7 +1994,7 @@ void Gui::FreeMsgFile(void)
 {
     if (this->impl->msg.msgFile)
     {
-        g_ZunMemory.Free(this->impl->msg.msgFile);
+        ZUN_FREE(this->impl->msg.msgFile);
         this->impl->msg.msgFile = NULL;
     }
 }

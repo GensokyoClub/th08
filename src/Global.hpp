@@ -27,13 +27,10 @@ namespace th08
     g_ZunMemory.RemoveFromRegistry(p);                                                                                 \
     delete p;                                                                                                          \
     p = NULL;
-#define ZUN_DELETE2(p)                                                                                                 \
-    delete p;                                                                                                          \
-    p = NULL;
 
-#define ZUN_FREE(p)                                                                                                    \
-    g_ZunMemory.Free(p);                                                                                               \
-    p = NULL;
+#define ZUN_ALLOC(size)                 g_ZunMemory.Alloc(size)
+#define ZUN_ALLOC_NAMED(size, name)     g_ZunMemory.Alloc(size, name)
+#define ZUN_FREE(p)                     g_ZunMemory.Free(p);
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480

@@ -402,7 +402,7 @@ ZunResult Ending::LoadEnding(const char *path)
 
     if (prevFile != NULL)
     {
-        g_ZunMemory.Free(prevFile);
+        ZUN_FREE(prevFile);
     }
     return ZUN_SUCCESS;
 }
@@ -591,7 +591,7 @@ ZunResult Ending::DeletedCallback(Ending *ending)
     g_AnmManager->ReleaseAnm(24);
     g_Supervisor.curState = SupervisorState_ResultScreenFromGame;
     g_AnmManager->ReleaseSurface(0);
-    g_ZunMemory.Free(ending->fileData);
+    ZUN_FREE(ending->fileData);
     g_Chain.Cut(ending->drawChain);
     ending->drawChain = NULL;
     ZUN_DELETE(ending);

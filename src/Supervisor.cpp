@@ -569,7 +569,8 @@ void Supervisor::StartupThread(Supervisor *s)
 
     if (g_Supervisor.midiOutput == NULL)
     {
-        g_Supervisor.midiOutput = new MidiOutput();
+        // Debug string from PoFV.
+        g_Supervisor.midiOutput = ZUN_NEW(MidiOutput, "MidiSysInf");
     }
     if (g_Supervisor.midiOutput != NULL)
     {
@@ -698,13 +699,14 @@ void Supervisor::StartupThread(Supervisor *s)
         strftime(fileNameBuffer, 128, "score_1.%y%m%d.bak", currentLocalTime);
 
         FileSystem::WriteDataToFile(fileNameBuffer, scoreFile, scoreFileSize);
-        free(scoreFile);
+        ZUN_FREE(scoreFile);
         _chdir("../");
     }
 
     if (g_Supervisor.flags.unk6)
     {
-        g_Supervisor.dummyMidiTimer = new DummyMidiTimer();
+        // Debug string from PoFV.
+        g_Supervisor.dummyMidiTimer = ZUN_NEW(DummyMidiTimer, "DummyTimerSysInf");
         if (g_Supervisor.dummyMidiTimer != NULL)
         {
             g_Supervisor.dummyMidiTimer->StartTimer();
@@ -745,6 +747,7 @@ ZunResult Supervisor::DeletedCallback(Supervisor *s)
     if (g_Supervisor.versionData != NULL)
     {
         ZUN_FREE(g_Supervisor.versionData);
+        g_Supervisor.versionData = NULL;
     }
 
     g_AnmManager->ReleaseVertexBuffer();
@@ -780,19 +783,19 @@ ZunResult Supervisor::DeletedCallback(Supervisor *s)
 
     if (g_GameManager.globals != NULL)
     {
-        ZUN_DELETE2(g_GameManager.globals);
+        ZUN_DELETE(g_GameManager.globals);
     }
 
     if (g_GameManager.cfg != NULL)
     {
-        ZUN_DELETE2(g_GameManager.cfg);
+        ZUN_DELETE(g_GameManager.cfg);
     }
 
     g_PbgArchive.Release();
     if (g_Supervisor.dummyMidiTimer != NULL)
     {
         g_Supervisor.dummyMidiTimer->StopTimer();
-        ZUN_DELETE2(g_Supervisor.dummyMidiTimer);
+        ZUN_DELETE(g_Supervisor.dummyMidiTimer);
     }
 
     return ZUN_SUCCESS;
@@ -947,7 +950,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     else
     {
         g_Supervisor.cfg = *(GameConfiguration *)configFileBuffer;
-        free(configFileBuffer);
+        ZUN_FREE(configFileBuffer);
         bgmHandle2 = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                                  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle2 != INVALID_HANDLE_VALUE)

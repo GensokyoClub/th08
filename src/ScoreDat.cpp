@@ -29,7 +29,7 @@ i32 ScoreDat::LinkScore(ScoreListNode *node, Hscr *newScore)
     }
 
     next = node->next;
-    node->next = (ScoreListNode *)g_ZunMemory.Alloc(sizeof(ScoreListNode), "result");
+    node->next = (ScoreListNode *)ZUN_ALLOC_NAMED(sizeof(ScoreListNode), "result");
     node->next->prev = node;
 
     node = node->next;
@@ -47,7 +47,7 @@ void ScoreDat::FreeAllScores(ScoreListNode *scores)
     while (scores != NULL)
     {
         next = scores->next;
-        g_ZunMemory.Free(scores);
+        ZUN_FREE(scores);
         scores = next;
     }
 }
@@ -81,9 +81,9 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
         utils::DebugPrint("info : score recreate\r\n");
         if (scoreDat != NULL)
         {
-            g_ZunMemory.Free(scoreDat);
+            ZUN_FREE(scoreDat);
         }
-        scoreDat = (ScoreDat *)g_ZunMemory.Alloc(sizeof(ScoreDat), "scorefile");
+        scoreDat = (ScoreDat *)ZUN_ALLOC_NAMED(sizeof(ScoreDat), "scorefile");
         scoreDat->headerSize = sizeof(ScoreDat);
         scoreDat->decompressedFileSize = sizeof(ScoreDat);
         goto out;
@@ -92,14 +92,14 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
     if (fileSize < sizeof(ScoreDat))
     {
         utils::DebugPrint("warning : score.dat size is short\r\n");
-        g_ZunMemory.Free(scoreDat);
+        ZUN_FREE(scoreDat);
         goto recreate_score_file;
     }
 
     scoreDecrypted =
         (ScoreDat *)FileSystem::Decrypt((u8 *)scoreDat, fileSize, SCORE_DAT_XOR_VALUE, SCORE_DAT_XOR_VALUE_INCREMENT,
                                         SCORE_DAT_CHUNK_SIZE, SCORE_DAT_MAX_BYTES);
-    g_ZunMemory.Free(scoreDat);
+    ZUN_FREE(scoreDat);
     scoreDat = scoreDecrypted;
     bytesToShift = fileSize - 2;
 
@@ -143,11 +143,11 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
         goto recreate_score_file;
     }
 
-    scoreDat2 = (ScoreDat *)g_ZunMemory.Alloc(sizeof(ScoreDat) + 0xa0000, "scorefile2");
+    scoreDat2 = (ScoreDat *)ZUN_ALLOC_NAMED(sizeof(ScoreDat) + 0xa0000, "scorefile2");
     memcpy(scoreDat2, scoreDat, sizeof(ScoreDat));
     Lzss::Decode((u8 *)(scoreDat + 1), scoreDat->compressedFileSize, (u8 *)(scoreDat2 + 1),
                  scoreDat->decompressedFileSizeMinusHeader);
-    g_ZunMemory.Free(scoreDat);
+    ZUN_FREE(scoreDat);
     scoreDat = scoreDat2;
 
     bytesToRead = scoreDat->decompressedFileSize;
@@ -187,7 +187,7 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
     }
 
 out:
-    scoreDat->scores = (ScoreListNode *)g_ZunMemory.Alloc(sizeof(ScoreListNode), "result");
+    scoreDat->scores = (ScoreListNode *)ZUN_ALLOC_NAMED(sizeof(ScoreListNode), "result");
     scoreDat->scores->next = NULL;
     scoreDat->scores->data = NULL;
     scoreDat->scores->prev = NULL;
@@ -463,8 +463,8 @@ i32 ScoreDat::ParsePLST(ScoreDat *scoreDat, Plst *outPlst)
 void ScoreDat::ReleaseScore(ScoreDat *score)
 {
     ScoreDat::FreeAllScores(score->scores);
-    g_ZunMemory.Free(score->scores);
-    g_ZunMemory.Free(score);
+    ZUN_FREE(score->scores);
+    ZUN_FREE(score);
 }
 
 } /* namespace th08 */

@@ -153,7 +153,7 @@ void ResultScreen::WriteScore(ResultScreen *result)
 
     currentOffset = 0;
 
-    scoreData = (u8 *)g_ZunMemory.Alloc(0x640000);
+    scoreData = (u8 *)ZUN_ALLOC(0x640000);
 
 #define COPY(data, size)                                                                                               \
     memcpy(scoreData + currentOffset, data, size);                                                                     \
@@ -302,8 +302,8 @@ void ResultScreen::WriteScore(ResultScreen *result)
 
     FileSystem::WriteDataToFile("score.dat", encryptedData, currentOffset);
 
-    g_ZunMemory.Free(scoreData);
-    g_ZunMemory.Free(encryptedData);
+    ZUN_FREE(scoreData);
+    ZUN_FREE(encryptedData);
 
 #undef COPY
 }
@@ -1461,7 +1461,7 @@ i32 ResultScreen::HandleReplaySaveKeyboard()
                 if (replayFile != NULL)
                 {
                     this->replays[i] = *replayFile;
-                    g_ZunMemory.Free(replayFile);
+                    ZUN_FREE(replayFile);
                 }
             }
         }

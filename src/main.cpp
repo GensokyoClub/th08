@@ -279,9 +279,7 @@ stop:
     if (g_Supervisor.midiOutput != NULL)
     {
         g_Supervisor.midiOutput->StopPlayback();
-        g_ZunMemory.RemoveFromRegistry(g_Supervisor.midiOutput);
-        delete g_Supervisor.midiOutput;
-        g_Supervisor.midiOutput = NULL;
+        ZUN_DELETE(g_Supervisor.midiOutput);
     }
 
     g_GameErrorContext.Flush();
@@ -1086,7 +1084,7 @@ i32 GameWindow::CalcExecutableChecksum()
         }
 
         utils::DebugPrint("main sum %d\r\n", checksum);
-        g_ZunMemory.Free(dataBase);
+        ZUN_FREE(dataBase);
         g_Supervisor.exeChecksum = checksum;
         g_Supervisor.exeSize = fileSize;
 

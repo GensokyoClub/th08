@@ -281,7 +281,8 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
             if (this->vmCount == 0)
             {
                 this->vmCount = 142;
-                this->vms = new AnmVm[this->vmCount];
+                // Most likely SprtInf, but it's inlined so we can't know for sure.
+                this->vms = ZUN_NEW_ARRAY(AnmVm, this->vmCount, "SprtInf");
                 this->titleAnm->ExecuteAnmIdxArray(this->vms, 0, this->vmCount);
             }
 
@@ -437,7 +438,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
 
                 g_GameManager.currentStage = i;
 
-                g_ZunMemory.Free(this->currentReplay);
+                ZUN_FREE(this->currentReplay);
                 this->currentReplay = NULL;
 
                 g_Supervisor.curState = SupervisorState_GameManager;
@@ -580,7 +581,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
     case TitleCurrentScreenState_Exit:
         if (stateTimer >= 60)
         {
-            ZUN_DELETE2(this->vms);
+            ZUN_DELETE(this->vms);
             // Yes, this->vms is set to NULL twice.
             this->vms = NULL;
 
@@ -3202,7 +3203,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
 
                     replayCount++;
 
-                    g_ZunMemory.Free(replayData);
+                    ZUN_FREE(replayData);
                 }
             }
 
@@ -3228,7 +3229,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
                         sprintf(this->replayFilePaths[replayCount], "./replay/%s", findData.cFileName);
                         sprintf(this->replayNumbers[replayCount], "User ");
 
-                        g_ZunMemory.Free(replayData);
+                        ZUN_FREE(replayData);
 
                         replayCount++;
                     }
@@ -3405,7 +3406,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
 
         if (WAS_PRESSED(TH_BUTTON_BOMB | TH_BUTTON_MENU))
         {
-            g_ZunMemory.Free(this->currentReplay);
+            ZUN_FREE(this->currentReplay);
             this->currentReplay = NULL;
             this->currentScreenState = (TitleCurrentScreenState)1;
             this->stateTimer2 = 0;
@@ -3443,7 +3444,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
             g_GameManager.flags.isSpellPractice = (this->currentReplay->spellcardNumber >= 0);
             g_GameManager.currentSpellCardNumber = this->currentReplay->spellcardNumber;
 
-            g_ZunMemory.Free(this->currentReplay);
+            ZUN_FREE(this->currentReplay);
             this->currentReplay = NULL;
 
             g_GameManager.currentStage = this->selectedReplayStage;
@@ -3614,18 +3615,17 @@ ZunResult TitleScreen::ActualAddedCallback()
 
     if (g_GameManager.cfg != NULL)
     {
-        delete g_GameManager.cfg;
-        g_GameManager.cfg = NULL;
+        ZUN_DELETE(g_GameManager.cfg);
     }
-    g_GameManager.cfg = new GameConfiguration();
+
+    g_GameManager.cfg = ZUN_NEW(GameConfiguration, "");
 
     if (g_GameManager.globals != NULL)
     {
-        delete g_GameManager.globals;
-        g_GameManager.globals = NULL;
+        ZUN_DELETE(g_GameManager.globals);
     }
 
-    g_GameManager.globals = new ZunGlobals();
+    g_GameManager.globals = ZUN_NEW(ZunGlobals, "");
     g_Supervisor.framerateMultiplier = 1.0f;
 
     if (g_GameManager.IsReplay())
@@ -3888,13 +3888,13 @@ ZunResult TitleScreen::Release()
 {
     if (this->currentReplay != NULL)
     {
-        g_ZunMemory.Free(this->currentReplay);
+        ZUN_FREE(this->currentReplay);
         this->currentReplay = NULL;
     }
 
     if (this->vms != NULL)
     {
-        ZUN_DELETE2(this->vms);
+        ZUN_DELETE(this->vms);
         /* Again, double NULL set. */
         this->vms = NULL;
     }
@@ -3904,7 +3904,8 @@ ZunResult TitleScreen::Release()
 
 ZunResult TitleScreen::RegisterChain(int param)
 {
-    TitleScreen *titleScreen = new TitleScreen();
+    // Most likely TitleInf, but the it's inlined so we can't know for sure.
+    TitleScreen *titleScreen = ZUN_NEW(TitleScreen, "TitleInf");
     g_TitleScreen = titleScreen;
 
     memset(titleScreen, 0, sizeof(TitleScreen));
@@ -3944,7 +3945,7 @@ ZunResult TitleScreen::DeletedCallback(TitleScreen *titleScreen)
 
     titleScreen->drawChain = NULL;
     titleScreen->Release();
-    ZUN_DELETE2(titleScreen);
+    ZUN_DELETE(titleScreen);
 
     return ZUN_SUCCESS;
 }

@@ -546,7 +546,7 @@ out:
         musicRoom->songNameVms[i].anchor = 3;
     }
 
-    g_ZunMemory.Free(musicCmtFile);
+    ZUN_FREE(musicCmtFile);
 
     return ZUN_SUCCESS;
 }

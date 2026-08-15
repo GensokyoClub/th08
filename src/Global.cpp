@@ -219,14 +219,14 @@ void Chain::ReleaseSingleChain(ChainElem *root)
     ChainElem *tmp;
     ChainElem *wasNext;
 
-    tmp = (ChainElem *)g_ZunMemory.AddToRegistry(new ChainElem(), sizeof(ChainElem), "funcChainInf");
+    tmp = ZUN_NEW(ChainElem, "funcChainInf");
     a0.next = tmp;
 
     current = root;
     while (current != NULL)
     {
         tmp->unkPtr = current;
-        tmp->next = (ChainElem *)g_ZunMemory.AddToRegistry(new ChainElem(), sizeof(ChainElem), "funcChainInf");
+        tmp->next = ZUN_NEW(ChainElem, "funcChainInf");
         tmp = tmp->next;
         current = current->next;
     }
@@ -243,9 +243,7 @@ void Chain::ReleaseSingleChain(ChainElem *root)
     while (tmp != NULL)
     {
         wasNext = tmp->next;
-        g_ZunMemory.RemoveFromRegistry(tmp);
-        delete tmp;
-        tmp = NULL;
+        ZUN_DELETE(tmp);
         tmp = wasNext;
     }
 }
@@ -321,7 +319,7 @@ void Chain::Release()
 
 ChainElem *Chain::CreateElem(ChainCallback callback)
 {
-    ChainElem *elem = (ChainElem *)g_ZunMemory.AddToRegistry(new ChainElem(), sizeof(ChainElem), "funcChainInf");
+    ChainElem *elem = ZUN_NEW(ChainElem, "funcChainInf");
 
     elem->SetCallback(callback);
     elem->isHeapAllocated = true;
@@ -386,9 +384,7 @@ destroy_elem:
         if (to_remove->isHeapAllocated)
         {
             g_Supervisor.LeaveCriticalSectionWrapper(0);
-            g_ZunMemory.RemoveFromRegistry(to_remove);
-            delete to_remove;
-            to_remove = NULL;
+            ZUN_DELETE(to_remove);
             g_Supervisor.EnterCriticalSectionWrapper(0);
         }
         else
@@ -813,7 +809,7 @@ LPBYTE FileSystem::Decrypt(LPBYTE inData, i32 size, u8 xorValue, u8 xorValueInc,
     i32 numUnencrypted = (size % chunkSize < chunkSize / 4) ? size % chunkSize : 0;
 
     LPBYTE inCursor = inData;
-    LPBYTE out = (LPBYTE)g_ZunMemory.Alloc(size);
+    LPBYTE out = (LPBYTE)ZUN_ALLOC(size);
     LPBYTE outCursor = out;
 
     if (out == NULL)
@@ -905,7 +901,7 @@ LPBYTE FileSystem::TryDecryptFromTable(LPBYTE inData, LPINT unused, i32 size)
         // 4 bytes are skipped to exclude the encryption signature
         decryptedData = Decrypt(rawData + 4, size - 4, g_DecryptParams[i].xorValue, g_DecryptParams[i].xorValueInc,
                                 g_DecryptParams[i].chunkSize, g_DecryptParams[i].maxBytesToDecrypt);
-        g_ZunMemory.Free(inData);
+        ZUN_FREE(inData);
         return decryptedData;
     }
 
@@ -922,7 +918,7 @@ LPBYTE FileSystem::Encrypt(LPBYTE inData, i32 size, u8 xorValue, u8 xorValueInc,
     i32 numUnencrypted = (size % chunkSize < chunkSize / 4) ? size % chunkSize : 0;
 
     LPBYTE inCursor = inData;
-    LPBYTE out = (LPBYTE)g_ZunMemory.Alloc(size);
+    LPBYTE out = (LPBYTE)ZUN_ALLOC(size);
     LPBYTE outCursor = out;
 
     if (out == NULL)
@@ -1018,7 +1014,7 @@ LPBYTE FileSystem::OpenFile(LPCSTR path, i32 *fileSize, BOOL isExternalResource)
         {
             utils::DebugPrint("%s Decode ... \r\n", entryname);
 
-            data = (LPBYTE)g_ZunMemory.Alloc(size, path);
+            data = (LPBYTE)ZUN_ALLOC_NAMED(size, path);
             if (data == NULL)
             {
                 goto error;
@@ -1040,7 +1036,7 @@ LPBYTE FileSystem::OpenFile(LPCSTR path, i32 *fileSize, BOOL isExternalResource)
     }
 
     size = GetFileSize(handle, NULL);
-    data = (LPBYTE)g_ZunMemory.Alloc(size, path);
+    data = (LPBYTE)ZUN_ALLOC_NAMED(size, path);
     if (data == NULL)
     {
         utils::DebugPrint("error : %s allocation error.\r\n", path);
