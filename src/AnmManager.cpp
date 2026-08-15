@@ -1978,9 +1978,28 @@ void AnmManager::DrawTextLeft(AnmVm *vm, COLORREF textColor, COLORREF shadowColo
     vm->visible = true;
 }
 
-// STUB: th08 0x466650
+#pragma var_order(args, x, buf, fontWidth)
 void AnmManager::DrawTextCentered(AnmVm *vm, COLORREF textColor, COLORREF shadowColor, const char *fmt, ...)
 {
+    char buf[68];
+    i32 fontWidth;
+    va_list args;
+    i32 x;
+
+    fontWidth = (vm->fontWidth <= 0) ? 15 : vm->fontWidth;
+
+    va_start(args, fmt);
+    vsprintf(buf, fmt, args);
+    va_end(args);
+
+    x = vm->loadedSprite->startPixelInclusive.x + ((vm->loadedSprite->widthPx * vm->loadedSprite->scaleFactor.x) / 2.0f ) - ((strlen(buf) * (float) fontWidth * vm->loadedSprite->scaleFactor.x) / 4.0f);
+
+    this->DrawTextInner(vm->loadedSprite->texture, x,
+                        vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width, vm->loadedSprite->height,
+                        fontWidth, vm->fontHeight, textColor, shadowColor, buf, vm->loadedSprite->scaleFactor.x,
+                        vm->loadedSprite->scaleFactor.y);
+
+    vm->visible = true;
 }
 
 #pragma var_order(surface, fileSize, fileData)
