@@ -503,7 +503,7 @@ int Supervisor::AddedCallback(Supervisor *s)
 
     Float3 position(500.0, 440.0f, 0.0f);
 
-    g_Supervisor.SetupLoadingVms(&position);
+    g_Supervisor.ShowLoadingVms(&position);
 
     g_Supervisor.unk294 = 1;
     g_Supervisor.ThreadStart((LPTHREAD_START_ROUTINE)Supervisor::StartupThread, s);
@@ -1376,7 +1376,7 @@ void Supervisor::ThreadClose()
     }
 }
 
-void Supervisor::SetupLoadingVms(Float3 *position)
+void Supervisor::ShowLoadingVms(Float3 *position)
 {
     if (this->loadingVmsHaveBeenSetup == 0)
     {
@@ -1392,7 +1392,7 @@ void Supervisor::SetupLoadingVms(Float3 *position)
     }
 }
 
-void Supervisor::HideLoadingVms(void)
+void Supervisor::FadeLoadingVms(void)
 {
     if (this->loadingVmsHaveBeenSetup == 1)
     {
@@ -1403,7 +1403,7 @@ void Supervisor::HideLoadingVms(void)
     }
 }
 
-void Supervisor::SetupLoadingVmsAndInitCapture(Float3 *position)
+void Supervisor::ShowLoadingVmsAndCapture(Float3 *position)
 {
     if (this->loadingVmsHaveBeenSetup == 0)
     {
@@ -1419,6 +1419,17 @@ void Supervisor::SetupLoadingVmsAndInitCapture(Float3 *position)
     }
 
     g_AnmManager->SetSurfaceCaptureParams(8, 0, 0, 640, 480, 0, 0, 640, 480);
+}
+
+void Supervisor::HideLoadingVms(void)
+{
+    if (this->loadingVmsHaveBeenSetup == 1)
+    {
+        g_SupervisorLoadingVms[0].SetInterrupt(2);
+        g_SupervisorLoadingVms[1].SetInterrupt(2);
+        g_SupervisorLoadingVms[2].SetInterrupt(2);
+        this->loadingVmsHaveBeenSetup = 2;
+    }
 }
 
 void Supervisor::StartEffect(i32 idx)

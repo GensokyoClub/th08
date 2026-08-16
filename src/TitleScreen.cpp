@@ -3704,12 +3704,12 @@ ZunResult TitleScreen::ActualAddedCallback()
 
     if (g_Supervisor.wantedState2 == SupervisorState_GameManager)
     {
-        g_Supervisor.SetupLoadingVmsAndInitCapture(&loadingVmsPosition);
+        g_Supervisor.ShowLoadingVmsAndCapture(&loadingVmsPosition);
         g_Supervisor.StartEffect(0);
     }
     else if (g_Supervisor.wantedState2 != SupervisorState_Init)
     {
-        g_Supervisor.SetupLoadingVms(&loadingVmsPosition);
+        g_Supervisor.ShowLoadingVms(&loadingVmsPosition);
     }
 
     g_GameManager.flags.isDemoMode = FALSE;
@@ -3800,7 +3800,7 @@ void TitleScreen::TitleSetupThread(TitleScreen *titleScreen)
 
     g_TitleScreen->currentHelpTextVm = &g_TitleScreen->helpTextVms[0];
     g_TitleScreen->state = TitleScreenState_Ready;
-    g_Supervisor.HideLoadingVms();
+    g_Supervisor.FadeLoadingVms();
     g_Supervisor.runningSubthreadHandle = NULL;
     g_Supervisor.subthreadCloseRequestActive = FALSE;
     g_Supervisor.unk290 = 0;

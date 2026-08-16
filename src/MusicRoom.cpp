@@ -217,7 +217,7 @@ i32 MusicRoom::ProcessInput()
     {
         g_Supervisor.curState = SupervisorState_TitleScreen;
 
-        g_Supervisor.SetupLoadingVmsAndInitCapture(&Float3(500.0, 440.0f, 0.0f));
+        g_Supervisor.ShowLoadingVmsAndCapture(&Float3(500.0, 440.0f, 0.0f));
 
         return 1;
     }

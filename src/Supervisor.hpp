@@ -145,9 +145,10 @@ struct Supervisor
     ZunResult FadeOutMusic(float param_1);
 
     void ThreadClose();
-    void SetupLoadingVms(Float3 *position);
+    void ShowLoadingVms(Float3 *position);
+    void FadeLoadingVms(void);
+    void ShowLoadingVmsAndCapture(Float3 *position);
     void HideLoadingVms(void);
-    void SetupLoadingVmsAndInitCapture(Float3 *position);
     void StartEffect(i32 idx);
     void InitializeCriticalSections();
     void DeleteCriticalSections();

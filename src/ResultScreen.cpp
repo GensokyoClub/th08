@@ -2140,7 +2140,7 @@ ChainCallbackResult ResultScreen::OnUpdate(ResultScreen *result)
         {
             Float3 pos(500.0f, 440.0f, 0.0f);
 
-            g_Supervisor.SetupLoadingVms(&pos);
+            g_Supervisor.ShowLoadingVms(&pos);
 
             for (vm1 = result->spriteVms, i = 0; i < ARRAY_SIZE_SIGNED(result->spriteVms); i++, vm1++)
             {
