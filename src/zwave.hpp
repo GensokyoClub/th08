@@ -29,6 +29,9 @@ class CWaveFile;
 //-----------------------------------------------------------------------------
 struct ThBgmFormat;
 
+#define ZWAV_MAGIC      MAKE_FOURCC('Z','W','A','V')
+#define ZWAV_VERSION    1
+
 //-----------------------------------------------------------------------------
 // Typing macros
 //-----------------------------------------------------------------------------
@@ -242,6 +245,14 @@ class CWaveFile
 
     // Modifications by ZUN to this class
     HRESULT Reopen(ThBgmFormat *pzwf);
+};
+
+struct ZWAVHeader
+{
+    u32 magic;
+    u32 version;
+    u32 gameVersion;
+    u32 reserved;
 };
 
 //-----------------------------------------------------------------------------

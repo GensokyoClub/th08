@@ -15,7 +15,6 @@
 namespace th08
 {
 #define GAME_VERSION 0x80001
-#define ZWAV_MAGIC 'VAWZ'
 
 enum MusicMode
 {

@@ -274,7 +274,7 @@ stop:
         goto restart;
     }
 
-    FileSystem::WriteDataToFile("th08.cfg", &g_Supervisor.cfg, 60);
+    FileSystem::WriteDataToFile("th08.cfg", &g_Supervisor.cfg, sizeof(GameConfiguration));
 
     if (g_Supervisor.midiOutput != NULL)
     {

@@ -891,11 +891,11 @@ ZunBool Supervisor::TakeSnapshot(const char *filePath)
     return FALSE;
 }
 
-#pragma var_order(fileSize, configFileBuffer, bgmHandle, bytesRead, bgmBuffer, bgmHandle2, bytesRead2, bgmBuffer2)
+#pragma var_order(fileSize, configFileBuffer, bgmHandle, bytesRead, header1, bgmHandle2, bytesRead2, header2)
 ZunResult Supervisor::LoadConfig(char *configFile)
 {
-    i32 bgmBuffer[4];
-    i32 bgmBuffer2[4];
+    ZWAVHeader header1;
+    ZWAVHeader header2;
 
     HANDLE bgmHandle;
     HANDLE bgmHandle2;
@@ -903,11 +903,11 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     DWORD bytesRead;
     DWORD bytesRead2;
 
-    u8 *configFileBuffer;
+    GameConfiguration *configFileBuffer;
     i32 fileSize;
 
     memset(&g_Supervisor.cfg, 0, sizeof(GameConfiguration));
-    configFileBuffer = FileSystem::OpenFile(configFile, &fileSize, true);
+    configFileBuffer = (GameConfiguration *) FileSystem::OpenFile(configFile, &fileSize, true);
     if (configFileBuffer == NULL)
     {
         g_GameErrorContext.Log(TH_ERR_CONFIG_NOT_FOUND);
@@ -922,9 +922,9 @@ ZunResult Supervisor::LoadConfig(char *configFile)
                                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle != INVALID_HANDLE_VALUE)
         {
-            ReadFile(bgmHandle, bgmBuffer, 16, &bytesRead, NULL);
+            ReadFile(bgmHandle, &header1, sizeof(ZWAVHeader), &bytesRead, NULL);
             CloseHandle(bgmHandle);
-            if (bgmBuffer[0] != ZWAV_MAGIC || bgmBuffer[1] != 1 || bgmBuffer[2] != 0x800)
+            if (header1.magic != ZWAV_MAGIC || header1.version != ZWAV_VERSION || header1.gameVersion != 0x800)
             {
                 g_GameErrorContext.Fatal(TH_ERR_BGM_VERSION_MISMATCH);
                 return ZUN_ERROR;
@@ -949,15 +949,15 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     }
     else
     {
-        g_Supervisor.cfg = *(GameConfiguration *)configFileBuffer;
+        g_Supervisor.cfg = *configFileBuffer;
         ZUN_FREE(configFileBuffer);
         bgmHandle2 = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                                  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle2 != INVALID_HANDLE_VALUE)
         {
-            ReadFile(bgmHandle2, bgmBuffer2, 16, &bytesRead2, NULL);
+            ReadFile(bgmHandle2, &header2, sizeof(ZWAVHeader), &bytesRead2, NULL);
             CloseHandle(bgmHandle2);
-            if (bgmBuffer2[0] != ZWAV_MAGIC || bgmBuffer2[1] != 1 || bgmBuffer2[2] != 0x800)
+            if (header2.magic != ZWAV_MAGIC || header2.version != ZWAV_VERSION || header2.gameVersion != 0x800)
             {
                 g_GameErrorContext.Fatal(TH_ERR_BGM_VERSION_MISMATCH);
                 return ZUN_ERROR;
@@ -968,7 +968,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
             g_Supervisor.cfg.defaultDifficulty >= 6 || g_Supervisor.cfg.playSounds >= 2 ||
             g_Supervisor.cfg.windowed >= 2 || g_Supervisor.cfg.frameskipConfig >= 3 ||
             g_Supervisor.cfg.effectQuality >= 3 || g_Supervisor.cfg.slowMode >= 2 || g_Supervisor.cfg.shotSlow >= 2 ||
-            g_Supervisor.cfg.version != GAME_VERSION || fileSize != 60)
+            g_Supervisor.cfg.version != GAME_VERSION || fileSize != sizeof(GameConfiguration))
         {
 
             g_GameErrorContext.Log(TH_ERR_CONFIG_ABNORMAL);
