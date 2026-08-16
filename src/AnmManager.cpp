@@ -936,7 +936,7 @@ void AnmLoaded::ExecuteAnmIdxArray(AnmVm *vm, i32 scriptIdx, i32 count)
     }
 }
 
-u8 MixColors(u8 color1, u8 color2)
+inline u8 MixColors(u8 color1, u8 color2)
 {
     u32 color = ((color1 * color2) / 128U);
 
