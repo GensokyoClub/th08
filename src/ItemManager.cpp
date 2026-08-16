@@ -120,8 +120,9 @@ Item *ItemManager::SpawnItem(Float3 *position, ItemType itemType, i32 state)
         item->next = NULL;
         this->itemListTail = item;
 
-        return i < MAX_ITEMS ? item : &this->items[MAX_ITEMS];
     }
+
+    return i < MAX_ITEMS ? item : &this->items[MAX_ITEMS];
 }
 
 DIFFABLE_STATIC_ARRAY_ASSIGN(i32, 6, g_PointItemExtendThresholds) = {100, 250, 500, 800, 1100, 9999};
