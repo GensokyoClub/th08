@@ -1451,7 +1451,7 @@ void Supervisor::InitializeCriticalSections()
 
 void Supervisor::DeleteCriticalSections()
 {
-    for (int i = 0; i < ARRAY_SIZE_SIGNED(this->criticalSections); i++)
+    for (int i = 0; i < ARRAY_SIZE(this->criticalSections); i++)
     {
         DeleteCriticalSection(&this->criticalSections[i]);
     }
