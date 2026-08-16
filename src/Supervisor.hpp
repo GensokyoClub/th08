@@ -14,7 +14,10 @@
 
 namespace th08
 {
-#define GAME_VERSION 0x80001
+
+#define GAME_VERSION 8
+#define CONFIG_MINOR_VERSION 1
+#define CONFIG_VERSION (GAME_VERSION << 16 | CONFIG_MINOR_VERSION)
 
 enum MusicMode
 {

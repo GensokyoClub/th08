@@ -915,7 +915,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
         g_Supervisor.cfg.lifeCount = 2;
         g_Supervisor.cfg.bombCount = 3;
         g_Supervisor.cfg.colorMode16bit = 0;
-        g_Supervisor.cfg.version = GAME_VERSION;
+        g_Supervisor.cfg.version = CONFIG_VERSION;
         g_Supervisor.cfg.padXAxis = 600;
         g_Supervisor.cfg.padYAxis = 600;
         bgmHandle = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
@@ -968,7 +968,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
             g_Supervisor.cfg.defaultDifficulty >= 6 || g_Supervisor.cfg.playSounds >= 2 ||
             g_Supervisor.cfg.windowed >= 2 || g_Supervisor.cfg.frameskipConfig >= 3 ||
             g_Supervisor.cfg.effectQuality >= 3 || g_Supervisor.cfg.slowMode >= 2 || g_Supervisor.cfg.shotSlow >= 2 ||
-            g_Supervisor.cfg.version != GAME_VERSION || fileSize != sizeof(GameConfiguration))
+            g_Supervisor.cfg.version != CONFIG_VERSION || fileSize != sizeof(GameConfiguration))
         {
 
             g_GameErrorContext.Log(TH_ERR_CONFIG_ABNORMAL);
