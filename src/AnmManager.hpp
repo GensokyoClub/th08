@@ -211,6 +211,11 @@ enum
 struct AnmManager
 {
     AnmManager();
+
+    // // FUNCTION: th08 0x43ef40 FOLDED
+    ~AnmManager()
+    {
+    }
     void SetupVertexBuffer();
 
     ZunBool ExecuteScript(AnmVm *vm);
