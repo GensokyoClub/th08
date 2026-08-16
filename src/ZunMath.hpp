@@ -22,7 +22,7 @@
 namespace th08
 {
 
-inline void IncrementIfBelow(u32 *value, u32 threshold)
+static void IncrementIfBelow(u32 *value, u32 threshold)
 {
     if (*value < threshold)
     {
