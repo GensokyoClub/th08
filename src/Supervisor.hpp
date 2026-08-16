@@ -114,6 +114,15 @@ enum SupervisorState
     SupervisorState_GameManagerNextStageWeird = 12,
 };
 
+enum
+{
+    SUPERVISOR_LOCK_CHAIN = 0,
+    // lock 1 is unused
+    SUPERVISOR_LOCK_FILE = 2,
+    SUPERVISOR_LOCK_LOG = 3,
+    SUPERVISOR_LOCK_LAST,
+};
+
 /* This forward declaration is to prevent including AnmManager.hpp */
 struct AnmLoaded;
 
@@ -313,8 +322,8 @@ struct Supervisor
     BOOL subthreadCloseRequestActive;
     BOOL unk290;
     u32 unk294;
-    CRITICAL_SECTION criticalSections[4];
-    u8 lockCounts[4];
+    CRITICAL_SECTION criticalSections[SUPERVISOR_LOCK_LAST];
+    u8 lockCounts[SUPERVISOR_LOCK_LAST];
     i32 loadingVmsHaveBeenSetup;
 
     unknown_fields(0x300, 0x38);
