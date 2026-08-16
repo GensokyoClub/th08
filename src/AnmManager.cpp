@@ -203,16 +203,20 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
 
     while (instruction = vm->currentInstruction, instruction->time <= (int)vm->currentTimeInScript)
     {
+#define GET_ARG(type, argNumber)    ((type *)(instruction + 1))[argNumber]
+#define GET_INT_ARG(argNumber)      GET_ARG(i32, argNumber)
+#define GET_FLOAT_ARG(argNumber)    GET_ARG(float, argNumber)
+#define GET_BYTE_ARG(argNumber)     GET_ARG(u8, argNumber)
 #define GET_INT_VAR(argNumber)                                                                                         \
-    ((instruction->varMask & (1 << argNumber)) ? vm->GetIntVar(instruction->intArgs[argNumber])                        \
-                                               : instruction->intArgs[argNumber])
+    ((instruction->varMask & (1 << argNumber)) ? vm->GetIntVar(GET_INT_ARG(argNumber))                                 \
+                                               : GET_INT_ARG(argNumber))
 #define GET_FLOAT_VAR(argNumber)                                                                                       \
-    ((instruction->varMask & (1 << argNumber)) ? vm->GetFloatVar(instruction->floatArgs[argNumber])                    \
-                                               : instruction->floatArgs[argNumber])
+    ((instruction->varMask & (1 << argNumber)) ? vm->GetFloatVar(GET_FLOAT_ARG(argNumber))                             \
+                                               : GET_FLOAT_ARG(argNumber))
 
-#define GET_INT_VAR_PTR(idx) vm->GetIntVarPtr(&instruction->intArgs[idx], instruction->varMask, idx)
+#define GET_INT_VAR_PTR(idx) vm->GetIntVarPtr(&GET_INT_ARG(idx), instruction->varMask, idx)
 
-#define GET_FLOAT_VAR_PTR(idx) vm->GetFloatVarPtr(&instruction->floatArgs[idx], instruction->varMask, idx)
+#define GET_FLOAT_VAR_PTR(idx) vm->GetFloatVarPtr(&GET_FLOAT_ARG(idx), instruction->varMask, idx)
 
         switch (instruction->opcode)
         {
@@ -251,16 +255,16 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             vm->color2.b = GET_INT_VAR(2);
             break;
         case AnmOpcode_Jmp:
-            vm->currentTimeInScript = instruction->intArgs[1];
-            vm->currentInstruction = (AnmRawInstr *)(((u8 *)vm->beginningOfScript) + instruction->intArgs[0]);
+            vm->currentTimeInScript = GET_INT_ARG(1);
+            vm->currentInstruction = (AnmRawInstr *)(((u8 *)vm->beginningOfScript) + GET_INT_ARG(0));
             continue;
         case AnmOpcode_JmpDec:
             *GET_INT_VAR_PTR(0) -= 1;
 
             if (GET_INT_VAR(0) > 0)
             {
-                vm->currentTimeInScript = instruction->intArgs[2];
-                vm->currentInstruction = (AnmRawInstr *)(((u8 *)vm->beginningOfScript) + instruction->intArgs[1]);
+                vm->currentTimeInScript = GET_INT_ARG(2);
+                vm->currentInstruction = (AnmRawInstr *)(((u8 *)vm->beginningOfScript) + GET_INT_ARG(1));
                 continue;
             }
             break;
@@ -270,7 +274,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             vm->updateScale = true;
             break;
         case AnmOpcode_PosMode:
-            vm->usePosOffset = instruction->intArgs[0];
+            vm->usePosOffset = GET_INT_ARG(0);
             break;
         case AnmOpcode_FlipY:
             vm->flip ^= (1 << 1);
@@ -308,17 +312,17 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             break;
         case AnmOpcode_AlphaTimeLinear:
             vm->color1Initial.a = vm->color1.a;
-            vm->color1Final.a = instruction->intArgs[0];
+            vm->color1Final.a = GET_INT_ARG(0);
 
             vm->interpCurrentTimers[AnmInterp_Alpha1] = 0;
             vm->interpEndTimers[AnmInterp_Alpha1] = GET_INT_VAR(1);
             vm->interpModes[AnmInterp_Alpha1] = AnmInterpMode_Linear;
             break;
         case AnmOpcode_AdditiveBlendMode:
-            vm->blendMode = instruction->intArgs[0] != 0;
+            vm->blendMode = GET_INT_ARG(0) != 0;
             break;
         case AnmOpcode_BlendMode:
-            vm->blendMode = instruction->intArgs[0];
+            vm->blendMode = GET_INT_ARG(0);
             break;
         case AnmOpcode_Pos:
             if (!vm->usePosOffset)
@@ -384,10 +388,10 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             nextInstruction = NULL;
             instruction = vm->beginningOfScript;
             while (
-                !(instruction->opcode == AnmOpcode_InterruptLabel && vm->pendingInterrupt == instruction->intArgs[0]) &&
+                !(instruction->opcode == AnmOpcode_InterruptLabel && vm->pendingInterrupt == GET_INT_ARG(0)) &&
                 instruction->opcode != AnmOpcode_EndOfScript)
             {
-                if (instruction->opcode == AnmOpcode_InterruptLabel && instruction->intArgs[0] == -1)
+                if (instruction->opcode == AnmOpcode_InterruptLabel && GET_INT_ARG(0) == -1)
                 {
                     nextInstruction = instruction;
                 }
@@ -419,13 +423,13 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             vm->currentInstruction = vm->interruptReturnInstruction;
             continue;
         case AnmOpcode_Visible:
-            vm->visible = instruction->intArgs[0];
+            vm->visible = GET_INT_ARG(0);
             break;
         case AnmOpcode_AnchorTopLeft:
             vm->anchor = 3;
             break;
         case AnmOpcode_Ins25:
-            vm->type = instruction->intArgs[0];
+            vm->type = GET_INT_ARG(0);
             break;
         case AnmOpcode_AddU:
             vm->uvScrollPos.x += GET_FLOAT_VAR(0);
@@ -463,15 +467,15 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             vm->uvScrollVel.y = GET_FLOAT_VAR(0);
             break;
         case AnmOpcode_ZWriteDisable:
-            vm->zWriteDisabled = instruction->intArgs[0];
+            vm->zWriteDisabled = GET_INT_ARG(0);
             break;
         case AnmOpcode_Ins31:
-            vm->flag15 = instruction->intArgs[0];
+            vm->flag15 = GET_INT_ARG(0);
             break;
         case AnmOpcode_PosTime:
             vm->interpCurrentTimers[AnmInterp_Pos] = 0;
             vm->interpEndTimers[AnmInterp_Pos] = GET_INT_VAR(0);
-            vm->interpModes[AnmInterp_Pos] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_Pos] = GET_INT_ARG(1);
 
             if (!vm->usePosOffset)
             {
@@ -491,7 +495,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
 
             vm->interpEndTimers[AnmInterp_RGB1] = GET_INT_VAR(0);
 
-            vm->interpModes[AnmInterp_RGB1] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_RGB1] = GET_INT_ARG(1);
             vm->color1Initial.r = vm->color1.r;
             vm->color1Initial.g = vm->color1.g;
             vm->color1Initial.b = vm->color1.b;
@@ -503,7 +507,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
         case AnmOpcode_AlphaTime:
             vm->interpCurrentTimers[AnmInterp_Alpha1] = 0;
             vm->interpEndTimers[AnmInterp_Alpha1] = GET_INT_VAR(0);
-            vm->interpModes[AnmInterp_Alpha1] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_Alpha1] = GET_INT_ARG(1);
 
             vm->color1Initial.a = vm->color1.a;
             vm->color1Final.a = GET_INT_VAR(2);
@@ -513,7 +517,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
 
             vm->interpEndTimers[AnmInterp_RGB2] = GET_INT_VAR(0);
 
-            vm->interpModes[AnmInterp_RGB2] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_RGB2] = GET_INT_ARG(1);
             vm->color2Initial.r = vm->color2.r;
             vm->color2Initial.g = vm->color2.g;
             vm->color2Initial.b = vm->color2.b;
@@ -525,7 +529,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
         case AnmOpcode_Alpha2Time:
             vm->interpCurrentTimers[AnmInterp_Alpha2] = 0;
             vm->interpEndTimers[AnmInterp_Alpha2] = GET_INT_VAR(0);
-            vm->interpModes[AnmInterp_Alpha2] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_Alpha2] = GET_INT_ARG(1);
 
             vm->color2Initial.a = vm->color2.a;
             vm->color2Final.a = GET_INT_VAR(2);
@@ -535,7 +539,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
 
             vm->interpEndTimers[AnmInterp_Rotate] = GET_INT_VAR(0);
 
-            vm->interpModes[AnmInterp_Rotate] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_Rotate] = GET_INT_ARG(1);
             vm->rotateInitial = vm->rotation;
 
             vm->rotateFinal.x = GET_FLOAT_VAR(2);
@@ -548,7 +552,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             vm->interpCurrentTimers[AnmInterp_Scale] = 0;
             vm->interpEndTimers[AnmInterp_Scale] = GET_INT_VAR(0);
 
-            vm->interpModes[AnmInterp_Scale] = instruction->intArgs[1];
+            vm->interpModes[AnmInterp_Scale] = GET_INT_ARG(1);
             vm->scaleInitial = vm->scale;
 
             vm->scaleFinal.x = GET_FLOAT_VAR(2);
@@ -556,7 +560,7 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             vm->updateScale = true;
             break;
         case AnmOpcode_Ins83:
-            vm->playerBulletHitAnimationType = instruction->intArgs[0];
+            vm->playerBulletHitAnimationType = GET_INT_ARG(0);
             break;
         case AnmOpcode_ISet:
             *GET_INT_VAR_PTR(0) = GET_INT_VAR(1);
@@ -721,11 +725,12 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
             }
             break;
         case AnmOpcode_Ins88:
-            vm->flag17 = instruction->byteArgs[1];
+            // ???????
+            vm->flag17 = GET_BYTE_ARG(1);
             break;
         jump:
-            vm->currentTimeInScript = instruction->intArgs[3];
-            vm->currentInstruction = (AnmRawInstr *)(((u8 *)vm->beginningOfScript) + instruction->intArgs[2]);
+            vm->currentTimeInScript = GET_INT_ARG(3);
+            vm->currentInstruction = (AnmRawInstr *)(((u8 *)vm->beginningOfScript) + GET_INT_ARG(2));
             continue;
         default:
             break;

@@ -165,11 +165,6 @@ struct AnmRawInstr
     u16 instructionSize;
     i16 time;
     u16 varMask;
-    union {
-        i32 intArgs[ANM_MAX_ARGS];
-        f32 floatArgs[ANM_MAX_ARGS];
-        u8 byteArgs[ANM_MAX_ARGS * sizeof(i32)];
-    };
 };
 
 struct AnmVmBase
