@@ -1088,7 +1088,7 @@ i32 ResultScreen::HandleResultKeyboard()
 
     if (this->frameTimer == 0)
     {
-        this->selectedHighScoreCharacter = g_GameManager.shotType + g_GameManager.fullShotType;
+        this->selectedHighScoreCharacter = g_GameManager.character + g_GameManager.shotType;
         this->selectedDifficulty = g_GameManager.difficulty;
 
         vm = this->spriteVms;
@@ -2565,7 +2565,7 @@ ChainCallbackResult ResultScreen::OnDraw(ResultScreen *result)
             {
                 g_AsciiManager.AddFormatText(
                     &pos, "No.%.2d %8s %5s  %7s %9d0", i + 1, result->lastName, result->currentReplay.date,
-                    g_ResultsCharacterNames[g_GameManager.shotType + g_GameManager.fullShotType],
+                    g_ResultsCharacterNames[g_GameManager.character + g_GameManager.shotType],
                     result->currentReplay.spellcardScore);
 
                 g_AsciiManager.SetColor(0xfff0f0ff);
@@ -2741,10 +2741,10 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
 
     if (result->currentState == RESULT_SCREEN_STATE_PRACTICE)
     {
-        if (g_GameManager.pscrData[g_GameManager.shotType + g_GameManager.fullShotType]
+        if (g_GameManager.pscrData[g_GameManager.character + g_GameManager.shotType]
                 .highScores[g_GameManager.currentStage][g_GameManager.difficulty] < g_GameManager.globals->score)
         {
-            g_GameManager.pscrData[g_GameManager.shotType + g_GameManager.fullShotType]
+            g_GameManager.pscrData[g_GameManager.character + g_GameManager.shotType]
                 .highScores[g_GameManager.currentStage][g_GameManager.difficulty] = g_GameManager.globals->score;
         }
         result->currentState = RESULT_SCREEN_STATE_SAVE_REPLAY_QUESTION;

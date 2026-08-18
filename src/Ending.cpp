@@ -490,7 +490,7 @@ ZunResult Ending::AddedCallback(Ending *ending)
     u32 stageBit;
     i32 i;
 
-    shotType1 = g_GameManager.shotType;
+    shotType1 = g_GameManager.character;
 
     g_AnmManager->ClearTexture();
     g_AnmManager->ClearSprite();
@@ -504,7 +504,7 @@ ZunResult Ending::AddedCallback(Ending *ending)
     if (g_GameManager.flags.unk4)
     {
 
-        shotType2 = g_GameManager.shotType;
+        shotType2 = g_GameManager.character;
 
         stageBit = (g_GameManager.currentStage != STAGE6B) ? SPELL_PRACTICE_UNLOCKED_FLAG : EXTRA_UNLOCKED_FLAG;
 
@@ -551,8 +551,8 @@ ZunResult Ending::AddedCallback(Ending *ending)
     }
     else
     {
-        ending->hasSeenEnding = g_GameManager.clrdData[g_GameManager.shotType].unk_20;
-        g_GameManager.clrdData[g_GameManager.shotType].unk_20 = 0;
+        ending->hasSeenEnding = g_GameManager.clrdData[g_GameManager.character].unk_20;
+        g_GameManager.clrdData[g_GameManager.character].unk_20 = 0;
         g_GameManager.plst.bgmUnlocked[18] = 0x12;
     }
 
@@ -565,15 +565,15 @@ execute_anms:
 
     if (g_GameManager.flags.unk4 == 0)
     {
-        endingFile = g_EndingFiles[0][g_GameManager.shotType];
+        endingFile = g_EndingFiles[0][g_GameManager.character];
     }
     else if (g_GameManager.currentStage != STAGE6B)
     {
-        endingFile = g_EndingFiles[1][g_GameManager.shotType];
+        endingFile = g_EndingFiles[1][g_GameManager.character];
     }
     else
     {
-        endingFile = g_EndingFiles[2][g_GameManager.shotType];
+        endingFile = g_EndingFiles[2][g_GameManager.character];
     }
 
     if (ending->LoadEnding(endingFile) != ZUN_SUCCESS)

@@ -425,9 +425,9 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
                 g_GameManager.difficulty = this->currentReplay->difficulty;
 
                 // Leftover from PCB
-                g_GameManager.shotType = this->currentReplay->shotType / 2;
-                g_GameManager.fullShotType = this->currentReplay->shotType % 2;
-                g_GameManager.shotType = this->currentReplay->shotType;
+                g_GameManager.character = this->currentReplay->shotType / 2;
+                g_GameManager.shotType = this->currentReplay->shotType % 2;
+                g_GameManager.character = this->currentReplay->shotType;
 
                 i = 0;
 
@@ -520,7 +520,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
                     g_GameManager.flags.isPracticeMode = TRUE;
                     g_GameManager.flags.isSpellPractice = TRUE;
 
-                    this->cursor = g_GameManager.shotType;
+                    this->cursor = g_GameManager.character;
                     this->ChangeCurrentScreen(TitleCurrentScreen_SpellStageSelect);
 
                     g_AnmManager->SetInterruptArray(this->vms, this->vmCount, 5);
@@ -1563,7 +1563,7 @@ ChainCallbackResult TitleScreen::OnUpdateCharacterSelect()
     case TitleCurrentScreenState_Init:
         if (this->stateTimer2 == 0)
         {
-            this->cursor = g_GameManager.shotType;
+            this->cursor = g_GameManager.character;
             g_AnmManager->SetInterruptArray(this->vms, this->vmCount, 8);
             menuLength = g_GameManager.IsExtraUnlockedWithAllTeams() ? 12 : 4;
             if (this->currentScreen == TitleCurrentScreen_CharacterSelectSpell)
@@ -1704,8 +1704,8 @@ ChainCallbackResult TitleScreen::OnUpdateCharacterSelect()
         }
         if (WAS_PRESSED(TH_BUTTON_SHOOT | TH_BUTTON_ENTER))
         {
-            g_GameManager.shotType = this->cursor;
-            g_GameManager.fullShotType = 0;
+            g_GameManager.character = this->cursor;
+            g_GameManager.shotType = 0;
 
             g_SoundPlayer.PlaySoundByIdx(SOUND_SELECT, 0);
             g_SoundPlayer.ProcessQueues();
@@ -1745,7 +1745,7 @@ ChainCallbackResult TitleScreen::OnUpdateCharacterSelect()
             g_SoundPlayer.PlaySoundByIdx(SOUND_BACK, 0);
             g_SoundPlayer.ProcessQueues();
 
-            g_GameManager.shotType = this->cursor;
+            g_GameManager.character = this->cursor;
 
             if (this->currentScreen == TitleCurrentScreen_CharacterSelectSpell)
             {
@@ -1824,13 +1824,13 @@ ChainCallbackResult TitleScreen::OnUpdatePracticeStageSelect()
                 this->vms[vmIdx].SetInterrupt(8);
                 for (i = 1; i < ARRAY_SIZE(g_TitleCharacterSpriteIndices[0]) - 1; i++)
                 {
-                    if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i] == vmIdx)
+                    if (g_TitleCharacterSpriteIndices[g_GameManager.character][i] == vmIdx)
                     {
                         this->vms[vmIdx].flag1 = TRUE;
                         this->vms[vmIdx].SetInterrupt(9);
                     }
                 }
-                if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i] == vmIdx)
+                if (g_TitleCharacterSpriteIndices[g_GameManager.character][i] == vmIdx)
                 {
                     this->vms[vmIdx].flag1 = TRUE;
                     this->vms[vmIdx].SetInterrupt(23);
@@ -1846,7 +1846,7 @@ ChainCallbackResult TitleScreen::OnUpdatePracticeStageSelect()
         }
         break;
     case TitleCurrentScreenState_Ready:
-        clearInfo = g_GameManager.clrdData[g_GameManager.shotType]
+        clearInfo = g_GameManager.clrdData[g_GameManager.character]
                         .difficultiesClearedWithRetries[g_Supervisor.cfg.defaultDifficulty];
 
         /* Make Stage 1 selectable in practice */
@@ -1902,7 +1902,7 @@ ChainCallbackResult TitleScreen::OnUpdatePracticeStageSelect()
         {
             g_SoundPlayer.PlaySoundByIdx(SOUND_BACK, 0);
 
-            this->cursor = g_GameManager.shotType;
+            this->cursor = g_GameManager.character;
             this->ChangeCurrentScreen(TitleCurrentScreen_CharacterSelectPractice);
 
             return CHAIN_CALLBACK_RESULT_EXECUTE_AGAIN;
@@ -1948,7 +1948,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 }
             }
 
-            this->cursor = g_GameManager.shotType;
+            this->cursor = g_GameManager.character;
 
             menuLength1 = g_GameManager.IsExtraUnlockedWithAllTeams() ? 12 : 4;
             while (!g_GameManager.IsSpellPracticeUnlockedForCharacter(this->cursor))
@@ -1960,7 +1960,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 }
             }
 
-            g_GameManager.shotType = this->cursor;
+            g_GameManager.character = this->cursor;
 
             this->percentageCapturedSpellPracticePerShot = 0.0f;
             this->percentageCapturedInGamePerShot = 0.0f;
@@ -1975,13 +1975,13 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 this->vms[vmIdx1].SetInterrupt(8);
                 for (i1 = 1; i1 < ARRAY_SIZE(g_TitleCharacterSpriteIndices[0]) - 1; i1++)
                 {
-                    if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i1] == vmIdx1)
+                    if (g_TitleCharacterSpriteIndices[g_GameManager.character][i1] == vmIdx1)
                     {
                         this->vms[vmIdx1].flag1 = TRUE;
                         this->vms[vmIdx1].SetInterrupt(9);
                     }
                 }
-                if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i1] == vmIdx1)
+                if (g_TitleCharacterSpriteIndices[g_GameManager.character][i1] == vmIdx1)
                 {
                     this->vms[vmIdx1].flag1 = TRUE;
                     this->vms[vmIdx1].SetInterrupt(23);
@@ -2045,7 +2045,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
     case TitleCurrentScreenState_Ready:
         this->MoveCursorVertical(10);
         oldCursorPos = this->cursor;
-        this->cursor = g_GameManager.shotType;
+        this->cursor = g_GameManager.character;
 
         menuLength2 = g_GameManager.IsExtraUnlockedWithAllTeams() ? 12 : 4;
 
@@ -2065,7 +2065,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 }
             }
 
-            g_GameManager.shotType = this->cursor;
+            g_GameManager.character = this->cursor;
 
             for (vmIdx2 = TITLE_SPRITE_CHARACTER_START; vmIdx2 <= TITLE_SPRITE_CHARACTER_END; vmIdx2++)
             {
@@ -2648,7 +2648,7 @@ ChainCallbackResult TitleScreen::DrawPracticeStageSelect()
 
     position.y += 16.0f;
 
-    clearInfo = g_GameManager.clrdData[g_GameManager.shotType]
+    clearInfo = g_GameManager.clrdData[g_GameManager.character]
                     .difficultiesClearedWithRetries[g_Supervisor.cfg.defaultDifficulty];
     if (clearInfo == 0)
     {
@@ -2679,8 +2679,8 @@ ChainCallbackResult TitleScreen::DrawPracticeStageSelect()
 
         g_AsciiManager.AddFormatText(
             &position, "%s %9d0 (%3d)", g_StageNames[i],
-            g_GameManager.pscrData[g_GameManager.shotType].highScores[i][g_Supervisor.cfg.defaultDifficulty],
-            g_GameManager.pscrData[g_GameManager.shotType].attempts[i][g_Supervisor.cfg.defaultDifficulty]);
+            g_GameManager.pscrData[g_GameManager.character].highScores[i][g_Supervisor.cfg.defaultDifficulty],
+            g_GameManager.pscrData[g_GameManager.character].attempts[i][g_Supervisor.cfg.defaultDifficulty]);
         position.y += 16.0f;
     }
 
@@ -2762,16 +2762,16 @@ ChainCallbackResult TitleScreen::DrawSpellStageSelect()
         {
             spellCardNumber = g_SpellcardNumbersPerStage[i][spellCardIdx];
 
-            if (g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.shotType] > 0)
+            if (g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.character] > 0)
             {
                 capturesPerStageSpellPracticePerShot++;
             }
-            if (g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.shotType] > 0)
+            if (g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.character] > 0)
             {
                 capturesPerStageInGamePerShot++;
             }
-            if ((g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.shotType] > 0 ||
-                 g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.shotType] > 0) ||
+            if ((g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.character] > 0 ||
+                 g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.character] > 0) ||
                 (i >= ARRAY_SIZE(g_SpellcardCountPerStage) - 1 &&
                  g_GameManager.IsLastWordSpellCardAttempted(spellCardNumber)))
             {
@@ -2993,7 +2993,7 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
 
     position = Float3(16.0f, 78.0f, 0.0f);
 
-    clearInfo = g_GameManager.clrdData[g_GameManager.shotType]
+    clearInfo = g_GameManager.clrdData[g_GameManager.character]
                     .difficultiesClearedWithRetries[g_Supervisor.cfg.defaultDifficulty];
     if (clearInfo == 0)
     {
@@ -3022,7 +3022,7 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
 
         g_AsciiManager.AddFormatText(
             &position, "%sNo.%.3d",
-            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.shotType] > 0
+            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.character] > 0
                 ? "@"
                 : (g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[SHOT_ALL] > 0 ? "*" : " "),
             spellCardNumber + 1);
@@ -3033,10 +3033,10 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
 
         g_AsciiManager.AddFormatText(
             &position, "%3d/%3d(%3d/%3d)",
-            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.shotType],
-            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.shotType],
-            g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.shotType],
-            g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.shotType]);
+            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.character],
+            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.character],
+            g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.character],
+            g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.character]);
 
         g_AsciiManager.SetScale(1.0, 1.0f);
 
@@ -3438,9 +3438,9 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
             strcpy(g_GameManager.replayFilename, this->replayFilePaths[this->selectedReplay]);
 
             g_GameManager.difficulty = this->currentReplay->difficulty;
-            g_GameManager.shotType = this->currentReplay->shotType;
+            g_GameManager.character = this->currentReplay->shotType;
             // Leftover from PCB
-            g_GameManager.shotType = this->currentReplay->shotType;
+            g_GameManager.character = this->currentReplay->shotType;
             g_GameManager.flags.isSpellPractice = (this->currentReplay->spellcardNumber >= 0);
             g_GameManager.currentSpellCardNumber = this->currentReplay->spellcardNumber;
 
@@ -3633,7 +3633,7 @@ ZunResult TitleScreen::ActualAddedCallback()
         /* This seems to be a leftover from PCB where there were separate
          * characters and shot types.
          */
-        g_GameManager.shotType = g_GameManager.shotType = 0;
+        g_GameManager.character = g_GameManager.character = 0;
     }
 
     if (g_GameManager.IsDemoMode())
