@@ -1,10 +1,22 @@
 #include "th_pch.h"
 
+#include "Background.hpp"
+
+#include "EnemyManager.hpp"
+#include "EffectManager.hpp"
+
+#include "BulletManager.hpp"
 #include "GameManager.hpp"
 #include "Global.hpp"
 #include "Gui.hpp"
+#include "ItemManager.hpp"
+#include "Player.hpp"
+#include "ReplayManager.hpp"
 #include "SoundPlayer.hpp"
 #include "SpellCard.hpp"
+#include "ScreenEffect.hpp"
+
+#include "i18n.hpp"
 
 namespace th08
 {
@@ -12,6 +24,35 @@ namespace th08
 DIFFABLE_STATIC(GameManager, g_GameManager);
 DIFFABLE_STATIC(ChainElem, g_GameManagerCalcChain);
 DIFFABLE_STATIC(ChainElem, g_GameManagerDrawChain);
+
+DIFFABLE_STATIC_ASSIGN(i32, g_TimeRequirementParams[MAX_STAGES][EXTRA]) =
+{
+    { 2000, 2500, 2700, 3000 }, // Stage 1
+    { 6500, 7200, 7200, 7200 }, // Stage 2
+    { 7500, 8500, 8800, 8800 }, // Stage 3
+    { 9999, 9999, 9999, 9999 }, // Stage 4A
+    { 7500, 8500, 8500, 8500 }, // Stage 4B
+    { 9999, 9999, 9999, 9999 }, // Stage 5
+    { 0,    0,    0,    0    }, // Stage 6A
+    { 0,    0,    0,    0    }, // Stage 6B
+    { 0,    0,    0,    0    }, // Extra Stage (unused, see comment in GameplaySetupThread)
+};
+
+struct RankInfo
+{
+    i32 rank;
+    i32 minRank;
+    i32 maxRank;
+};
+
+DIFFABLE_STATIC_ASSIGN(RankInfo, g_RankParams[MAX_DIFFICULTIES]) =
+{
+    { 10, 8,  16 },
+    { 10, 8,  16 },
+    { 8,  8,  12 },
+    { 8,  8,  12 },
+    { 16, 15, 16 },
+};
 
 struct SpellcardMusicEntry
 {
@@ -142,21 +183,578 @@ ChainCallbackResult GameManager::OnDraw(GameManager *gameManager)
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-// STUB: th08 0x43aa5c
 ZunResult GameManager::RegisterChain()
 {
+    GameManager *gameManager = &g_GameManager;
+
+    g_GameManagerCalcChain.SetCallback((ChainCallback) GameManager::OnUpdate);
+    g_GameManagerCalcChain.addedCallback = (ChainLifetimeCallback) GameManager::AddedCallback;
+    g_GameManagerCalcChain.deletedCallback = (ChainLifetimeCallback) GameManager::DeletedCallback;
+    g_GameManagerCalcChain.arg = gameManager;
+
+    gameManager->unk3ddc0 = 0;
+
+    if (g_Chain.AddToCalcChain(&g_GameManagerCalcChain, CHAIN_PRIO_CALC_GAMEMANAGER) != ZUN_SUCCESS)
+    {
+        return ZUN_ERROR;
+    }
+
+    g_GameManagerDrawChain.SetCallback((ChainCallback) GameManager::OnDraw);
+    g_GameManagerDrawChain.arg = gameManager;
+
+    g_Chain.AddToDrawChain(&g_GameManagerDrawChain, CHAIN_PRIO_DRAW_GAMEMANAGER);
+
     return ZUN_SUCCESS;
 }
 
-// STUB: th08 0x43aaf4
 ZunResult GameManager::AddedCallback(GameManager *gameManager)
 {
+    if (g_Supervisor.curState != SupervisorState_GameManagerReInit
+        && g_Supervisor.curState != SupervisorState_SpellcardPracticeRestart
+        && g_Supervisor.curState != SupervisorState_GameManagerNextStageWeird)
+    {
+        g_Supervisor.isInitialStageLoad = TRUE;
+    }
+    else
+    {
+        g_Supervisor.isInitialStageLoad = FALSE;
+    }
+
+    g_GameManager.loadState = GAME_LOAD_IN_PROGRESS;
+
+    if (g_Supervisor.wantedState2 == SupervisorState_TitleScreen)
+    {
+        Float3 pos(500.0f, 440.0f, 0.0f);
+
+        g_Supervisor.ShowLoadingVmsAndCapture(&pos);
+        g_Supervisor.StartEffect(0);
+    }
+    else
+    {
+        Float3 pos(280.0f, 430.0f, 0.0f);
+
+        g_Supervisor.ShowLoadingVmsAndCapture(&pos);
+    }
+
+    if (gameManager->flags.unk5 >= 2)
+    {
+        gameManager->flags.unk5 = 1;
+    }
+
+    g_Supervisor.ThreadStart((LPTHREAD_START_ROUTINE)GameManager::GameplaySetupThread, NULL);
+
     return ZUN_SUCCESS;
 }
 
-// STUB: th08 0x43abd7
-void GameManager::GameplaySetupThread()
+static void IncrementTruncate(u32 *value, u32 threshold)
 {
+    // ?! why not use the parameter?
+    if (*value < 999999)
+    {
+        (*value)++;
+    }
+}
+
+#pragma var_order(gameManager, random)
+void GameManager::GameplaySetupThread(LPVOID param)
+{
+    GameManager *gameManager = &g_GameManager;
+    i32 random;
+
+    gameManager->unk3c = 0;
+    g_Supervisor.systemTime = timeGetTime();
+    gameManager->stageMask = ZUN_BIT(gameManager->currentStage);
+    gameManager->currentStage2 = gameManager->currentStage;
+
+    if (gameManager->difficulty < EXTRA)
+    {
+        gameManager->difficultyMask = ZUN_BIT(gameManager->difficulty);
+    }
+    else
+    {
+        gameManager->difficultyMask = ZUN_BIT(EASY) | ZUN_BIT(NORMAL) | ZUN_BIT(HARD) | ZUN_BIT(LUNATIC);
+    }
+
+    gameManager->characterShotType = gameManager->character + gameManager->shotType;
+
+    g_Supervisor.framerateMultiplier = 1.0f;
+
+    gameManager->flags.unk10 = 0;
+
+    if (IsInitialStageLoad() || gameManager->IsSpellPractice() || g_GameManager.IsPracticeMode() || g_GameManager.difficulty >= EXTRA)
+    {
+        if (gameManager->cfg != NULL)
+        {
+            ZUN_DELETE(gameManager->cfg);
+        }
+
+        if (gameManager->globals != NULL)
+        {
+            ZUN_DELETE(gameManager->globals);
+        }
+
+        random = g_Rng.GetRandomU32InRange(0xffff) + 16;
+        gameManager->decoyBuffer = ZUN_ALLOC(random);
+
+        // We don't know the true names of these data types, sadly.
+        gameManager->cfg = ZUN_NEW(GameConfiguration, "");
+        gameManager->globals = ZUN_NEW(ZunGlobals, "");
+
+        GameManager::InitializeAntiTamper();
+
+        *gameManager->cfg = g_Supervisor.cfg;
+
+        // This buffer is probably a poor man's attempt at tricking reverse
+        // engineers like us. Fortunately, it is not effective.
+        ZUN_FREE(gameManager->decoyBuffer);
+
+        gameManager->powerItemCountForScore = 0;
+        gameManager->SetYoukaiGauge(0);
+
+        gameManager->SetClockTime(g_GameManager.currentStage == EXTRASTAGE ? CLOCK_TIME_2_00 : CLOCK_TIME_11_00);
+
+        if (g_GameManager.difficulty >= EXTRA)
+        {
+            gameManager->cfg->lifeCount = 2;
+        }
+        if (g_GameManager.IsPracticeMode())
+        {
+            gameManager->cfg->lifeCount = 8;
+        }
+
+        if (Player::RegisterChain(0) != ZUN_SUCCESS)
+        {
+            if (g_Supervisor.subthreadCloseRequestActive)
+            {
+                return;
+            }
+
+            g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_PLAYER);
+            goto err;
+        }
+
+        if (!g_GameManager.IsReplay())
+        {
+            g_GameManager.SetLives(gameManager->cfg->lifeCount);
+            g_GameManager.SetBombCount(g_Player.player1ShtFile->bombCount);
+        }
+
+        gameManager->InitArcadeRegionParams();
+
+        gameManager->SetPower(0);
+        gameManager->unk3de04 = 0;
+        g_GameManager.unk3DBA4 = 0;
+        g_GameManager.unk3DBA0 = 0;
+        gameManager->globals->displayScore = 0;
+        gameManager->globals->score = 0;
+        gameManager->globals->scoreIncrement = 0;
+        gameManager->globals->displayedHighScore = 100000;
+        gameManager->globals->numRetries = 0;
+        gameManager->globals->graze = 0;
+        gameManager->globals->pointItemsCollected = 0;
+
+        if (gameManager->difficulty >= EXTRA || gameManager->IsPracticeMode() || gameManager->IsSpellPractice())
+        {
+            gameManager->cfg->slowMode = 0;
+        }
+
+        switch (g_GameManager.difficulty)
+        {
+        case EASY:
+            gameManager->globals->pointItemValue = 60000;
+            break;
+        case NORMAL:
+            gameManager->globals->pointItemValue = 100000;
+            break;
+        case HARD:
+            gameManager->globals->pointItemValue = 200000;
+            break;
+        case LUNATIC:
+            gameManager->globals->pointItemValue = 300000;
+            break;
+        case EXTRA:
+            gameManager->globals->pointItemValue = 300000;
+            break;
+        }
+
+        gameManager->globals->pointItemExtendsSoFar = 0;
+
+        ItemManager::UpdatePointItemExtendThreshold();
+        if (GameManager::InitScore() != ZUN_SUCCESS)
+        {
+            goto err;
+        }
+
+        GameManager::InitRankParams(gameManager);
+
+        gameManager->SetDeaths(0);
+        gameManager->SetDeathsInStage(0);
+        gameManager->SetBombsUsed(0);
+        gameManager->SetBombsUsedInStage(0);
+
+        gameManager->globals->spellcardsCaptured = 0;
+
+        gameManager->unk3de10 = 0;
+        gameManager->unk3de18 = 0;
+        gameManager->unk3de1c = 0;
+
+        if (!g_GameManager.IsReplay() && !g_GameManager.IsSpellPractice())
+        {
+            if (!gameManager->cfg->slowMode)
+            {
+                IncrementTruncate(&g_GameManager.plst.playData[g_GameManager.difficulty].attemptsTotal, 999999);
+                IncrementTruncate(&g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].attemptsTotal, 999999);
+                IncrementTruncate(
+                    &g_GameManager.plst.playData[g_GameManager.difficulty].attemptsPerCharacter[gameManager->character],
+                    999999);
+                IncrementTruncate(
+                    &g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].attemptsPerCharacter[gameManager->character],
+                    999999);
+
+                if (g_Supervisor.curState == SupervisorState_GameManagerRestartFromBeginning)
+                {
+                    IncrementTruncate(&g_GameManager.plst.playData[g_GameManager.difficulty].restarts, 999999);
+                    IncrementTruncate(&g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].restarts, 999999);
+                }
+
+                if (g_GameManager.IsPracticeMode() && !g_GameManager.IsSpellPractice())
+                {
+                    IncrementTruncate(&g_GameManager.plst.playData[g_GameManager.difficulty].practices, 999999);
+                    IncrementTruncate(&g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].practices, 999999);
+                }
+            }
+        }
+        else
+        {
+            gameManager->cfg->slowMode = 0;
+        }
+    }
+    else
+    {
+        gameManager->globals->displayScore = gameManager->globals->score;
+        gameManager->globals->scoreIncrement = 0;
+        gameManager->SetDeathsInStage(0);
+        gameManager->SetBombsUsedInStage(0);
+
+        if (Player::RegisterChain(0) != ZUN_SUCCESS)
+        {
+            if (g_Supervisor.subthreadCloseRequestActive)
+            {
+                return;
+            }
+
+            g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_PLAYER);
+            goto err;
+        }
+    }
+
+    gameManager->subRank = 0;
+    gameManager->globals->pointItemsCollectedInStage = 0;
+    gameManager->globals->grazeInStage = 0;
+    gameManager->showPauseMenu = 0;
+    gameManager->flags.unk7 = 0;
+    gameManager->flags.unk13 = 0;
+    gameManager->unk3de14 = 0;
+    gameManager->unk3de20 = 0;
+    gameManager->unk3de24 = 0;
+    gameManager->globals->youkaiGaugeCopy = gameManager->globals->youkaiGauge;
+    gameManager->globals->currentTimeOrbs = 0;
+    gameManager->globals->totalTimeOrbs = 0;
+
+    if (!g_GameManager.IsSpellPractice())
+    {
+#ifndef FIX_REALLY_BAD_BUGS
+        // There is a funny bug here. This retrieves the amount of time
+        // needed to get the Last Spell of the stage boss and pass only
+        // 30 minutes in the lock time. This works fine until the Extra
+        // Stage: the table is arranged by all the stages (STAGE1 until
+        // EXTRASTAGE) and difficulty (EASY until LUNATIC). But the
+        // Extra Stage is considered by the game as the 5th difficulty.
+        //
+        // So what happens? This performs an out-of-bounds read! It reads
+        // the first value of g_RankParams, which is 10. That is why the
+        // Last Spell time threshold is 10 in the Extra Stage.
+        gameManager->globals->lastSpellTimeOrbThreshold = g_TimeRequirementParams[gameManager->currentStage][g_GameManager.difficulty];
+#else
+        if (g_GameManager.difficulty < EXTRA)
+        {
+            gameManager->globals->lastSpellTimeOrbThreshold = g_TimeRequirementParams[gameManager->currentStage][g_GameManager.difficulty];
+        }
+        else
+        {
+            // Preserve the original behavior: in a well defined manner
+            gameManager->globals->lastSpellTimeOrbThreshold = g_RankParams[EASY].rank;
+        }
+#endif
+    }
+    else
+    {
+        gameManager->globals->lastSpellTimeOrbThreshold = 0;
+    }
+
+    if (gameManager->IsPracticeMode())
+    {
+        if (!gameManager->IsSpellPractice())
+        {
+            switch (gameManager->currentStage)
+            {
+            case STAGE1:
+                gameManager->SetPower(0);
+                break;
+            case STAGE2:
+                gameManager->SetPower(112);
+                break;
+            default:
+                gameManager->SetPower(128);
+                break;
+            }
+        }
+        else if (gameManager->currentSpellCardNumber <= SPELLCARD_ST1_MBOSS_1L)
+        {
+            gameManager->SetPower(30);
+        }
+        else if (gameManager->currentSpellCardNumber <= SPELLCARD_ST1_BOSS_LSL)
+        {
+            gameManager->SetPower(80);
+        }
+        else
+        {
+            gameManager->SetPower(128);
+        }
+    }
+
+    if (g_GameManager.IsReplay())
+    {
+        InitRankParams(gameManager);
+
+        ReplayManager::RegisterChain(1, g_GameManager.replayFilename);
+
+        u16 seed = g_Rng.GetSeed();
+
+        gameManager->UpdateAntiTamper();
+
+        g_Rng.SetSeed(seed);
+    }
+
+    gameManager->replaySeed = g_Rng.GetSeed();
+
+    if (Background::RegisterChain(gameManager->currentStage) != ZUN_SUCCESS)
+    {
+        if (g_Supervisor.subthreadCloseRequestActive)
+        {
+            return;
+        }
+
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_BACKGROUND);
+        goto err;
+    }
+
+    if (BulletManager::RegisterChain("etama.anm") != ZUN_SUCCESS)
+    {
+        if (g_Supervisor.subthreadCloseRequestActive)
+        {
+            return;
+        }
+
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_BULLETMANAGER);
+        goto err;
+    }
+
+    if (EnemyManager::RegisterChain() != ZUN_SUCCESS)
+    {
+        if (g_Supervisor.subthreadCloseRequestActive)
+        {
+            return;
+        }
+
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_ENEMYMANAGER);
+        goto err;
+    }
+
+    if (EffectManager::RegisterChain() != ZUN_SUCCESS)
+    {
+        if (g_Supervisor.subthreadCloseRequestActive)
+        {
+            return;
+        }
+
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_EFFECTMANAGER);
+        goto err;
+    }
+
+    if (Gui::RegisterChain() != ZUN_SUCCESS)
+    {
+        if (g_Supervisor.subthreadCloseRequestActive)
+        {
+            return;
+        }
+
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_GUI);
+        goto err;
+    }
+
+    if (Spellcard::RegisterChain() != ZUN_SUCCESS)
+    {
+        if (g_Supervisor.subthreadCloseRequestActive)
+        {
+            return;
+        }
+
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_INITIALIZE_SPELLCARD);
+        goto err;
+    }
+
+    if (!g_GameManager.IsReplay())
+    {
+        ReplayManager::RegisterChain(0, "replay/th8_00.rpy");
+    }
+
+    if (g_GameManager.IsSpellPractice())
+    {
+        switch (g_GameManager.currentStage)
+        {
+        case STAGE5:
+            if (g_GameManager.IsSpellNumberEqualTo(SPELLCARD_LW_TEWI))
+            {
+                // ZUN most likely commented out code here. Possibly this:
+                // g_Background.unk_b34 = 2;
+            }
+            break;
+        case STAGE6A:
+            if (!g_GameManager.IsSpellNumberInRange(SPELLCARD_ST6A_MBOSS_1E, SPELLCARD_ST6A_MBOSS_1L))
+            {
+                g_Background.unk_b34 = 2;
+            }
+            break;
+        case STAGE6B:
+            if (!g_GameManager.IsSpellNumberInRange(SPELLCARD_ST6B_MBOSS_1E, SPELLCARD_ST6B_MBOSS_1L))
+            {
+                g_Background.unk_b34 = 2;
+            }
+            break;
+        case EXTRASTAGE:
+            if (!g_GameManager.IsSpellNumberInRange(SPELLCARD_EX_MBOSS_1, SPELLCARD_EX_MBOSS_3)
+                && !g_GameManager.IsSpellNumberEqualTo(SPELLCARD_LW_KEINEEX))
+            {
+                g_Background.unk_b34 = 2;
+            }
+            break;
+        }
+    }
+
+    if (!KeepStageResources())
+    {
+        if (g_GameManager.IsSpellPractice())
+        {
+            i32 i = 0;
+
+            while (g_SpellcardMusicInfo[i].spellcardNumber >= 0)
+            {
+                if (g_GameManager.currentSpellCardNumber <= g_SpellcardMusicInfo[i].spellcardNumber)
+                {
+                    g_Supervisor.LoadMusic(0, g_SpellcardMusicInfo[i].songPath);
+                    break;
+                }
+
+                i++;
+            }
+        }
+        else
+        {
+            g_Supervisor.LoadMusic(0, g_Background.stdData->songPaths[0]);
+            if (g_Background.stdData->songPaths[1][0] != ' ')
+            {
+                g_Supervisor.LoadMusic(1, g_Background.stdData->songPaths[1]);
+            }
+            if (g_Background.stdData->songPaths[2][0] != ' ')
+            {
+                g_Supervisor.LoadMusic(2, g_Background.stdData->songPaths[2]);
+            }
+        }
+    }
+
+    gameManager->showRetryMenu = 0;
+    gameManager->flags.unk2 = 1;
+
+    if (KeepStageResources()
+        && g_GameManager.IsSpellPractice()
+        && !ShouldPauseMusicInSpellPractice(g_GameManager.currentSpellCardNumber))
+    {
+        gameManager->unk3de28 = 2;
+    }
+    else
+    {
+        gameManager->unk3de28 = 1;
+    }
+
+    if (g_Supervisor.curState != SupervisorState_GameManagerReInit)
+    {
+        g_Supervisor.lagNumerator = 0.0f;
+        g_Supervisor.lagDenominator = 0.0f;
+    }
+
+    gameManager->isTimeStopped = 0;
+    gameManager->globals->score = 0;
+    gameManager->flags.unk4 = 0;
+
+    g_AsciiManager.Reset();
+    g_AsciiManager.InitializeVms();
+
+    g_GameManager.stickyInput = 0;
+
+    g_AsciiManager.nightBlindnessColor.d3dColor = 0;
+
+    Supervisor::CalculateFps(0);
+
+    if (g_GameManager.IsReplay())
+    {
+        while (gameManager->unk3c < 80)
+        {
+            Sleep(17);
+        }
+    }
+    else
+    {
+        while (gameManager->unk3c < 30)
+        {
+            Sleep(17);
+        }
+    }
+
+    g_Supervisor.HideLoadingVms();
+
+    while (gameManager->flags.unk5)
+    {
+        Sleep(17);
+    }
+
+    g_GameManager.loadState = GAME_LOAD_FINISHED;
+
+    g_Supervisor.runningSubthreadHandle = NULL;
+    g_Supervisor.subthreadCloseRequestActive = 0;
+    g_Supervisor.unk290 = 0;
+    g_Supervisor.unk174 = 60;
+    gameManager->flags.unk9 = 0;
+    g_Supervisor.keepStageResources = 0;
+    g_ScreenEffectCounter = 2;
+
+    return;
+err:
+    g_GameManager.loadState = GAME_LOAD_FAILED;
+
+    g_Supervisor.HideLoadingVms();
+    g_Supervisor.runningSubthreadHandle = NULL;
+    g_Supervisor.subthreadCloseRequestActive = 0;
+    g_Supervisor.unk290 = 0;
+    g_Supervisor.keepStageResources = 0;
+    g_ScreenEffectCounter = 2;
+}
+
+void GameManager::InitRankParams(GameManager *gameManager)
+{
+    gameManager->rank = g_RankParams[g_GameManager.difficulty].rank;
+    gameManager->minRank = g_RankParams[g_GameManager.difficulty].minRank;
+    gameManager->maxRank = g_RankParams[g_GameManager.difficulty].maxRank;
 }
 
 #pragma var_order(sum, i)
@@ -198,6 +796,12 @@ void GameManager::InitializeAntiTamper()
     sum = g_GameManager.CalcAntiTamperChecksum();
     g_GameManager.globals->antiTamperChecksum = sum;
     g_GameManager.antiTamperExpectedValue = (f32)sum + (f32)g_GameManager.globals->rng7[3];
+}
+
+// STUB: th08 0x43bbe1
+ZunResult GameManager::InitScore()
+{
+    return ZUN_SUCCESS;
 }
 
 // STUB: th08 0x43be2c
@@ -416,19 +1020,19 @@ void GameManager::AdvanceToNextStage()
 GameManager::GameManager()
 {
     memset(this, 0, sizeof(GameManager));
-    this->arcadeRegionTopLeftPos.x = 32.0f;
-    this->arcadeRegionTopLeftPos.y = 16.0f;
-    this->arcadeRegionSize.x = 384.0f;
-    this->arcadeRegionSize.y = 448.0f;
+    this->arcadeRegionTopLeftPos.x = ARCADE_LEFT;
+    this->arcadeRegionTopLeftPos.y = ARCADE_TOP;
+    this->arcadeRegionSize.x = ARCADE_WIDTH;
+    this->arcadeRegionSize.y = ARCADE_HEIGHT;
     this->currentDemoReplay = 3;
 }
 
 void GameManager::InitArcadeRegionParams()
 {
-    this->arcadeRegionTopLeftPos.x = 32.0f;
-    this->arcadeRegionTopLeftPos.y = 16.0f;
-    this->arcadeRegionSize.x = 384.0f;
-    this->arcadeRegionSize.y = 448.0f;
+    this->arcadeRegionTopLeftPos.x = ARCADE_LEFT;
+    this->arcadeRegionTopLeftPos.y = ARCADE_TOP;
+    this->arcadeRegionSize.x = ARCADE_WIDTH;
+    this->arcadeRegionSize.y = ARCADE_HEIGHT;
     this->playerMovementTopLeftPos.x = 8.0f;
     this->playerMovementTopLeftPos.y = 16.0f;
     this->playerMovementAreaSize.x = 368.0f;

@@ -24,6 +24,7 @@ struct SpellcardFlags
 struct Spellcard
 {
     static i32 GetDifficultyFromSpellCard(i32 spellcardNumber);
+    static ZunResult RegisterChain();
 
     SpellcardFlags flags;
     unknown_fields(0x4, 0x2620);

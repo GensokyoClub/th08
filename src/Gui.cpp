@@ -115,7 +115,7 @@ const char *g_MsgFiles[][12] = {{"msg1a.dat", "msg1b.dat", "msg1c.dat", "msg1d.d
 
 ChainCallbackResult Gui::OnUpdate(Gui *gui)
 {
-    if (g_GameManager.unk2C != 0)
+    if (g_GameManager.isTimeStopped != 0)
     {
         return CHAIN_CALLBACK_RESULT_CONTINUE;
     }

@@ -15,7 +15,7 @@ void BulletManager::Initialize()
 }
 
 // STUB: th08 0x4311a0
-ZunResult BulletManager::RegisterChain()
+ZunResult BulletManager::RegisterChain(const char *filename)
 {
     return ZUN_SUCCESS;
 }

@@ -1211,6 +1211,14 @@ void PauseMenu::OnDraw()
     }
 }
 
+static void IncrementIfBelow(u32 *value, u32 threshold)
+{
+    if (*value < threshold)
+    {
+        (*value)++;
+    }
+}
+
 i32 RetryMenu::OnUpdate()
 {
     i32 i;

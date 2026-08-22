@@ -48,6 +48,13 @@ enum
     REPLAY_MODE_BOSS,
 };
 
+enum GameManagerLoadState
+{
+    GAME_LOAD_FINISHED,
+    GAME_LOAD_IN_PROGRESS,
+    GAME_LOAD_FAILED,
+};
+
 struct GameManager
 {
     GameManager();
@@ -58,6 +65,7 @@ struct GameManager
     i32 CalcAntiTamperChecksum();
     static i32 CalcChecksum(u8 *address, i32 size);
     void CollectExtend();
+    static ZunResult InitScore();
 
     static ChainCallbackResult OnUpdate(GameManager *gameManager);
     static ChainCallbackResult OnDraw(GameManager *gameManager);
@@ -65,11 +73,9 @@ struct GameManager
     static ZunResult RegisterChain();
 
     static ZunResult AddedCallback(GameManager *gameManager);
-    static void GameplaySetupThread();
+    static void GameplaySetupThread(LPVOID param);
 
-    void InitRankParams()
-    {
-    }
+    static void InitRankParams(GameManager *gameManager);
 
     static void InitializeAntiTamper();
 
@@ -228,6 +234,38 @@ struct GameManager
         this->UpdateAntiTamper();
     }
 
+    void SetDeaths(i32 deaths)
+    {
+        this->globals->deaths = deaths;
+    }
+
+    void SetDeathsInStage(i32 deaths)
+    {
+        this->globals->deathsInStage = deaths;
+        this->UpdateAntiTamper();
+    }
+
+    void SetBombsUsed(i32 bombs)
+    {
+        this->globals->bombsUsed = bombs;
+    }
+
+    void SetBombsUsedInStage(i32 bombs)
+    {
+        this->globals->bombsUsedInStage = bombs;
+        this->UpdateAntiTamper();
+    }
+
+    void SetYoukaiGauge(i32 youkaiGauge)
+    {
+        this->globals->youkaiGauge = youkaiGauge;
+    }
+
+    void SetClockTime(i32 clockTime)
+    {
+        this->globals->clockTime = clockTime;
+    }
+
     ZunBool IsStageClearedWithRetries(i32 stage, i32 character, i32 difficulty)
     {
         return IS_STAGE_CLEARED(this->clrdData[character].difficultiesClearedWithRetries[difficulty], stage);
@@ -264,6 +302,16 @@ struct GameManager
                    (this->catkData[spellCardNumber].inGameHistory.attempts[SHOT_ALL] != 0 ||
                     this->catkData[spellCardNumber].spellPracticeHistory.attempts[SHOT_ALL] != 0) ||
                this->flsp.unlockedLastWordSpellCards[spellCardNumber - SPELLCARD_LAST_WORD_START] == spellCardNumber;
+    }
+
+    ZunBool IsSpellNumberEqualTo(i32 spellNumber)
+    {
+        return this->flags.isSpellPractice ? (this->currentSpellCardNumber == spellNumber) : FALSE;
+    }
+
+    ZunBool IsSpellNumberInRange(i32 min, i32 max)
+    {
+        return this->flags.isSpellPractice ? (this->currentSpellCardNumber >= min && this->currentSpellCardNumber <= max) : FALSE;
     }
 
     i32 GetPower()
@@ -311,21 +359,21 @@ struct GameManager
 
     void InitArcadeRegionParams();
 
-    ZunBool IsUnknown()
+    ZunBool IsStickyInput()
     {
-        return this->unk2D;
+        return this->stickyInput;
     }
 
-    i32 unk0x0;
+    void *decoyBuffer;
     GameConfiguration *cfg;
     ZunGlobals *globals;
     Flsp flsp;
-    i8 unk2C;
-    i8 unk2D;
+    i8 isTimeStopped;
+    i8 stickyInput;
     /* 2 bytes pad */
     i32 difficulty;
     i32 difficultyMask;
-    u32 unk38;
+    GameManagerLoadState loadState;
     i32 unk3c;
     Catk catkData[SPELLCARD_COUNT_SPELLCARDS];
     Catk catkData2[SPELLCARD_COUNT_SPELLCARDS];
@@ -353,12 +401,12 @@ struct GameManager
 
     i32 demoFrameCount;
     char replayFilename[512];
-    u32 unk3ddbc;
+    u16 replaySeed;
     u32 unk3ddc0;
     i32 currentStage;
     i32 currentStage2;
     u32 unk3ddcc;
-    u16 unk3DDD0;
+    u16 stageMask;
     u16 unk3DDD2;
     Float2 arcadeRegionTopLeftPos;
     Float2 arcadeRegionSize;

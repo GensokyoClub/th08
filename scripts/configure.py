@@ -101,6 +101,7 @@ def configure(build_type):
             "AsciiManager": debug_codegen,
             "Background": debug_codegen,
             "SpellCard": debug_codegen,
+            "EffectManager": debug_codegen,
             "Ending": debug_codegen,
             "EnemyManager": debug_codegen,
             "BulletManager": debug_codegen,
@@ -136,6 +137,7 @@ def configure(build_type):
             "AsciiManager",
             "Background",
             "SpellCard",  # card.obj
+            "EffectManager",
             "Ending",
             "EnemyManager",
             "BulletManager",  # etama.obj

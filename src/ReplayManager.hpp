@@ -103,6 +103,7 @@ struct ReplayManager
 {
     static void SaveReplay(const char *replayPath, const char *replayName);
     static ReplayData *LoadReplayData(void *replayData, int fileSize);
+    static ZunResult RegisterChain(u32 state, const char *filename);
 
     unknown_fields(0x0, 0x8);
     ReplayData *replayData;

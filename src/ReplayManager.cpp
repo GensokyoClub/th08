@@ -104,4 +104,9 @@ err2:
     return NULL;
 }
 
+ZunResult ReplayManager::RegisterChain(u32 state, const char *filename)
+{
+    return ZUN_SUCCESS;
+}
+
 } // namespace th08

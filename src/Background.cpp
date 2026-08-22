@@ -36,9 +36,9 @@ ZunResult Background::AddedCallback(Background *background)
 }
 
 // STUB: th08 0x409b20
-ZunResult Background::RegisterChain()
+ZunResult Background::RegisterChain(u32 stage)
 {
-    return ZUN_ERROR;
+    return ZUN_SUCCESS;
 }
 
 // STUB: th08 0x409c20

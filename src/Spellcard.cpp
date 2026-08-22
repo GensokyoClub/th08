@@ -370,4 +370,10 @@ i32 Spellcard::GetDifficultyFromSpellCard(i32 spellCardNumber)
     return MAX_DIFFICULTIES;
 }
 
+// STUB: th08 0x417f60
+ZunResult Spellcard::RegisterChain()
+{
+    return ZUN_SUCCESS;
+}
+
 } /* namespace th08 */

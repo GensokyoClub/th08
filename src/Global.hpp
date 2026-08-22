@@ -416,7 +416,7 @@ struct ZunGlobals
     i32 totalTimeOrbs;
     i32 rng1[7];
     f32 deaths;
-    f32 deathInStage;
+    f32 deathsInStage;
     f32 rng2[2];
     f32 livesRemaining;
     f32 rng3[2];

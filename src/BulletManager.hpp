@@ -27,7 +27,7 @@ struct BulletManager
     {
     }
 
-    static ZunResult RegisterChain();
+    static ZunResult RegisterChain(const char *filename);
     static ChainCallbackResult OnUpdate(BulletManager *bulletManager);
     static ChainCallbackResult OnDraw(BulletManager *bulletManager);
     static ZunResult AddedCallback(BulletManager *bulletManager);

@@ -75,7 +75,7 @@ ChainCallbackResult Supervisor::OnUpdate(Supervisor *s)
     g_Supervisor.ClearFogState();
     g_SoundPlayer.UpdateFades();
 
-    if (!g_GameManager.IsUnknown())
+    if (!g_GameManager.IsStickyInput())
     {
         g_LastFrameInput = g_CurFrameInput;
         g_CurFrameInput = Controller::GetInput();
@@ -1056,7 +1056,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
 }
 
 #pragma var_order(periodLoc, wavPathBuf)
-ZunBool Supervisor::LoadMusic(int param_1, char *path)
+i32 Supervisor::LoadMusic(i32 param_1, const char *path)
 {
     char wavPathBuf[256];
     char *periodLoc;
@@ -1068,7 +1068,7 @@ ZunBool Supervisor::LoadMusic(int param_1, char *path)
             g_Supervisor.midiOutput->ReadFileData(param_1, path);
         }
 
-        return FALSE;
+        return 0;
     }
     else if (g_Supervisor.cfg.musicMode == WAV)
     {
@@ -1080,9 +1080,10 @@ ZunBool Supervisor::LoadMusic(int param_1, char *path)
         periodLoc[3] = 'v';
 
         g_SoundPlayer.QueueCommand(1, param_1, wavPathBuf);
+
     }
 
-    return TRUE;
+    return 1;
 }
 
 ZunBool Supervisor::PlayMusic(i32 param_1, i32 param_2)
@@ -1098,7 +1099,7 @@ ZunBool Supervisor::PlayMusic(i32 param_1, i32 param_2)
     return TRUE;
 }
 
-ZunResult Supervisor::PlayAudio(char *path, i32 param_2)
+ZunResult Supervisor::PlayAudio(const char *path, i32 param_2)
 {
     char wavPathBuf[256];
     char *periodLoc;
