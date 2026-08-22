@@ -12,6 +12,7 @@
 #include "ItemManager.hpp"
 #include "Player.hpp"
 #include "ReplayManager.hpp"
+#include "ResultScreen.hpp"
 #include "SoundPlayer.hpp"
 #include "SpellCard.hpp"
 #include "ScreenEffect.hpp"
@@ -798,9 +799,65 @@ void GameManager::InitializeAntiTamper()
     g_GameManager.antiTamperExpectedValue = (f32)sum + (f32)g_GameManager.globals->rng7[3];
 }
 
-// STUB: th08 0x43bbe1
+#pragma var_order(catk, i, scoreDat, j)
 ZunResult GameManager::InitScore()
 {
+    i32 i;
+    i32 j;
+    Catk *catk = &g_GameManager.catkData[0];
+    ScoreDat *scoreDat;
+
+    ResultScreen::RegisterChain(2);
+
+    memset(g_GameManager.catkData, 0, sizeof(g_GameManager.catkData));
+
+    for (i = 0; i < SPELLCARD_COUNT_SPELLCARDS; i++, catk++)
+    {
+        catk->base.magic = CATK_MAGIC;
+        catk->base.unkLen = sizeof(Catk);
+        catk->base.th8kLen = sizeof(Catk);
+        catk->base.version = CATK_VERSION;
+        catk->spellcardNumber = i;
+        for (j = 0; j < MAX_DIFFICULTIES + 2; j++)
+        {
+            catk->inGameHistory.attempts[j] = 0;
+            catk->inGameHistory.captures[j] = 0;
+            catk->inGameHistory.maxBonus[j] = 0;
+        }
+    }
+
+    scoreDat = ScoreDat::OpenScore("score.dat");
+    if (scoreDat == NULL)
+    {
+        g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_READ_SCORE);
+        return ZUN_ERROR;
+    }
+
+    g_GameManager.globals->displayedHighScore = ScoreDat::GetHighScore(scoreDat, 0, g_GameManager.character, g_GameManager.difficulty, &g_GameManager.globals->continuesUsedInHighScore);
+
+    ScoreDat::ParseCATK(scoreDat, g_GameManager.catkData);
+    ScoreDat::ParseCLRD(scoreDat, g_GameManager.clrdData);
+    ScoreDat::ParsePSCR(scoreDat, g_GameManager.pscrData);
+
+    if (g_GameManager.IsPracticeMode())
+    {
+        g_GameManager.globals->displayedHighScore = g_GameManager.pscrData[g_GameManager.character].highScores[g_GameManager.currentStage][g_GameManager.difficulty];
+        g_GameManager.pscrData[g_GameManager.character].attempts[g_GameManager.currentStage][g_GameManager.difficulty]++;
+        g_GameManager.pscrData[g_GameManager.character].unk0x175 = 1;
+    }
+
+    ScoreDat::ReleaseScore(scoreDat);
+
+    memcpy(g_GameManager.catkData2, g_GameManager.catkData, sizeof(g_GameManager.catkData));
+
+    memset(&g_GameManager.hscr, 0, sizeof(Hscr));
+
+    g_GameManager.hscr.character = g_GameManager.character;
+    g_GameManager.hscr.difficulty = g_GameManager.difficulty;
+    g_GameManager.hscr.cfg = g_Supervisor.cfg;
+
+    g_GameManager.unk3DB94 = 0;
+
     return ZUN_SUCCESS;
 }
 
