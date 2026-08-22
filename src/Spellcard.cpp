@@ -376,4 +376,9 @@ ZunResult Spellcard::RegisterChain()
     return ZUN_SUCCESS;
 }
 
+// STUB: th08 0x4180f0
+void Spellcard::CutChain()
+{
+}
+
 } /* namespace th08 */

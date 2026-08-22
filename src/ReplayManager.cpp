@@ -109,4 +109,9 @@ ZunResult ReplayManager::RegisterChain(u32 state, const char *filename)
     return ZUN_SUCCESS;
 }
 
+// STUB: th08 0x4531a0
+void ReplayManager::StopRecording()
+{
+}
+
 } // namespace th08

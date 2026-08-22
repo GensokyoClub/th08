@@ -861,9 +861,63 @@ ZunResult GameManager::InitScore()
     return ZUN_SUCCESS;
 }
 
-// STUB: th08 0x43be2c
 ZunResult GameManager::DeletedCallback(GameManager *gameManager)
 {
+    g_ScreenEffectCounter = 1;
+
+    g_AsciiManager.nightBlindnessColor.d3dColor = 0;
+
+    if (g_Supervisor.curState != SupervisorState_GameManagerReInit
+        && g_Supervisor.curState != SupervisorState_SpellcardPracticeRestart
+        && g_Supervisor.curState != SupervisorState_GameManagerNextStageWeird)
+    {
+        g_Supervisor.releaseResourcesOnRestart = TRUE;
+    }
+    else
+    {
+        g_Supervisor.releaseResourcesOnRestart = FALSE;
+    }
+
+    if (!g_GameManager.IsSpellPractice() || ReleaseResourcesOnRestart())
+    {
+        g_Supervisor.StopAudio();
+
+        if (g_Supervisor.cfg.musicMode == MIDI && g_Supervisor.midiOutput != NULL)
+        {
+            g_Supervisor.midiOutput->PlayFile(30);
+        }
+    }
+
+    while (g_SoundPlayer.ProcessQueues() != 0);
+
+    Spellcard::CutChain();
+    Background::CutChain();
+    BulletManager::CutChain();
+    Player::CutChain();
+    EnemyManager::CutChain();
+    EffectManager::CutChain();
+    Gui::CutChain();
+
+    if (!g_GameManager.IsReplay())
+    {
+        ReplayManager::StopRecording();
+    }
+
+    if (!g_GameManager.IsReplay())
+    {
+        g_Supervisor.UpdateGameTime();
+    }
+
+    g_Supervisor.systemTime = 0;
+    g_Supervisor.UpdatePlayTime();
+
+    gameManager->flags.unk2 = 0;
+
+    g_AsciiManager.Reset();
+
+    g_GameManager.stickyInput = 0;
+    g_GameManager.unk3ddc0 = 0;
+
     return ZUN_SUCCESS;
 }
 

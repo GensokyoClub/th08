@@ -101,6 +101,7 @@ C_ASSERT(sizeof(ReplayData) == 0x134);
 
 struct ReplayManager
 {
+    static void StopRecording();
     static void SaveReplay(const char *replayPath, const char *replayName);
     static ReplayData *LoadReplayData(void *replayData, int fileSize);
     static ZunResult RegisterChain(u32 state, const char *filename);

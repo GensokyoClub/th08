@@ -44,4 +44,9 @@ ZunResult BulletManager::DeletedCallback(BulletManager *bulletManager)
     return ZUN_SUCCESS;
 }
 
+// STUB: th08 0x433850
+void BulletManager::CutChain()
+{
+}
+
 } /* namespace th08 */
