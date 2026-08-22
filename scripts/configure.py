@@ -301,7 +301,7 @@ def configure(build_type):
         if build_type in [BuildType.DIFFBUILD, BuildType.DLLBUILD]:
             objfiles += ["$builddir/globals.obj"]
 
-        th08_link_libs = "dxguid.lib d3dx8.lib d3d8.lib dsound.lib winmm.lib kernel32.lib user32.lib dinput8.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib"
+        th08_link_libs = "dxguid.lib d3dx8.lib d3d8.lib dsound.lib dxerr8.lib winmm.lib kernel32.lib user32.lib dinput8.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib"
         writer.build(
             "$builddir/th08.exe",
             "link",
