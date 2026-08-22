@@ -190,19 +190,19 @@ void GuiImpl::MsgRead(i32 msgIdx)
             }
             else if (!g_GameManager.IsReplay())
             {
-                if (g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.shotType, EASY) ||
-                    g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.shotType, NORMAL) ||
-                    g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.shotType, HARD) ||
-                    g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.shotType, LUNATIC) ||
-                    g_GameManager.shotType > SHOT_YOUMU_YUYUKO)
+                if (g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.character, EASY) ||
+                    g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.character, NORMAL) ||
+                    g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.character, HARD) ||
+                    g_GameManager.IsStageClearedWithoutRetries(STAGE6B, g_GameManager.character, LUNATIC) ||
+                    g_GameManager.character > SHOT_YOUMU_YUYUKO)
                 {
                     msgIdx = 3;
                     this->msg.selectedOption = 1;
                 }
-                else if (g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.shotType, EASY) ||
-                         g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.shotType, NORMAL) ||
-                         g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.shotType, HARD) ||
-                         g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.shotType, LUNATIC))
+                else if (g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.character, EASY) ||
+                         g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.character, NORMAL) ||
+                         g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.character, HARD) ||
+                         g_GameManager.IsStageClearedWithRetries(STAGE6A, g_GameManager.character, LUNATIC))
                 {
                     msgIdx = 2;
                     this->msg.selectedOption = 1;
@@ -254,10 +254,10 @@ void GuiImpl::MsgRead(i32 msgIdx)
     this->msg.dialogueLines[1].scriptIndex = -1;
     this->msg.isTextBoxVisible = true;
     this->msg.fontSize = 15;
-    this->msg.textColorsA[0] = g_GuiTextColors[g_GameManager.shotType][0];
-    this->msg.textColorsA[1] = g_GuiTextColors[g_GameManager.shotType][1];
-    this->msg.textColorsA[2] = g_GuiTextColors[g_GameManager.shotType][2];
-    this->msg.textColorsA[3] = g_GuiTextColors[g_GameManager.shotType][3];
+    this->msg.textColorsA[0] = g_GuiTextColors[g_GameManager.character][0];
+    this->msg.textColorsA[1] = g_GuiTextColors[g_GameManager.character][1];
+    this->msg.textColorsA[2] = g_GuiTextColors[g_GameManager.character][2];
+    this->msg.textColorsA[3] = g_GuiTextColors[g_GameManager.character][3];
     this->msg.textColorsB[0] = 0;
     this->msg.textColorsB[1] = 0;
     this->msg.textColorsB[2] = 0;
@@ -679,8 +679,8 @@ ZunResult GuiImpl::RunMsg()
             }
             if (g_GameManager.currentStage != STAGE6B && g_GameManager.currentStage != STAGE6A &&
                 g_GameManager.currentStage != EXTRASTAGE && g_GameManager.GetBombsRemaining() < 3 &&
-                (g_GameManager.shotType == SHOT_YOUMU_YUYUKO || g_GameManager.shotType == SHOT_YOUMU ||
-                 g_GameManager.shotType == SHOT_YUYUKO))
+                (g_GameManager.character == SHOT_YOUMU_YUYUKO || g_GameManager.character == SHOT_YOUMU ||
+                 g_GameManager.character == SHOT_YUYUKO))
             {
                 g_GameManager.AddToBombCount(1);
                 g_SoundPlayer.PlaySoundByIdx(SOUND_SPELL_CAPTURE, 0);
@@ -1484,15 +1484,15 @@ ZunResult Gui::DeletedCallback(Gui *gui)
 {
     if (!KeepStageResources())
     {
-        g_AnmManager->ReleaseAnm(13);
+        g_AnmManager->ReleaseAnm(ANM_FILE_STAGE_TEXT);
     }
     gui->FreeMsgFile();
     if (ReleaseResourcesOnRestart())
     {
-        g_AnmManager->ReleaseAnm(10);
-        g_AnmManager->ReleaseAnm(12);
+        g_AnmManager->ReleaseAnm(ANM_FILE_FRONT);
+        g_AnmManager->ReleaseAnm(ANM_FILE_LOADING);
         g_AnmManager->ReleaseAnm(11);
-        g_AnmManager->ReleaseAnm(14);
+        g_AnmManager->ReleaseAnm(ANM_FILE_TIMES);
         ZUN_DELETE(gui->impl);
     }
     return ZUN_SUCCESS;
@@ -1510,14 +1510,14 @@ ZunResult Gui::RegisterChain()
     g_GuiCalcChain.addedCallback = (ChainLifetimeCallback)AddedCallback;
     g_GuiCalcChain.deletedCallback = (ChainLifetimeCallback)DeletedCallback;
     g_GuiCalcChain.arg = gui;
-    if (g_Chain.AddToCalcChain(&g_GuiCalcChain, 15) != 0)
+    if (g_Chain.AddToCalcChain(&g_GuiCalcChain, CHAIN_PRIO_CALC_GUI) != 0)
     {
         return ZUN_ERROR;
     }
 
     g_GuiDrawChain.SetCallback((ChainCallback)OnDraw);
     g_GuiDrawChain.arg = gui;
-    g_Chain.AddToDrawChain(&g_GuiDrawChain, 17);
+    g_Chain.AddToDrawChain(&g_GuiDrawChain, CHAIN_PRIO_DRAW_GUI);
 
     return ZUN_SUCCESS;
 }
@@ -1839,18 +1839,18 @@ ZunResult Gui::ActualAddedCallback()
     if (IsInitialStageLoad())
     {
         memset(this->impl, 0, sizeof(GuiImpl));
-        this->frontAnm = g_AnmManager->PreloadAnm(10, "front.anm");
+        this->frontAnm = g_AnmManager->PreloadAnm(ANM_FILE_FRONT, "front.anm");
         if (!this->frontAnm)
         {
             return ZUN_ERROR;
         }
         InitStageClearScreen();
-        this->timesAnm = g_AnmManager->PreloadAnm(14, "times.anm");
+        this->timesAnm = g_AnmManager->PreloadAnm(ANM_FILE_TIMES, "times.anm");
         if (!this->timesAnm)
         {
             return ZUN_ERROR;
         }
-        this->loadingPortraitAnm = g_AnmManager->PreloadAnm(12, g_LoadingAnms[g_GameManager.shotType]);
+        this->loadingPortraitAnm = g_AnmManager->PreloadAnm(ANM_FILE_LOADING, g_LoadingAnms[g_GameManager.character]);
         if (!this->loadingPortraitAnm)
         {
             return ZUN_ERROR;
@@ -1895,7 +1895,7 @@ ZunResult Gui::ActualAddedCallback()
     this->timesAnm->ExecuteAnmIdx(&this->impl->clockTimeIntroSprite, 0);
     this->timesAnm->SetSprite(&this->impl->clockTimeIntroSprite, g_GameManager.GetClockTime());
     if (!g_GameManager.IsSpellPractice() &&
-        LoadMsg(g_MsgFiles[g_GameManager.currentStage][g_GameManager.shotType]) != ZUN_SUCCESS)
+        LoadMsg(g_MsgFiles[g_GameManager.currentStage][g_GameManager.character]) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
@@ -1903,7 +1903,8 @@ ZunResult Gui::ActualAddedCallback()
     {
         if (!g_GameManager.flags.isSpellPractice || g_GameManager.currentSpellCardNumber < 205)
         {
-            this->stageTextAnm = g_AnmManager->PreloadAnm(13, g_StageTextAnms[g_GameManager.currentStage]);
+            this->stageTextAnm =
+                g_AnmManager->PreloadAnm(ANM_FILE_STAGE_TEXT, g_StageTextAnms[g_GameManager.currentStage]);
             if (!this->stageTextAnm)
             {
                 return ZUN_ERROR;
@@ -1911,7 +1912,7 @@ ZunResult Gui::ActualAddedCallback()
         }
         else
         {
-            this->stageTextAnm = g_AnmManager->PreloadAnm(13, g_StageTextAnms[8]);
+            this->stageTextAnm = g_AnmManager->PreloadAnm(ANM_FILE_STAGE_TEXT, g_StageTextAnms[8]);
             if (!this->stageTextAnm)
             {
                 return ZUN_ERROR;
@@ -1994,7 +1995,7 @@ void Gui::FreeMsgFile(void)
 {
     if (this->impl->msg.msgFile)
     {
-        g_ZunMemory.Free(this->impl->msg.msgFile);
+        ZUN_FREE(this->impl->msg.msgFile);
         this->impl->msg.msgFile = NULL;
     }
 }

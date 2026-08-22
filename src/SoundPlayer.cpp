@@ -109,7 +109,7 @@ ZunResult SoundPlayer::Release()
 
     if (this->bgmFmtData != NULL)
     {
-        g_ZunMemory.Free(this->bgmFmtData);
+        ZUN_FREE(this->bgmFmtData);
     }
     for (i = 0; i < NUM_SOUND_BUFFERS; i++)
     {
@@ -199,7 +199,7 @@ ZunResult SoundPlayer::LoadSound(i32 idx, char *path)
     if (strncmp((char *)sFDCursor, "RIFF", 4))
     {
         g_GameErrorContext.Log(TH_ERR_NOT_A_WAV_FILE2, path);
-        g_ZunMemory.Free(soundFileData);
+        ZUN_FREE(soundFileData);
         return ZUN_ERROR;
     }
     sFDCursor += 4;
@@ -210,7 +210,7 @@ ZunResult SoundPlayer::LoadSound(i32 idx, char *path)
     if (strncmp((char *)sFDCursor, "WAVE", 4))
     {
         g_GameErrorContext.Log(TH_ERR_NOT_A_WAV_FILE, path);
-        g_ZunMemory.Free(soundFileData);
+        ZUN_FREE(soundFileData);
         return ZUN_ERROR;
     }
     sFDCursor += 4;
@@ -218,7 +218,7 @@ ZunResult SoundPlayer::LoadSound(i32 idx, char *path)
     if (wavDataPtr == NULL)
     {
         g_GameErrorContext.Log(TH_ERR_NOT_A_WAV_FILE, path);
-        g_ZunMemory.Free(soundFileData);
+        ZUN_FREE(soundFileData);
         return ZUN_ERROR;
     }
     wavData = *wavDataPtr;
@@ -227,7 +227,7 @@ ZunResult SoundPlayer::LoadSound(i32 idx, char *path)
     if (wavDataPtr == NULL)
     {
         g_GameErrorContext.Log(TH_ERR_NOT_A_WAV_FILE, path);
-        g_ZunMemory.Free(soundFileData);
+        ZUN_FREE(soundFileData);
         return ZUN_ERROR;
     }
     ZeroMemory(&dsBuffer, sizeof(dsBuffer));
@@ -237,13 +237,13 @@ ZunResult SoundPlayer::LoadSound(i32 idx, char *path)
     dsBuffer.lpwfxFormat = &wavData;
     if (FAILED(this->dsoundHdl->CreateSoundBuffer(&dsBuffer, &this->soundBuffers[idx], NULL)))
     {
-        g_ZunMemory.Free(soundFileData);
+        ZUN_FREE(soundFileData);
         return ZUN_ERROR;
     }
     if (FAILED(soundBuffers[idx]->Lock(0, formatSize, (LPVOID *)&audioPtr1, (LPDWORD)&audioSize1, (LPVOID *)&audioPtr2,
                                        (LPDWORD)&audioSize2, NULL)))
     {
-        g_ZunMemory.Free(soundFileData);
+        ZUN_FREE(soundFileData);
         return ZUN_ERROR;
     }
     CopyMemory(audioPtr1, wavDataPtr, audioSize1);
@@ -252,7 +252,7 @@ ZunResult SoundPlayer::LoadSound(i32 idx, char *path)
         CopyMemory(audioPtr2, (i8 *)wavDataPtr + audioSize1, audioSize2);
     }
     soundBuffers[idx]->Unlock((LPVOID *)audioPtr1, audioSize1, (LPVOID *)audioPtr2, audioSize2);
-    g_ZunMemory.Free(soundFileData);
+    ZUN_FREE(soundFileData);
     return ZUN_SUCCESS;
 }
 
@@ -363,8 +363,7 @@ ZunResult SoundPlayer::PreloadBGM(i32 idx, char *path)
     fmtIdx = this->GetFmtIndexByName(path);
     SetFilePointer(handle, this->bgmFmtData[fmtIdx].startOffset, 0, FILE_BEGIN);
 
-    bufferPtr = (u8 *)g_ZunMemory.Alloc(this->bgmFmtData[fmtIdx].preloadAllocSize,
-                                        "d:\\cygwin\\home\\zun\\prog\\th08\\global.h");
+    bufferPtr = (u8 *)ZUN_ALLOC(this->bgmFmtData[fmtIdx].preloadAllocSize);
     if (bufferPtr == NULL)
     {
         CloseHandle(handle);
@@ -926,7 +925,7 @@ void SoundPlayer::FreePreloadedBGM(i32 idx)
 {
     if (this->unk1ec0[idx] != NULL)
     {
-        g_ZunMemory.Free(this->unk1ec0[idx]);
+        ZUN_FREE(this->unk1ec0[idx]);
         this->unk1ec0[idx] = NULL;
     }
 }

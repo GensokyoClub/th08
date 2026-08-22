@@ -153,7 +153,7 @@ void ResultScreen::WriteScore(ResultScreen *result)
 
     currentOffset = 0;
 
-    scoreData = (u8 *)g_ZunMemory.Alloc(0x640000);
+    scoreData = (u8 *)ZUN_ALLOC(0x640000);
 
 #define COPY(data, size)                                                                                               \
     memcpy(scoreData + currentOffset, data, size);                                                                     \
@@ -302,8 +302,8 @@ void ResultScreen::WriteScore(ResultScreen *result)
 
     FileSystem::WriteDataToFile("score.dat", encryptedData, currentOffset);
 
-    g_ZunMemory.Free(scoreData);
-    g_ZunMemory.Free(encryptedData);
+    ZUN_FREE(scoreData);
+    ZUN_FREE(encryptedData);
 
 #undef COPY
 }
@@ -1088,7 +1088,7 @@ i32 ResultScreen::HandleResultKeyboard()
 
     if (this->frameTimer == 0)
     {
-        this->selectedHighScoreCharacter = g_GameManager.shotType + g_GameManager.fullShotType;
+        this->selectedHighScoreCharacter = g_GameManager.character + g_GameManager.shotType;
         this->selectedDifficulty = g_GameManager.difficulty;
 
         vm = this->spriteVms;
@@ -1461,7 +1461,7 @@ i32 ResultScreen::HandleReplaySaveKeyboard()
                 if (replayFile != NULL)
                 {
                     this->replays[i] = *replayFile;
-                    g_ZunMemory.Free(replayFile);
+                    ZUN_FREE(replayFile);
                 }
             }
         }
@@ -2100,14 +2100,14 @@ ZunResult ResultScreen::RegisterChain(u32 unk)
     resultScreen->calcChain->deletedCallback = (ChainLifetimeCallback)ResultScreen::DeletedCallback;
     resultScreen->calcChain->arg = resultScreen;
 
-    if (g_Chain.AddToCalcChain(resultScreen->calcChain, 16) != ZUN_SUCCESS)
+    if (g_Chain.AddToCalcChain(resultScreen->calcChain, CHAIN_PRIO_CALC_RESULTSCREEN) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
 
     resultScreen->drawChain = g_Chain.CreateElem((ChainCallback)ResultScreen::OnDraw);
     resultScreen->drawChain->arg = resultScreen;
-    g_Chain.AddToDrawChain(resultScreen->drawChain, 18);
+    g_Chain.AddToDrawChain(resultScreen->drawChain, CHAIN_PRIO_DRAW_RESULTSCREEN);
 
     return ZUN_SUCCESS;
 }
@@ -2140,7 +2140,7 @@ ChainCallbackResult ResultScreen::OnUpdate(ResultScreen *result)
         {
             Float3 pos(500.0f, 440.0f, 0.0f);
 
-            g_Supervisor.SetupLoadingVms(&pos);
+            g_Supervisor.ShowLoadingVms(&pos);
 
             for (vm1 = result->spriteVms, i = 0; i < ARRAY_SIZE_SIGNED(result->spriteVms); i++, vm1++)
             {
@@ -2563,10 +2563,10 @@ ChainCallbackResult ResultScreen::OnDraw(ResultScreen *result)
 
             if (result->currentState == RESULT_SCREEN_STATE_WRITING_REPLAY_NAME)
             {
-                g_AsciiManager.AddFormatText(
-                    &pos, "No.%.2d %8s %5s  %7s %9d0", i + 1, result->lastName, result->currentReplay.date,
-                    g_ResultsCharacterNames[g_GameManager.shotType + g_GameManager.fullShotType],
-                    result->currentReplay.spellcardScore);
+                g_AsciiManager.AddFormatText(&pos, "No.%.2d %8s %5s  %7s %9d0", i + 1, result->lastName,
+                                             result->currentReplay.date,
+                                             g_ResultsCharacterNames[g_GameManager.character + g_GameManager.shotType],
+                                             result->currentReplay.spellcardScore);
 
                 g_AsciiManager.SetColor(0xfff0f0ff);
 
@@ -2663,13 +2663,13 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
             return ZUN_ERROR;
         }
 
-        result->resultAnm = g_AnmManager->LoadAnm(21, "result00.anm");
+        result->resultAnm = g_AnmManager->LoadAnm(ANM_FILE_RESULT, "result00.anm");
         if (result->resultAnm == NULL)
         {
             return ZUN_ERROR;
         }
 
-        result->resultTextAnm = g_AnmManager->LoadAnm(22, "resulttext.anm");
+        result->resultTextAnm = g_AnmManager->LoadAnm(ANM_FILE_RESULTTEXT, "resulttext.anm");
         if (result->resultTextAnm == NULL)
         {
             return ZUN_ERROR;
@@ -2741,10 +2741,10 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
 
     if (result->currentState == RESULT_SCREEN_STATE_PRACTICE)
     {
-        if (g_GameManager.pscrData[g_GameManager.shotType + g_GameManager.fullShotType]
+        if (g_GameManager.pscrData[g_GameManager.character + g_GameManager.shotType]
                 .highScores[g_GameManager.currentStage][g_GameManager.difficulty] < g_GameManager.globals->score)
         {
-            g_GameManager.pscrData[g_GameManager.shotType + g_GameManager.fullShotType]
+            g_GameManager.pscrData[g_GameManager.character + g_GameManager.shotType]
                 .highScores[g_GameManager.currentStage][g_GameManager.difficulty] = g_GameManager.globals->score;
         }
         result->currentState = RESULT_SCREEN_STATE_SAVE_REPLAY_QUESTION;
@@ -2851,8 +2851,8 @@ ZunResult ResultScreen::DeletedCallback(ResultScreen *result)
         }
     }
 
-    g_AnmManager->ReleaseAnm(21);
-    g_AnmManager->ReleaseAnm(22);
+    g_AnmManager->ReleaseAnm(ANM_FILE_RESULT);
+    g_AnmManager->ReleaseAnm(ANM_FILE_RESULTTEXT);
 
     g_AnmManager->ReplaceSurface(8, 0);
 

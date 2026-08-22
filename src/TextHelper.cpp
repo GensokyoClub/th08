@@ -81,7 +81,6 @@ struct THBITMAPINFO
     RGBQUAD bmiColors[17];
 };
 
-#pragma function(memset)
 #pragma var_order(imageWidthInBytes, deviceContext, originalBitmapObj, padding, bitmapInfo, formatInfo, bitmapObj,     \
                   bitmapData)
 bool TextHelper::TryAllocateBuffer(i32 width, i32 height, D3DFORMAT format)
@@ -279,7 +278,6 @@ bool TextHelper::IsAllocated()
     return this->gdiObj2 != NULL;
 }
 
-#pragma function(memcpy)
 #pragma var_order(dstBuf, dstWidthBytes, rectToLock, curHeight, srcWidthBytes, outSurfaceDesc, srcBuf, lockedRect,     \
                   width, height, thisFormat, thisHeight)
 bool TextHelper::CopyTextToSurface(IDirect3DSurface8 *outSurface)
@@ -335,7 +333,6 @@ void TextHelper::ReleaseTextBuffer()
     SAFE_RELEASE(g_TextBufferSurface);
 }
 
-#pragma function(strlen)
 #pragma var_order(hdc, font, textSurfaceDesc, h, textHelper, hdc, srcRect, destRect, destSurface)
 void TextHelper::RenderTextToTextureBold(i32 xPos, i32 yPos, i32 spriteWidth, i32 spriteHeight, i32 fontHeight,
                                          i32 fontWidth, COLORREF textColor, COLORREF outlineType, const char *string,
@@ -404,7 +401,6 @@ void TextHelper::RenderTextToTextureBold(i32 xPos, i32 yPos, i32 spriteWidth, i3
     return;
 }
 
-#pragma function(strlen)
 #pragma var_order(hdc, font, textSurfaceDesc, h, textHelper, hdc, srcRect, destRect, destSurface)
 void TextHelper::RenderTextToTexture(i32 xPos, i32 yPos, i32 spriteWidth, i32 spriteHeight, i32 fontHeight,
                                      i32 fontWidth, COLORREF textColor, COLORREF outlineType, const char *string,

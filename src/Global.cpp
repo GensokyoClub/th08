@@ -68,7 +68,7 @@ int Chain::AddToCalcChain(ChainElem *elem, int priority)
         elem->addedCallback = NULL;
     }
 
-    g_Supervisor.EnterCriticalSectionWrapper(0);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
     elem->priority = priority;
 
     while (cur->next != NULL)
@@ -95,7 +95,7 @@ int Chain::AddToCalcChain(ChainElem *elem, int priority)
         cur->next = elem;
     }
 
-    g_Supervisor.LeaveCriticalSectionWrapper(0);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 
     return res;
 }
@@ -112,7 +112,7 @@ int Chain::AddToDrawChain(ChainElem *elem, int priority)
         elem->addedCallback = NULL;
     }
 
-    g_Supervisor.EnterCriticalSectionWrapper(0);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
     elem->priority = priority;
 
     while (cur->next != NULL)
@@ -139,7 +139,7 @@ int Chain::AddToDrawChain(ChainElem *elem, int priority)
         cur->next = elem;
     }
 
-    g_Supervisor.LeaveCriticalSectionWrapper(0);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 
     return res;
 }
@@ -152,7 +152,7 @@ int Chain::RunCalcChain()
     int updatedCount;
     ChainCallbackResult result;
 
-    g_Supervisor.EnterCriticalSectionWrapper(0);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 
 restart_from_first_job:
     updatedCount = 0;
@@ -163,9 +163,9 @@ restart_from_first_job:
         if (current->callback != NULL)
         {
         execute_again:
-            g_Supervisor.LeaveCriticalSectionWrapper(0);
+            g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
             result = current->callback(current->arg);
-            g_Supervisor.EnterCriticalSectionWrapper(0);
+            g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 
             switch (result)
             {
@@ -206,7 +206,7 @@ restart_from_first_job:
     }
 
 loop_exit:
-    g_Supervisor.LeaveCriticalSectionWrapper(0);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
     return updatedCount;
 }
 
@@ -219,14 +219,14 @@ void Chain::ReleaseSingleChain(ChainElem *root)
     ChainElem *tmp;
     ChainElem *wasNext;
 
-    tmp = (ChainElem *)g_ZunMemory.AddToRegistry(new ChainElem(), sizeof(ChainElem), "funcChainInf");
+    tmp = ZUN_NEW(ChainElem, "funcChainInf");
     a0.next = tmp;
 
     current = root;
     while (current != NULL)
     {
         tmp->unkPtr = current;
-        tmp->next = (ChainElem *)g_ZunMemory.AddToRegistry(new ChainElem(), sizeof(ChainElem), "funcChainInf");
+        tmp->next = ZUN_NEW(ChainElem, "funcChainInf");
         tmp = tmp->next;
         current = current->next;
     }
@@ -243,9 +243,7 @@ void Chain::ReleaseSingleChain(ChainElem *root)
     while (tmp != NULL)
     {
         wasNext = tmp->next;
-        g_ZunMemory.RemoveFromRegistry(tmp);
-        delete tmp;
-        tmp = NULL;
+        ZUN_DELETE(tmp);
         tmp = wasNext;
     }
 }
@@ -261,16 +259,16 @@ int Chain::RunDrawChain()
     updatedCount = 0;
     current = &this->drawChain;
 
-    g_Supervisor.EnterCriticalSectionWrapper(0);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 
     while (current != NULL)
     {
         if (current->callback != NULL)
         {
         execute_again:
-            g_Supervisor.LeaveCriticalSectionWrapper(0);
+            g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
             result = current->callback(current->arg);
-            g_Supervisor.EnterCriticalSectionWrapper(0);
+            g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 
             switch (result)
             {
@@ -308,7 +306,7 @@ int Chain::RunDrawChain()
     }
 
 loop_exit:
-    g_Supervisor.LeaveCriticalSectionWrapper(0);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
     return updatedCount;
 }
 
@@ -321,7 +319,7 @@ void Chain::Release()
 
 ChainElem *Chain::CreateElem(ChainCallback callback)
 {
-    ChainElem *elem = (ChainElem *)g_ZunMemory.AddToRegistry(new ChainElem(), sizeof(ChainElem), "funcChainInf");
+    ChainElem *elem = ZUN_NEW(ChainElem, "funcChainInf");
 
     elem->SetCallback(callback);
     elem->isHeapAllocated = true;
@@ -331,9 +329,9 @@ ChainElem *Chain::CreateElem(ChainCallback callback)
 
 void Chain::Cut(ChainElem *to_remove)
 {
-    g_Supervisor.EnterCriticalSectionWrapper(0);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
     CutImpl(to_remove);
-    g_Supervisor.LeaveCriticalSectionWrapper(0);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
 }
 
 void Chain::CutImpl(ChainElem *to_remove)
@@ -385,11 +383,9 @@ destroy_elem:
 
         if (to_remove->isHeapAllocated)
         {
-            g_Supervisor.LeaveCriticalSectionWrapper(0);
-            g_ZunMemory.RemoveFromRegistry(to_remove);
-            delete to_remove;
-            to_remove = NULL;
-            g_Supervisor.EnterCriticalSectionWrapper(0);
+            g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
+            ZUN_DELETE(to_remove);
+            g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
         }
         else
         {
@@ -397,9 +393,9 @@ destroy_elem:
             {
                 ChainLifetimeCallback callback = to_remove->deletedCallback;
                 to_remove->deletedCallback = NULL;
-                g_Supervisor.LeaveCriticalSectionWrapper(0);
+                g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
                 callback(to_remove->arg);
-                g_Supervisor.EnterCriticalSectionWrapper(0);
+                g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_CHAIN);
             }
         }
     }
@@ -813,7 +809,7 @@ LPBYTE FileSystem::Decrypt(LPBYTE inData, i32 size, u8 xorValue, u8 xorValueInc,
     i32 numUnencrypted = (size % chunkSize < chunkSize / 4) ? size % chunkSize : 0;
 
     LPBYTE inCursor = inData;
-    LPBYTE out = (LPBYTE)g_ZunMemory.Alloc(size);
+    LPBYTE out = (LPBYTE)ZUN_ALLOC(size);
     LPBYTE outCursor = out;
 
     if (out == NULL)
@@ -905,7 +901,7 @@ LPBYTE FileSystem::TryDecryptFromTable(LPBYTE inData, LPINT unused, i32 size)
         // 4 bytes are skipped to exclude the encryption signature
         decryptedData = Decrypt(rawData + 4, size - 4, g_DecryptParams[i].xorValue, g_DecryptParams[i].xorValueInc,
                                 g_DecryptParams[i].chunkSize, g_DecryptParams[i].maxBytesToDecrypt);
-        g_ZunMemory.Free(inData);
+        ZUN_FREE(inData);
         return decryptedData;
     }
 
@@ -922,7 +918,7 @@ LPBYTE FileSystem::Encrypt(LPBYTE inData, i32 size, u8 xorValue, u8 xorValueInc,
     i32 numUnencrypted = (size % chunkSize < chunkSize / 4) ? size % chunkSize : 0;
 
     LPBYTE inCursor = inData;
-    LPBYTE out = (LPBYTE)g_ZunMemory.Alloc(size);
+    LPBYTE out = (LPBYTE)ZUN_ALLOC(size);
     LPBYTE outCursor = out;
 
     if (out == NULL)
@@ -982,7 +978,7 @@ LPBYTE FileSystem::OpenFile(LPCSTR path, i32 *fileSize, BOOL isExternalResource)
     HANDLE handle;
     i32 unused = -1;
 
-    g_Supervisor.EnterCriticalSectionWrapper(2);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
 
     if (!isExternalResource)
     {
@@ -1018,7 +1014,7 @@ LPBYTE FileSystem::OpenFile(LPCSTR path, i32 *fileSize, BOOL isExternalResource)
         {
             utils::DebugPrint("%s Decode ... \r\n", entryname);
 
-            data = (LPBYTE)g_ZunMemory.Alloc(size, path);
+            data = (LPBYTE)ZUN_ALLOC_NAMED(size, path);
             if (data == NULL)
             {
                 goto error;
@@ -1040,7 +1036,7 @@ LPBYTE FileSystem::OpenFile(LPCSTR path, i32 *fileSize, BOOL isExternalResource)
     }
 
     size = GetFileSize(handle, NULL);
-    data = (LPBYTE)g_ZunMemory.Alloc(size, path);
+    data = (LPBYTE)ZUN_ALLOC_NAMED(size, path);
     if (data == NULL)
     {
         utils::DebugPrint("error : %s allocation error.\r\n", path);
@@ -1058,28 +1054,28 @@ LPBYTE FileSystem::OpenFile(LPCSTR path, i32 *fileSize, BOOL isExternalResource)
     data = TryDecryptFromTable(data, fileSize, size);
 
 done:
-    g_Supervisor.LeaveCriticalSectionWrapper(2);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
     return data;
 
 error:
-    g_Supervisor.LeaveCriticalSectionWrapper(2);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
     return NULL;
 }
 
 BOOL FileSystem::CheckIfFileAlreadyExists(LPCSTR path)
 {
-    g_Supervisor.EnterCriticalSectionWrapper(2);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
 
     HANDLE handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
                                 FILE_FLAG_SEQUENTIAL_SCAN | FILE_ATTRIBUTE_NORMAL, NULL);
     if (handle != INVALID_HANDLE_VALUE)
     {
         CloseHandle(handle);
-        g_Supervisor.LeaveCriticalSectionWrapper(2);
+        g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
         return TRUE;
     }
 
-    g_Supervisor.LeaveCriticalSectionWrapper(2);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
     return FALSE;
 }
 
@@ -1089,7 +1085,7 @@ int FileSystem::WriteDataToFile(LPCSTR path, LPVOID data, size_t size)
     LPSTR buffer;
     DWORD numBytesWritten;
 
-    g_Supervisor.EnterCriticalSectionWrapper(2);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
 
     HANDLE handle = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (handle == INVALID_HANDLE_VALUE)
@@ -1099,7 +1095,7 @@ int FileSystem::WriteDataToFile(LPCSTR path, LPVOID data, size_t size)
 
         utils::DebugPrint("error : %s write error %s\r\n", path, buffer);
         LocalFree(buffer);
-        g_Supervisor.LeaveCriticalSectionWrapper(2);
+        g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
         return -1;
     }
 
@@ -1108,13 +1104,13 @@ int FileSystem::WriteDataToFile(LPCSTR path, LPVOID data, size_t size)
     {
         CloseHandle(handle);
         utils::DebugPrint("error : %s write error\r\n", path);
-        g_Supervisor.LeaveCriticalSectionWrapper(2);
+        g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
         return -2;
     }
 
     CloseHandle(handle);
     utils::DebugPrint("%s write ...\r\n", path);
-    g_Supervisor.LeaveCriticalSectionWrapper(2);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_FILE);
     return 0;
 }
 
@@ -1125,7 +1121,7 @@ const char *GameErrorContext::Log(const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    g_Supervisor.EnterCriticalSectionWrapper(3);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_LOG);
     vsprintf(tmpBuffer, fmt, args);
 
     tmpBufferSize = strlen(tmpBuffer);
@@ -1140,7 +1136,7 @@ const char *GameErrorContext::Log(const char *fmt, ...)
 
     va_end(args);
 
-    g_Supervisor.LeaveCriticalSectionWrapper(3);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_LOG);
     return fmt;
 }
 
@@ -1151,7 +1147,7 @@ const char *GameErrorContext::Fatal(const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    g_Supervisor.EnterCriticalSectionWrapper(3);
+    g_Supervisor.EnterCriticalSectionWrapper(SUPERVISOR_LOCK_LOG);
     vsprintf(tmpBuffer, fmt, args);
 
     tmpBufferSize = strlen(tmpBuffer);
@@ -1168,7 +1164,7 @@ const char *GameErrorContext::Fatal(const char *fmt, ...)
 
     this->showMessageBox = true;
 
-    g_Supervisor.LeaveCriticalSectionWrapper(3);
+    g_Supervisor.LeaveCriticalSectionWrapper(SUPERVISOR_LOCK_LOG);
     return fmt;
 }
 

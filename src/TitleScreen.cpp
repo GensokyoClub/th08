@@ -281,7 +281,8 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
             if (this->vmCount == 0)
             {
                 this->vmCount = 142;
-                this->vms = new AnmVm[this->vmCount];
+                // Most likely SprtInf, but it's inlined so we can't know for sure.
+                this->vms = ZUN_NEW_ARRAY(AnmVm, this->vmCount, "SprtInf");
                 this->titleAnm->ExecuteAnmIdxArray(this->vms, 0, this->vmCount);
             }
 
@@ -424,9 +425,9 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
                 g_GameManager.difficulty = this->currentReplay->difficulty;
 
                 // Leftover from PCB
-                g_GameManager.shotType = this->currentReplay->shotType / 2;
-                g_GameManager.fullShotType = this->currentReplay->shotType % 2;
-                g_GameManager.shotType = this->currentReplay->shotType;
+                g_GameManager.character = this->currentReplay->shotType / 2;
+                g_GameManager.shotType = this->currentReplay->shotType % 2;
+                g_GameManager.character = this->currentReplay->shotType;
 
                 i = 0;
 
@@ -437,7 +438,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
 
                 g_GameManager.currentStage = i;
 
-                g_ZunMemory.Free(this->currentReplay);
+                ZUN_FREE(this->currentReplay);
                 this->currentReplay = NULL;
 
                 g_Supervisor.curState = SupervisorState_GameManager;
@@ -519,7 +520,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
                     g_GameManager.flags.isPracticeMode = TRUE;
                     g_GameManager.flags.isSpellPractice = TRUE;
 
-                    this->cursor = g_GameManager.shotType;
+                    this->cursor = g_GameManager.character;
                     this->ChangeCurrentScreen(TitleCurrentScreen_SpellStageSelect);
 
                     g_AnmManager->SetInterruptArray(this->vms, this->vmCount, 5);
@@ -580,7 +581,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
     case TitleCurrentScreenState_Exit:
         if (stateTimer >= 60)
         {
-            ZUN_DELETE2(this->vms);
+            ZUN_DELETE(this->vms);
             // Yes, this->vms is set to NULL twice.
             this->vms = NULL;
 
@@ -1562,7 +1563,7 @@ ChainCallbackResult TitleScreen::OnUpdateCharacterSelect()
     case TitleCurrentScreenState_Init:
         if (this->stateTimer2 == 0)
         {
-            this->cursor = g_GameManager.shotType;
+            this->cursor = g_GameManager.character;
             g_AnmManager->SetInterruptArray(this->vms, this->vmCount, 8);
             menuLength = g_GameManager.IsExtraUnlockedWithAllTeams() ? 12 : 4;
             if (this->currentScreen == TitleCurrentScreen_CharacterSelectSpell)
@@ -1703,8 +1704,8 @@ ChainCallbackResult TitleScreen::OnUpdateCharacterSelect()
         }
         if (WAS_PRESSED(TH_BUTTON_SHOOT | TH_BUTTON_ENTER))
         {
-            g_GameManager.shotType = this->cursor;
-            g_GameManager.fullShotType = 0;
+            g_GameManager.character = this->cursor;
+            g_GameManager.shotType = 0;
 
             g_SoundPlayer.PlaySoundByIdx(SOUND_SELECT, 0);
             g_SoundPlayer.ProcessQueues();
@@ -1744,7 +1745,7 @@ ChainCallbackResult TitleScreen::OnUpdateCharacterSelect()
             g_SoundPlayer.PlaySoundByIdx(SOUND_BACK, 0);
             g_SoundPlayer.ProcessQueues();
 
-            g_GameManager.shotType = this->cursor;
+            g_GameManager.character = this->cursor;
 
             if (this->currentScreen == TitleCurrentScreen_CharacterSelectSpell)
             {
@@ -1823,13 +1824,13 @@ ChainCallbackResult TitleScreen::OnUpdatePracticeStageSelect()
                 this->vms[vmIdx].SetInterrupt(8);
                 for (i = 1; i < ARRAY_SIZE(g_TitleCharacterSpriteIndices[0]) - 1; i++)
                 {
-                    if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i] == vmIdx)
+                    if (g_TitleCharacterSpriteIndices[g_GameManager.character][i] == vmIdx)
                     {
                         this->vms[vmIdx].flag1 = TRUE;
                         this->vms[vmIdx].SetInterrupt(9);
                     }
                 }
-                if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i] == vmIdx)
+                if (g_TitleCharacterSpriteIndices[g_GameManager.character][i] == vmIdx)
                 {
                     this->vms[vmIdx].flag1 = TRUE;
                     this->vms[vmIdx].SetInterrupt(23);
@@ -1845,7 +1846,7 @@ ChainCallbackResult TitleScreen::OnUpdatePracticeStageSelect()
         }
         break;
     case TitleCurrentScreenState_Ready:
-        clearInfo = g_GameManager.clrdData[g_GameManager.shotType]
+        clearInfo = g_GameManager.clrdData[g_GameManager.character]
                         .difficultiesClearedWithRetries[g_Supervisor.cfg.defaultDifficulty];
 
         /* Make Stage 1 selectable in practice */
@@ -1901,7 +1902,7 @@ ChainCallbackResult TitleScreen::OnUpdatePracticeStageSelect()
         {
             g_SoundPlayer.PlaySoundByIdx(SOUND_BACK, 0);
 
-            this->cursor = g_GameManager.shotType;
+            this->cursor = g_GameManager.character;
             this->ChangeCurrentScreen(TitleCurrentScreen_CharacterSelectPractice);
 
             return CHAIN_CALLBACK_RESULT_EXECUTE_AGAIN;
@@ -1947,7 +1948,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 }
             }
 
-            this->cursor = g_GameManager.shotType;
+            this->cursor = g_GameManager.character;
 
             menuLength1 = g_GameManager.IsExtraUnlockedWithAllTeams() ? 12 : 4;
             while (!g_GameManager.IsSpellPracticeUnlockedForCharacter(this->cursor))
@@ -1959,7 +1960,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 }
             }
 
-            g_GameManager.shotType = this->cursor;
+            g_GameManager.character = this->cursor;
 
             this->percentageCapturedSpellPracticePerShot = 0.0f;
             this->percentageCapturedInGamePerShot = 0.0f;
@@ -1974,13 +1975,13 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 this->vms[vmIdx1].SetInterrupt(8);
                 for (i1 = 1; i1 < ARRAY_SIZE(g_TitleCharacterSpriteIndices[0]) - 1; i1++)
                 {
-                    if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i1] == vmIdx1)
+                    if (g_TitleCharacterSpriteIndices[g_GameManager.character][i1] == vmIdx1)
                     {
                         this->vms[vmIdx1].flag1 = TRUE;
                         this->vms[vmIdx1].SetInterrupt(9);
                     }
                 }
-                if (g_TitleCharacterSpriteIndices[g_GameManager.shotType][i1] == vmIdx1)
+                if (g_TitleCharacterSpriteIndices[g_GameManager.character][i1] == vmIdx1)
                 {
                     this->vms[vmIdx1].flag1 = TRUE;
                     this->vms[vmIdx1].SetInterrupt(23);
@@ -2044,7 +2045,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
     case TitleCurrentScreenState_Ready:
         this->MoveCursorVertical(10);
         oldCursorPos = this->cursor;
-        this->cursor = g_GameManager.shotType;
+        this->cursor = g_GameManager.character;
 
         menuLength2 = g_GameManager.IsExtraUnlockedWithAllTeams() ? 12 : 4;
 
@@ -2064,7 +2065,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellStageSelect()
                 }
             }
 
-            g_GameManager.shotType = this->cursor;
+            g_GameManager.character = this->cursor;
 
             for (vmIdx2 = TITLE_SPRITE_CHARACTER_START; vmIdx2 <= TITLE_SPRITE_CHARACTER_END; vmIdx2++)
             {
@@ -2290,7 +2291,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellCardSelect()
                 {
                     this->cursor = this->currentNumberOfSpellCards - 1;
                 }
-                if (this->currentNumberOfSpellCards >= this->cursor)
+                if (this->cursor >= this->currentNumberOfSpellCards)
                 {
                     this->cursor = 0;
                 }
@@ -2311,7 +2312,7 @@ ChainCallbackResult TitleScreen::OnUpdateSpellCardSelect()
                     {
                         this->cursor = currentNumberOfSpellCards - 1;
                     }
-                    if (this->currentNumberOfSpellCards >= this->cursor)
+                    if (this->cursor >= this->currentNumberOfSpellCards)
                     {
                         this->cursor = currentNumberOfSpellCards - 1;
                     }
@@ -2521,11 +2522,11 @@ ChainCallbackResult TitleScreen::DrawReplayMenu()
         g_AsciiManager.SetIsSelected(i == this->selectedReplay);
         if (i == this->selectedReplay)
         {
-            g_AsciiManager.SetColor(COLOR_WHITE);
+            g_AsciiManager.color.d3dColor = COLOR_WHITE;
         }
         else
         {
-            g_AsciiManager.SetColor(0xff808080);
+            g_AsciiManager.color.d3dColor = 0xff808080;
         }
 
         if (this->replays[i].spellcardNumber < 0)
@@ -2546,7 +2547,7 @@ ChainCallbackResult TitleScreen::DrawReplayMenu()
 
     if ((this->currentScreenState == 2 || this->currentScreenState == 3) && this->currentReplay)
     {
-        g_AsciiManager.SetColor(COLOR_WHITE);
+        g_AsciiManager.color.d3dColor = COLOR_WHITE;
         g_AsciiManager.SetIsSelected(FALSE);
 
         vm = &this->vms[78];
@@ -2573,22 +2574,22 @@ ChainCallbackResult TitleScreen::DrawReplayMenu()
 
                     if (i2 == this->selectedReplayStage)
                     {
-                        g_AsciiManager.SetColor(0xffffffff);
+                        g_AsciiManager.color.d3dColor = 0xffffffff;
                     }
                     else
                     {
-                        g_AsciiManager.SetColor(0xff808080);
+                        g_AsciiManager.color.d3dColor = 0xff808080;
                     }
                 }
                 else
                 {
                     if (i2 == this->selectedReplayStage)
                     {
-                        g_AsciiManager.SetColor(0x60ffffff);
+                        g_AsciiManager.color.d3dColor = 0x60ffffff;
                     }
                     else
                     {
-                        g_AsciiManager.SetColor(0x60808080);
+                        g_AsciiManager.color.d3dColor = 0x60808080;
                     }
                 }
 
@@ -2622,7 +2623,7 @@ ChainCallbackResult TitleScreen::DrawReplayMenu()
         }
     }
 
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     return CHAIN_CALLBACK_RESULT_CONTINUE;
@@ -2636,7 +2637,7 @@ ChainCallbackResult TitleScreen::DrawPracticeStageSelect()
     i32 i;
     AnmVm *vm;
 
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     vm = &this->vms[141];
@@ -2647,7 +2648,7 @@ ChainCallbackResult TitleScreen::DrawPracticeStageSelect()
 
     position.y += 16.0f;
 
-    clearInfo = g_GameManager.clrdData[g_GameManager.shotType]
+    clearInfo = g_GameManager.clrdData[g_GameManager.character]
                     .difficultiesClearedWithRetries[g_Supervisor.cfg.defaultDifficulty];
     if (clearInfo == 0)
     {
@@ -2665,25 +2666,25 @@ ChainCallbackResult TitleScreen::DrawPracticeStageSelect()
 
         if (i == this->cursor)
         {
-            g_AsciiManager.SetColor(COLOR_WHITE);
+            g_AsciiManager.color.d3dColor = COLOR_WHITE;
         }
         else if (IS_STAGE_CLEARED(clearInfo, i))
         {
-            g_AsciiManager.SetColor(0xffa0a0a0);
+            g_AsciiManager.color.d3dColor = 0xffa0a0a0;
         }
         else
         {
-            g_AsciiManager.SetColor(0xff404040);
+            g_AsciiManager.color.d3dColor = 0xff404040;
         }
 
         g_AsciiManager.AddFormatText(
             &position, "%s %9d0 (%3d)", g_StageNames[i],
-            g_GameManager.pscrData[g_GameManager.shotType].highScores[i][g_Supervisor.cfg.defaultDifficulty],
-            g_GameManager.pscrData[g_GameManager.shotType].attempts[i][g_Supervisor.cfg.defaultDifficulty]);
+            g_GameManager.pscrData[g_GameManager.character].highScores[i][g_Supervisor.cfg.defaultDifficulty],
+            g_GameManager.pscrData[g_GameManager.character].attempts[i][g_Supervisor.cfg.defaultDifficulty]);
         position.y += 16.0f;
     }
 
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     return CHAIN_CALLBACK_RESULT_CONTINUE;
@@ -2725,7 +2726,7 @@ ChainCallbackResult TitleScreen::DrawSpellStageSelect()
     totalAttemptedLastWordPerShot = 0;
     totalAttemptedLastWord = 0;
 
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     vm = &this->vms[141];
@@ -2743,11 +2744,11 @@ ChainCallbackResult TitleScreen::DrawSpellStageSelect()
         g_AsciiManager.SetIsSelected(i == this->cursor);
         if (i == this->cursor)
         {
-            g_AsciiManager.SetColor(COLOR_WHITE);
+            g_AsciiManager.color.d3dColor = COLOR_WHITE;
         }
         else
         {
-            g_AsciiManager.SetColor(0xffa0a0a0);
+            g_AsciiManager.color.d3dColor = 0xffa0a0a0;
         }
 
         capturesPerStageSpellPracticePerShot = 0;
@@ -2761,16 +2762,16 @@ ChainCallbackResult TitleScreen::DrawSpellStageSelect()
         {
             spellCardNumber = g_SpellcardNumbersPerStage[i][spellCardIdx];
 
-            if (g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.shotType] > 0)
+            if (g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.character] > 0)
             {
                 capturesPerStageSpellPracticePerShot++;
             }
-            if (g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.shotType] > 0)
+            if (g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.character] > 0)
             {
                 capturesPerStageInGamePerShot++;
             }
-            if ((g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.shotType] > 0 ||
-                 g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.shotType] > 0) ||
+            if ((g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.character] > 0 ||
+                 g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.character] > 0) ||
                 (i >= ARRAY_SIZE(g_SpellcardCountPerStage) - 1 &&
                  g_GameManager.IsLastWordSpellCardAttempted(spellCardNumber)))
             {
@@ -2822,7 +2823,7 @@ ChainCallbackResult TitleScreen::DrawSpellStageSelect()
     position.y += 5.0f;
 
     g_AsciiManager.SetIsSelected(FALSE);
-    g_AsciiManager.SetColor(0xffd06060);
+    g_AsciiManager.color.d3dColor = 0xffd06060;
 
     g_AsciiManager.AddFormatText(&position, "%sTotal",
                                  (totalCapturesSpellPracticePerShot >= SPELLCARD_COUNT_SPELLCARDS
@@ -2839,7 +2840,7 @@ ChainCallbackResult TitleScreen::DrawSpellStageSelect()
     position.x -= 182.0f;
 
     g_AsciiManager.SetScale(1.0f, 1.0f);
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     this->spellCardNameVms[1].pos.x = 400.0f;
@@ -2987,12 +2988,12 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
     u16 clearInfo;
     Float3 position;
 
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     position = Float3(16.0f, 78.0f, 0.0f);
 
-    clearInfo = g_GameManager.clrdData[g_GameManager.shotType]
+    clearInfo = g_GameManager.clrdData[g_GameManager.character]
                     .difficultiesClearedWithRetries[g_Supervisor.cfg.defaultDifficulty];
     if (clearInfo == 0)
     {
@@ -3021,7 +3022,7 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
 
         g_AsciiManager.AddFormatText(
             &position, "%sNo.%.3d",
-            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.shotType] > 0
+            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.character] > 0
                 ? "@"
                 : (g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[SHOT_ALL] > 0 ? "*" : " "),
             spellCardNumber + 1);
@@ -3032,10 +3033,10 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
 
         g_AsciiManager.AddFormatText(
             &position, "%3d/%3d(%3d/%3d)",
-            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.shotType],
-            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.shotType],
-            g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.shotType],
-            g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.shotType]);
+            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.captures[g_GameManager.character],
+            g_GameManager.catkData[spellCardNumber].spellPracticeHistory.attempts[g_GameManager.character],
+            g_GameManager.catkData[spellCardNumber].inGameHistory.captures[g_GameManager.character],
+            g_GameManager.catkData[spellCardNumber].inGameHistory.attempts[g_GameManager.character]);
 
         g_AsciiManager.SetScale(1.0, 1.0f);
 
@@ -3056,7 +3057,7 @@ ChainCallbackResult TitleScreen::DrawSpellCardSelect()
     g_AnmManager->DrawNoRotation(&this->spellCardInfoVms[5]);
     g_AnmManager->DrawNoRotation(&this->spellCardInfoVms[6]);
 
-    g_AsciiManager.SetColor(COLOR_WHITE);
+    g_AsciiManager.color.d3dColor = COLOR_WHITE;
     g_AsciiManager.SetIsSelected(FALSE);
 
     return CHAIN_CALLBACK_RESULT_CONTINUE;
@@ -3202,7 +3203,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
 
                     replayCount++;
 
-                    g_ZunMemory.Free(replayData);
+                    ZUN_FREE(replayData);
                 }
             }
 
@@ -3228,7 +3229,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
                         sprintf(this->replayFilePaths[replayCount], "./replay/%s", findData.cFileName);
                         sprintf(this->replayNumbers[replayCount], "User ");
 
-                        g_ZunMemory.Free(replayData);
+                        ZUN_FREE(replayData);
 
                         replayCount++;
                     }
@@ -3405,7 +3406,7 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
 
         if (WAS_PRESSED(TH_BUTTON_BOMB | TH_BUTTON_MENU))
         {
-            g_ZunMemory.Free(this->currentReplay);
+            ZUN_FREE(this->currentReplay);
             this->currentReplay = NULL;
             this->currentScreenState = (TitleCurrentScreenState)1;
             this->stateTimer2 = 0;
@@ -3437,13 +3438,13 @@ ChainCallbackResult TitleScreen::OnUpdateReplayMenu()
             strcpy(g_GameManager.replayFilename, this->replayFilePaths[this->selectedReplay]);
 
             g_GameManager.difficulty = this->currentReplay->difficulty;
-            g_GameManager.shotType = this->currentReplay->shotType;
+            g_GameManager.character = this->currentReplay->shotType;
             // Leftover from PCB
-            g_GameManager.shotType = this->currentReplay->shotType;
+            g_GameManager.character = this->currentReplay->shotType;
             g_GameManager.flags.isSpellPractice = (this->currentReplay->spellcardNumber >= 0);
             g_GameManager.currentSpellCardNumber = this->currentReplay->spellcardNumber;
 
-            g_ZunMemory.Free(this->currentReplay);
+            ZUN_FREE(this->currentReplay);
             this->currentReplay = NULL;
 
             g_GameManager.currentStage = this->selectedReplayStage;
@@ -3614,18 +3615,17 @@ ZunResult TitleScreen::ActualAddedCallback()
 
     if (g_GameManager.cfg != NULL)
     {
-        delete g_GameManager.cfg;
-        g_GameManager.cfg = NULL;
+        ZUN_DELETE(g_GameManager.cfg);
     }
-    g_GameManager.cfg = new GameConfiguration();
+
+    g_GameManager.cfg = ZUN_NEW(GameConfiguration, "");
 
     if (g_GameManager.globals != NULL)
     {
-        delete g_GameManager.globals;
-        g_GameManager.globals = NULL;
+        ZUN_DELETE(g_GameManager.globals);
     }
 
-    g_GameManager.globals = new ZunGlobals();
+    g_GameManager.globals = ZUN_NEW(ZunGlobals, "");
     g_Supervisor.framerateMultiplier = 1.0f;
 
     if (g_GameManager.IsReplay())
@@ -3633,7 +3633,7 @@ ZunResult TitleScreen::ActualAddedCallback()
         /* This seems to be a leftover from PCB where there were separate
          * characters and shot types.
          */
-        g_GameManager.shotType = g_GameManager.shotType = 0;
+        g_GameManager.character = g_GameManager.character = 0;
     }
 
     if (g_GameManager.IsDemoMode())
@@ -3704,12 +3704,12 @@ ZunResult TitleScreen::ActualAddedCallback()
 
     if (g_Supervisor.wantedState2 == SupervisorState_GameManager)
     {
-        g_Supervisor.SetupLoadingVmsAndInitCapture(&loadingVmsPosition);
+        g_Supervisor.ShowLoadingVmsAndCapture(&loadingVmsPosition);
         g_Supervisor.StartEffect(0);
     }
     else if (g_Supervisor.wantedState2 != SupervisorState_Init)
     {
-        g_Supervisor.SetupLoadingVms(&loadingVmsPosition);
+        g_Supervisor.ShowLoadingVms(&loadingVmsPosition);
     }
 
     g_GameManager.flags.isDemoMode = FALSE;
@@ -3730,14 +3730,14 @@ void TitleScreen::TitleSetupThread(TitleScreen *titleScreen)
         Sleep(1);
     }
 
-    g_TitleScreen->titleAnm = g_AnmManager->PreloadAnm(20, "title01.anm");
+    g_TitleScreen->titleAnm = g_AnmManager->PreloadAnm(ANM_FILE_TITLE, "title01.anm");
     if (g_TitleScreen->titleAnm == NULL)
     {
         g_TitleScreen->state = TitleScreenState_Close;
         return;
     }
 
-    g_TitleScreen->resultTextAnm = g_AnmManager->PreloadAnm(22, "resulttext.anm");
+    g_TitleScreen->resultTextAnm = g_AnmManager->PreloadAnm(ANM_FILE_RESULTTEXT, "resulttext.anm");
     if (g_TitleScreen->resultTextAnm == NULL)
     {
         g_TitleScreen->state = TitleScreenState_Close;
@@ -3800,7 +3800,7 @@ void TitleScreen::TitleSetupThread(TitleScreen *titleScreen)
 
     g_TitleScreen->currentHelpTextVm = &g_TitleScreen->helpTextVms[0];
     g_TitleScreen->state = TitleScreenState_Ready;
-    g_Supervisor.HideLoadingVms();
+    g_Supervisor.FadeLoadingVms();
     g_Supervisor.runningSubthreadHandle = NULL;
     g_Supervisor.subthreadCloseRequestActive = FALSE;
     g_Supervisor.unk290 = 0;
@@ -3888,13 +3888,13 @@ ZunResult TitleScreen::Release()
 {
     if (this->currentReplay != NULL)
     {
-        g_ZunMemory.Free(this->currentReplay);
+        ZUN_FREE(this->currentReplay);
         this->currentReplay = NULL;
     }
 
     if (this->vms != NULL)
     {
-        ZUN_DELETE2(this->vms);
+        ZUN_DELETE(this->vms);
         /* Again, double NULL set. */
         this->vms = NULL;
     }
@@ -3904,7 +3904,8 @@ ZunResult TitleScreen::Release()
 
 ZunResult TitleScreen::RegisterChain(int param)
 {
-    TitleScreen *titleScreen = new TitleScreen();
+    // Most likely TitleInf, but the it's inlined so we can't know for sure.
+    TitleScreen *titleScreen = ZUN_NEW(TitleScreen, "TitleInf");
     g_TitleScreen = titleScreen;
 
     memset(titleScreen, 0, sizeof(TitleScreen));
@@ -3915,14 +3916,14 @@ ZunResult TitleScreen::RegisterChain(int param)
     titleScreen->calcChain->addedCallback = (ChainLifetimeCallback)TitleScreen::AddedCallback;
     titleScreen->calcChain->deletedCallback = (ChainLifetimeCallback)TitleScreen::DeletedCallback;
 
-    if (g_Chain.AddToCalcChain(titleScreen->calcChain, 4) != ZUN_SUCCESS)
+    if (g_Chain.AddToCalcChain(titleScreen->calcChain, CHAIN_PRIO_CALC_TITLESCREEN) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
 
     titleScreen->drawChain = g_Chain.CreateElem((ChainCallback)TitleScreen::OnDraw);
     titleScreen->drawChain->arg = titleScreen;
-    g_Chain.AddToDrawChain(titleScreen->drawChain, 3);
+    g_Chain.AddToDrawChain(titleScreen->drawChain, CHAIN_PRIO_DRAW_TITLESCREEN);
 
     return ZUN_SUCCESS;
 }
@@ -3936,15 +3937,15 @@ ZunResult TitleScreen::DeletedCallback(TitleScreen *titleScreen)
 {
     g_Supervisor.d3dDevice->ResourceManagerDiscardBytes(0);
 
-    g_AnmManager->ReleaseAnm(20);
-    g_AnmManager->ReleaseAnm(22);
+    g_AnmManager->ReleaseAnm(ANM_FILE_TITLE);
+    g_AnmManager->ReleaseAnm(ANM_FILE_RESULTTEXT);
     g_AnmManager->ReleaseSurface(0);
 
     g_Chain.Cut(titleScreen->drawChain);
 
     titleScreen->drawChain = NULL;
     titleScreen->Release();
-    ZUN_DELETE2(titleScreen);
+    ZUN_DELETE(titleScreen);
 
     return ZUN_SUCCESS;
 }

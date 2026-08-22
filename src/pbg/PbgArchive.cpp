@@ -176,7 +176,7 @@ bool PbgArchive::ParseHeader(LPCSTR filename)
 
     decryptedHeader = FileSystem::Decrypt(header.asBytes, sizeof(header), 0x1b, 0x37, sizeof(header), 0x400);
     memcpy(&header.asStruct, decryptedHeader, sizeof(header));
-    g_ZunMemory.Free(decryptedHeader);
+    ZUN_FREE(decryptedHeader);
 
     m_NumOfEntries = header.asStruct.numOfEntries - 123456;
     fileTableOffset = header.asStruct.fileTableOffset - 345678;
@@ -222,12 +222,12 @@ bool PbgArchive::ParseHeader(LPCSTR filename)
         goto parse_error;
     }
 
-    g_ZunMemory.Free(fileTableBuffer);
+    ZUN_FREE(fileTableBuffer);
     MemFree(entryBuffer);
     return true;
 
 parse_error:
-    g_ZunMemory.Free(fileTableBuffer);
+    ZUN_FREE(fileTableBuffer);
     MemFree(entryBuffer);
     DeleteEx(m_FileAbstraction);
     utils::DebugPrint(TH_ERR_ARCFILE_CORRUPTED, filename);

@@ -2,7 +2,6 @@
 
 #include <d3d8.h>
 #include <d3dx8math.h>
-#define DIRECTINPUT_VERSION 0x800
 #include <dinput.h>
 
 #include "Global.hpp"
@@ -14,8 +13,10 @@
 
 namespace th08
 {
-#define GAME_VERSION 0x80001
-#define ZWAV_MAGIC 'VAWZ'
+
+#define GAME_VERSION 8
+#define CONFIG_MINOR_VERSION 1
+#define CONFIG_VERSION (GAME_VERSION << 16 | CONFIG_MINOR_VERSION)
 
 enum MusicMode
 {
@@ -113,6 +114,15 @@ enum SupervisorState
     SupervisorState_GameManagerNextStageWeird = 12,
 };
 
+enum
+{
+    SUPERVISOR_LOCK_CHAIN = 0,
+    // lock 1 is unused
+    SUPERVISOR_LOCK_FILE = 2,
+    SUPERVISOR_LOCK_LOG = 3,
+    SUPERVISOR_LOCK_LAST,
+};
+
 /* This forward declaration is to prevent including AnmManager.hpp */
 struct AnmLoaded;
 
@@ -131,7 +141,7 @@ struct Supervisor
     static BOOL CALLBACK EnumGameControllersCb(LPCDIDEVICEINSTANCE pdidInstance, LPVOID pContext);
     static ZunResult DeletedCallback(Supervisor *s);
     static ChainCallbackResult DrawFpsCounter(Supervisor *s);
-    static ChainCallbackResult OnDraw2(Supervisor *s);
+    static ChainCallbackResult OnDraw(Supervisor *s);
     static ChainCallbackResult DrawLoadingVms(Supervisor *s);
     static void CalculateFps(ZunBool shouldDraw);
     ZunResult CheckVersion(const char *version, i32 exeSize, i32 exeChecksum);
@@ -145,9 +155,10 @@ struct Supervisor
     ZunResult FadeOutMusic(float param_1);
 
     void ThreadClose();
-    void SetupLoadingVms(Float3 *position);
+    void ShowLoadingVms(Float3 *position);
+    void FadeLoadingVms(void);
+    void ShowLoadingVmsAndCapture(Float3 *position);
     void HideLoadingVms(void);
-    void SetupLoadingVmsAndInitCapture(Float3 *position);
     void StartEffect(i32 idx);
     void InitializeCriticalSections();
     void DeleteCriticalSections();
@@ -311,8 +322,8 @@ struct Supervisor
     BOOL subthreadCloseRequestActive;
     BOOL unk290;
     u32 unk294;
-    CRITICAL_SECTION criticalSections[4];
-    u8 lockCounts[4];
+    CRITICAL_SECTION criticalSections[SUPERVISOR_LOCK_LAST];
+    u8 lockCounts[SUPERVISOR_LOCK_LAST];
     i32 loadingVmsHaveBeenSetup;
 
     unknown_fields(0x300, 0x38);
@@ -361,10 +372,13 @@ struct ZunTimer
         this->previous = -999;
     }
 
-    void Tick()
+    int Tick()
     {
         this->previous = this->current;
+
         g_Supervisor.TickTimer(&this->current, &this->subFrame);
+
+        return this->current;
     }
 
     void operator=(i32 value)
@@ -372,14 +386,16 @@ struct ZunTimer
         SetCurrent(value);
     }
 
-    void operator++(int)
+    int operator++(int)
     {
-        Tick();
+        return this->Tick();
     }
 
-    void operator--(int)
+    int operator--(int)
     {
         this->Decrement(1);
+
+        return this->current;
     }
 
     operator int()

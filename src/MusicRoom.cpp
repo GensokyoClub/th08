@@ -217,7 +217,7 @@ i32 MusicRoom::ProcessInput()
     {
         g_Supervisor.curState = SupervisorState_TitleScreen;
 
-        g_Supervisor.SetupLoadingVmsAndInitCapture(&Float3(500.0, 440.0f, 0.0f));
+        g_Supervisor.ShowLoadingVmsAndCapture(&Float3(500.0, 440.0f, 0.0f));
 
         return 1;
     }
@@ -254,14 +254,14 @@ ZunResult MusicRoom::RegisterChain()
     musicRoom->calcChain->addedCallback = (ChainLifetimeCallback)MusicRoom::AddedCallback;
     musicRoom->calcChain->deletedCallback = (ChainLifetimeCallback)MusicRoom::DeletedCallback;
 
-    if (g_Chain.AddToCalcChain(musicRoom->calcChain, 4) != ZUN_SUCCESS)
+    if (g_Chain.AddToCalcChain(musicRoom->calcChain, CHAIN_PRIO_CALC_MUSICROOM) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
 
     musicRoom->drawChain = g_Chain.CreateElem((ChainCallback)MusicRoom::OnDraw);
     musicRoom->drawChain->arg = musicRoom;
-    g_Chain.AddToDrawChain(musicRoom->drawChain, 3);
+    g_Chain.AddToDrawChain(musicRoom->drawChain, CHAIN_PRIO_DRAW_MUSICROOM);
 
     return ZUN_SUCCESS;
 }
@@ -395,7 +395,7 @@ ZunResult MusicRoom::AddedCallback(MusicRoom *musicRoom)
         return ZUN_ERROR;
     }
 
-    musicRoom->musicAnm = g_AnmManager->LoadAnm(23, "music00.anm");
+    musicRoom->musicAnm = g_AnmManager->LoadAnm(ANM_FILE_MUSIC, "music00.anm");
     if (musicRoom->musicAnm == NULL)
     {
         return ZUN_ERROR;
@@ -546,7 +546,7 @@ out:
         musicRoom->songNameVms[i].anchor = 3;
     }
 
-    g_ZunMemory.Free(musicCmtFile);
+    ZUN_FREE(musicCmtFile);
 
     return ZUN_SUCCESS;
 }
@@ -556,7 +556,7 @@ ZunResult MusicRoom::DeletedCallback(MusicRoom *musicRoom)
     ZUN_DELETE(musicRoom->trackDescriptors);
 
     g_AnmManager->ReleaseSurface(0);
-    g_AnmManager->ReleaseAnm(23);
+    g_AnmManager->ReleaseAnm(ANM_FILE_MUSIC);
 
     g_Chain.Cut(musicRoom->drawChain);
     musicRoom->drawChain = NULL;

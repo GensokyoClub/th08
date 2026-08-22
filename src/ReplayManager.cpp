@@ -66,8 +66,8 @@ ReplayData *ReplayManager::LoadReplayData(void *data, int fileSize)
         goto err1;
     }
 
-    decodedReplay = (ReplayData *)g_ZunMemory.Alloc(replayData->header.decompressedSize + sizeof(ReplayDataHeader) +
-                                                    (fileSize - replayData->header.fileSize));
+    decodedReplay = (ReplayData *)ZUN_ALLOC(replayData->header.decompressedSize + sizeof(ReplayDataHeader) +
+                                            (fileSize - replayData->header.fileSize));
 
     memcpy(&decodedReplay->header, data, sizeof(ReplayDataHeader));
 
@@ -89,17 +89,17 @@ ReplayData *ReplayManager::LoadReplayData(void *data, int fileSize)
         goto err2;
     }
 
-    g_ZunMemory.Free(data);
+    ZUN_FREE(data);
 
     return decodedReplay;
 
 err1:
-    g_ZunMemory.Free(data);
+    ZUN_FREE(data);
     return NULL;
 
 err2:
-    g_ZunMemory.Free(data);
-    g_ZunMemory.Free(decodedReplay);
+    ZUN_FREE(data);
+    ZUN_FREE(decodedReplay);
 
     return NULL;
 }

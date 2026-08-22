@@ -332,7 +332,7 @@ ChainCallbackResult Supervisor::DrawFpsCounter(Supervisor *s)
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-ChainCallbackResult Supervisor::OnDraw2(Supervisor *s)
+ChainCallbackResult Supervisor::OnDraw(Supervisor *s)
 {
     if (s->loadingVmsHaveBeenSetup >= 2)
     {
@@ -431,7 +431,7 @@ ZunResult Supervisor::RegisterChain()
     elem->addedCallback = (ChainLifetimeCallback)Supervisor::AddedCallback;
     elem->deletedCallback = (ChainLifetimeCallback)Supervisor::DeletedCallback;
 
-    ZunResult result = (ZunResult)g_Chain.AddToCalcChain(elem, 0);
+    ZunResult result = (ZunResult)g_Chain.AddToCalcChain(elem, CHAIN_PRIO_CALC_SUPERVISOR);
 
     if (result != ZUN_SUCCESS)
     {
@@ -440,15 +440,15 @@ ZunResult Supervisor::RegisterChain()
 
     elem = g_Chain.CreateElem((ChainCallback)Supervisor::DrawFpsCounter);
     elem->arg = supervisor;
-    g_Chain.AddToDrawChain(elem, 16);
+    g_Chain.AddToDrawChain(elem, CHAIN_PRIO_DRAW_SUPERVISOR_DRAW_FPS_COUNTER);
 
-    elem = g_Chain.CreateElem((ChainCallback)Supervisor::OnDraw2);
+    elem = g_Chain.CreateElem((ChainCallback)Supervisor::OnDraw);
     elem->arg = supervisor;
-    g_Chain.AddToDrawChain(elem, 0);
+    g_Chain.AddToDrawChain(elem, CHAIN_PRIO_DRAW_SUPERVISOR);
 
     elem = g_Chain.CreateElem((ChainCallback)Supervisor::DrawLoadingVms);
     elem->arg = supervisor;
-    g_Chain.AddToDrawChain(elem, 2);
+    g_Chain.AddToDrawChain(elem, CHAIN_PRIO_DRAW_SUPERVISOR_LOADING_VMS);
 
     return ZUN_SUCCESS;
 }
@@ -483,7 +483,7 @@ int Supervisor::AddedCallback(Supervisor *s)
     }
 
     g_AnmManager->LoadSurface(8, "title/th08logo.jpg");
-    s->loadingAnm = g_AnmManager->LoadAnm(2, "nowloading.anm");
+    s->loadingAnm = g_AnmManager->LoadAnm(ANM_FILE_NOWLOADING, "nowloading.anm");
     if (s->loadingAnm == NULL)
     {
         g_AnmManager->ReleaseSurface(0);
@@ -503,7 +503,7 @@ int Supervisor::AddedCallback(Supervisor *s)
 
     Float3 position(500.0, 440.0f, 0.0f);
 
-    g_Supervisor.SetupLoadingVms(&position);
+    g_Supervisor.ShowLoadingVms(&position);
 
     g_Supervisor.unk294 = 1;
     g_Supervisor.ThreadStart((LPTHREAD_START_ROUTINE)Supervisor::StartupThread, s);
@@ -569,14 +569,15 @@ void Supervisor::StartupThread(Supervisor *s)
 
     if (g_Supervisor.midiOutput == NULL)
     {
-        g_Supervisor.midiOutput = new MidiOutput();
+        // Debug string from PoFV.
+        g_Supervisor.midiOutput = ZUN_NEW(MidiOutput, "MidiSysInf");
     }
     if (g_Supervisor.midiOutput != NULL)
     {
         g_Supervisor.midiOutput->ReadFileData(30, "bgm/init.mid");
     }
     g_SoundPlayer.InitSoundBuffers();
-    g_Supervisor.textAnm = g_AnmManager->PreloadAnm(0, "text.anm");
+    g_Supervisor.textAnm = g_AnmManager->PreloadAnm(ANM_FILE_TEXT, "text.anm");
     if (g_Supervisor.textAnm == NULL)
     {
         goto err;
@@ -698,13 +699,14 @@ void Supervisor::StartupThread(Supervisor *s)
         strftime(fileNameBuffer, 128, "score_1.%y%m%d.bak", currentLocalTime);
 
         FileSystem::WriteDataToFile(fileNameBuffer, scoreFile, scoreFileSize);
-        free(scoreFile);
+        ZUN_FREE(scoreFile);
         _chdir("../");
     }
 
     if (g_Supervisor.flags.unk6)
     {
-        g_Supervisor.dummyMidiTimer = new DummyMidiTimer();
+        // Debug string from PoFV.
+        g_Supervisor.dummyMidiTimer = ZUN_NEW(DummyMidiTimer, "DummyTimerSysInf");
         if (g_Supervisor.dummyMidiTimer != NULL)
         {
             g_Supervisor.dummyMidiTimer->StartTimer();
@@ -745,11 +747,12 @@ ZunResult Supervisor::DeletedCallback(Supervisor *s)
     if (g_Supervisor.versionData != NULL)
     {
         ZUN_FREE(g_Supervisor.versionData);
+        g_Supervisor.versionData = NULL;
     }
 
     g_AnmManager->ReleaseVertexBuffer();
-    g_AnmManager->ReleaseAnm(0);
-    g_AnmManager->ReleaseAnm(2);
+    g_AnmManager->ReleaseAnm(ANM_FILE_TEXT);
+    g_AnmManager->ReleaseAnm(ANM_FILE_NOWLOADING);
     g_AnmManager->ReleaseSurface(8);
 
     AsciiManager::CutChain();
@@ -780,19 +783,19 @@ ZunResult Supervisor::DeletedCallback(Supervisor *s)
 
     if (g_GameManager.globals != NULL)
     {
-        ZUN_DELETE2(g_GameManager.globals);
+        ZUN_DELETE(g_GameManager.globals);
     }
 
     if (g_GameManager.cfg != NULL)
     {
-        ZUN_DELETE2(g_GameManager.cfg);
+        ZUN_DELETE(g_GameManager.cfg);
     }
 
     g_PbgArchive.Release();
     if (g_Supervisor.dummyMidiTimer != NULL)
     {
         g_Supervisor.dummyMidiTimer->StopTimer();
-        ZUN_DELETE2(g_Supervisor.dummyMidiTimer);
+        ZUN_DELETE(g_Supervisor.dummyMidiTimer);
     }
 
     return ZUN_SUCCESS;
@@ -888,11 +891,11 @@ ZunBool Supervisor::TakeSnapshot(const char *filePath)
     return FALSE;
 }
 
-#pragma var_order(fileSize, configFileBuffer, bgmHandle, bytesRead, bgmBuffer, bgmHandle2, bytesRead2, bgmBuffer2)
+#pragma var_order(fileSize, configFileBuffer, bgmHandle, bytesRead, header1, bgmHandle2, bytesRead2, header2)
 ZunResult Supervisor::LoadConfig(char *configFile)
 {
-    i32 bgmBuffer[4];
-    i32 bgmBuffer2[4];
+    ZWAVHeader header1;
+    ZWAVHeader header2;
 
     HANDLE bgmHandle;
     HANDLE bgmHandle2;
@@ -900,11 +903,11 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     DWORD bytesRead;
     DWORD bytesRead2;
 
-    u8 *configFileBuffer;
+    GameConfiguration *configFileBuffer;
     i32 fileSize;
 
     memset(&g_Supervisor.cfg, 0, sizeof(GameConfiguration));
-    configFileBuffer = FileSystem::OpenFile(configFile, &fileSize, true);
+    configFileBuffer = (GameConfiguration *)FileSystem::OpenFile(configFile, &fileSize, true);
     if (configFileBuffer == NULL)
     {
         g_GameErrorContext.Log(TH_ERR_CONFIG_NOT_FOUND);
@@ -912,16 +915,16 @@ ZunResult Supervisor::LoadConfig(char *configFile)
         g_Supervisor.cfg.lifeCount = 2;
         g_Supervisor.cfg.bombCount = 3;
         g_Supervisor.cfg.colorMode16bit = 0;
-        g_Supervisor.cfg.version = GAME_VERSION;
+        g_Supervisor.cfg.version = CONFIG_VERSION;
         g_Supervisor.cfg.padXAxis = 600;
         g_Supervisor.cfg.padYAxis = 600;
         bgmHandle = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle != INVALID_HANDLE_VALUE)
         {
-            ReadFile(bgmHandle, bgmBuffer, 16, &bytesRead, NULL);
+            ReadFile(bgmHandle, &header1, sizeof(ZWAVHeader), &bytesRead, NULL);
             CloseHandle(bgmHandle);
-            if (bgmBuffer[0] != ZWAV_MAGIC || bgmBuffer[1] != 1 || bgmBuffer[2] != 0x800)
+            if (header1.magic != ZWAV_MAGIC || header1.version != ZWAV_VERSION || header1.gameVersion != 0x800)
             {
                 g_GameErrorContext.Fatal(TH_ERR_BGM_VERSION_MISMATCH);
                 return ZUN_ERROR;
@@ -946,15 +949,15 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     }
     else
     {
-        g_Supervisor.cfg = *(GameConfiguration *)configFileBuffer;
-        free(configFileBuffer);
+        g_Supervisor.cfg = *configFileBuffer;
+        ZUN_FREE(configFileBuffer);
         bgmHandle2 = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                                  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle2 != INVALID_HANDLE_VALUE)
         {
-            ReadFile(bgmHandle2, bgmBuffer2, 16, &bytesRead2, NULL);
+            ReadFile(bgmHandle2, &header2, sizeof(ZWAVHeader), &bytesRead2, NULL);
             CloseHandle(bgmHandle2);
-            if (bgmBuffer2[0] != ZWAV_MAGIC || bgmBuffer2[1] != 1 || bgmBuffer2[2] != 0x800)
+            if (header2.magic != ZWAV_MAGIC || header2.version != ZWAV_VERSION || header2.gameVersion != 0x800)
             {
                 g_GameErrorContext.Fatal(TH_ERR_BGM_VERSION_MISMATCH);
                 return ZUN_ERROR;
@@ -965,7 +968,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
             g_Supervisor.cfg.defaultDifficulty >= 6 || g_Supervisor.cfg.playSounds >= 2 ||
             g_Supervisor.cfg.windowed >= 2 || g_Supervisor.cfg.frameskipConfig >= 3 ||
             g_Supervisor.cfg.effectQuality >= 3 || g_Supervisor.cfg.slowMode >= 2 || g_Supervisor.cfg.shotSlow >= 2 ||
-            g_Supervisor.cfg.version != GAME_VERSION || fileSize != 60)
+            g_Supervisor.cfg.version != CONFIG_VERSION || fileSize != sizeof(GameConfiguration))
         {
 
             g_GameErrorContext.Log(TH_ERR_CONFIG_ABNORMAL);
@@ -1373,7 +1376,7 @@ void Supervisor::ThreadClose()
     }
 }
 
-void Supervisor::SetupLoadingVms(Float3 *position)
+void Supervisor::ShowLoadingVms(Float3 *position)
 {
     if (this->loadingVmsHaveBeenSetup == 0)
     {
@@ -1389,7 +1392,7 @@ void Supervisor::SetupLoadingVms(Float3 *position)
     }
 }
 
-void Supervisor::HideLoadingVms(void)
+void Supervisor::FadeLoadingVms(void)
 {
     if (this->loadingVmsHaveBeenSetup == 1)
     {
@@ -1400,7 +1403,7 @@ void Supervisor::HideLoadingVms(void)
     }
 }
 
-void Supervisor::SetupLoadingVmsAndInitCapture(Float3 *position)
+void Supervisor::ShowLoadingVmsAndCapture(Float3 *position)
 {
     if (this->loadingVmsHaveBeenSetup == 0)
     {
@@ -1416,6 +1419,17 @@ void Supervisor::SetupLoadingVmsAndInitCapture(Float3 *position)
     }
 
     g_AnmManager->SetSurfaceCaptureParams(8, 0, 0, 640, 480, 0, 0, 640, 480);
+}
+
+void Supervisor::HideLoadingVms(void)
+{
+    if (this->loadingVmsHaveBeenSetup == 1)
+    {
+        g_SupervisorLoadingVms[0].SetInterrupt(2);
+        g_SupervisorLoadingVms[1].SetInterrupt(2);
+        g_SupervisorLoadingVms[2].SetInterrupt(2);
+        this->loadingVmsHaveBeenSetup = 2;
+    }
 }
 
 void Supervisor::StartEffect(i32 idx)
@@ -1437,7 +1451,7 @@ void Supervisor::InitializeCriticalSections()
 
 void Supervisor::DeleteCriticalSections()
 {
-    for (int i = 0; i < ARRAY_SIZE_SIGNED(this->criticalSections); i++)
+    for (int i = 0; i < ARRAY_SIZE(this->criticalSections); i++)
     {
         DeleteCriticalSection(&this->criticalSections[i]);
     }

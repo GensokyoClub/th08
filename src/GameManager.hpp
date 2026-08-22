@@ -338,10 +338,10 @@ struct GameManager
     i32 unk3DB9C;
     i32 unk3DBA0;
     i32 unk3DBA4;
+    u8 powerItemCountForScore;
     u8 character;
     u8 shotType;
-    u8 fullShotType;
-    u8 unk3dbaa;
+    u8 characterShotType;
     GameManagerFlags flags;
     i16 currentSpellCardNumber;
     u8 showPauseMenu;

@@ -402,7 +402,7 @@ ZunResult Ending::LoadEnding(const char *path)
 
     if (prevFile != NULL)
     {
-        g_ZunMemory.Free(prevFile);
+        ZUN_FREE(prevFile);
     }
     return ZUN_SUCCESS;
 }
@@ -416,14 +416,14 @@ ZunResult Ending::RegisterChain()
     ending->calcChain->addedCallback = (ChainLifetimeCallback)Ending::AddedCallback;
     ending->calcChain->deletedCallback = (ChainLifetimeCallback)Ending::DeletedCallback;
 
-    if (g_Chain.AddToCalcChain(ending->calcChain, 5) != ZUN_SUCCESS)
+    if (g_Chain.AddToCalcChain(ending->calcChain, CHAIN_PRIO_CALC_ENDING) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
 
     ending->drawChain = g_Chain.CreateElem((ChainCallback)Ending::OnDraw);
     ending->drawChain->arg = ending;
-    g_Chain.AddToDrawChain(ending->drawChain, 4);
+    g_Chain.AddToDrawChain(ending->drawChain, CHAIN_PRIO_DRAW_ENDING);
     return ZUN_SUCCESS;
 }
 
@@ -490,7 +490,7 @@ ZunResult Ending::AddedCallback(Ending *ending)
     u32 stageBit;
     i32 i;
 
-    shotType1 = g_GameManager.shotType;
+    shotType1 = g_GameManager.character;
 
     g_AnmManager->ClearTexture();
     g_AnmManager->ClearSprite();
@@ -499,12 +499,12 @@ ZunResult Ending::AddedCallback(Ending *ending)
     ScreenEffect::Clear(COLOR_WHITE);
     g_Supervisor.unk178 = 1;
 
-    ending->anmFile = g_AnmManager->LoadAnm(0x18, "staff01.anm");
+    ending->anmFile = g_AnmManager->LoadAnm(ANM_FILE_STAFF, "staff01.anm");
 
     if (g_GameManager.flags.unk4)
     {
 
-        shotType2 = g_GameManager.shotType;
+        shotType2 = g_GameManager.character;
 
         stageBit = (g_GameManager.currentStage != STAGE6B) ? SPELL_PRACTICE_UNLOCKED_FLAG : EXTRA_UNLOCKED_FLAG;
 
@@ -551,8 +551,8 @@ ZunResult Ending::AddedCallback(Ending *ending)
     }
     else
     {
-        ending->hasSeenEnding = g_GameManager.clrdData[g_GameManager.shotType].unk_20;
-        g_GameManager.clrdData[g_GameManager.shotType].unk_20 = 0;
+        ending->hasSeenEnding = g_GameManager.clrdData[g_GameManager.character].unk_20;
+        g_GameManager.clrdData[g_GameManager.character].unk_20 = 0;
         g_GameManager.plst.bgmUnlocked[18] = 0x12;
     }
 
@@ -565,15 +565,15 @@ execute_anms:
 
     if (g_GameManager.flags.unk4 == 0)
     {
-        endingFile = g_EndingFiles[0][g_GameManager.shotType];
+        endingFile = g_EndingFiles[0][g_GameManager.character];
     }
     else if (g_GameManager.currentStage != STAGE6B)
     {
-        endingFile = g_EndingFiles[1][g_GameManager.shotType];
+        endingFile = g_EndingFiles[1][g_GameManager.character];
     }
     else
     {
-        endingFile = g_EndingFiles[2][g_GameManager.shotType];
+        endingFile = g_EndingFiles[2][g_GameManager.character];
     }
 
     if (ending->LoadEnding(endingFile) != ZUN_SUCCESS)
@@ -588,10 +588,10 @@ execute_anms:
 
 ZunResult Ending::DeletedCallback(Ending *ending)
 {
-    g_AnmManager->ReleaseAnm(24);
+    g_AnmManager->ReleaseAnm(ANM_FILE_STAFF);
     g_Supervisor.curState = SupervisorState_ResultScreenFromGame;
     g_AnmManager->ReleaseSurface(0);
-    g_ZunMemory.Free(ending->fileData);
+    ZUN_FREE(ending->fileData);
     g_Chain.Cut(ending->drawChain);
     ending->drawChain = NULL;
     ZUN_DELETE(ending);

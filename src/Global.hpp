@@ -27,13 +27,10 @@ namespace th08
     g_ZunMemory.RemoveFromRegistry(p);                                                                                 \
     delete p;                                                                                                          \
     p = NULL;
-#define ZUN_DELETE2(p)                                                                                                 \
-    delete p;                                                                                                          \
-    p = NULL;
 
-#define ZUN_FREE(p)                                                                                                    \
-    g_ZunMemory.Free(p);                                                                                               \
-    p = NULL;
+#define ZUN_ALLOC(size) g_ZunMemory.Alloc(size)
+#define ZUN_ALLOC_NAMED(size, name) g_ZunMemory.Alloc(size, name)
+#define ZUN_FREE(p) g_ZunMemory.Free(p);
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -59,6 +56,54 @@ enum ChainCallbackResult
 
 typedef ChainCallbackResult (*ChainCallback)(void *);
 typedef ZunResult (*ChainLifetimeCallback)(void *);
+
+enum
+{
+    CHAIN_PRIO_CALC_SUPERVISOR = 0,
+    CHAIN_PRIO_CALC_ASCIIMANAGER = 1,
+    CHAIN_PRIO_CALC_GAMEMANAGER = 2,
+    CHAIN_PRIO_CALC_SCREENEFFECT = 3,
+    CHAIN_PRIO_CALC_TITLESCREEN = 4,
+    CHAIN_PRIO_CALC_MUSICROOM = 4,
+    CHAIN_PRIO_CALC_ENDING = 5,
+    CHAIN_PRIO_CALC_REPLAYMANAGER_PLAYBACK_HIGH_PRIO = 6,
+    CHAIN_PRIO_CALC_REPLAYMANAGER_LOW_PRIO = 7,
+    CHAIN_PRIO_CALC_BACKGROUND = 8,
+    CHAIN_PRIO_CALC_PLAYER = 9,
+    CHAIN_PRIO_CALC_ENEMYMANAGER = 11,
+    CHAIN_PRIO_CALC_SPELLCARD = 12,
+    CHAIN_PRIO_CALC_EFFECTMANAGER = 13,
+    CHAIN_PRIO_CALC_BULLETMANAGER = 14,
+    CHAIN_PRIO_CALC_GUI = 15,
+    CHAIN_PRIO_CALC_RESULTSCREEN = 16,
+    CHAIN_PRIO_CALC_REPLAYMANAGER_RECORD_HIGH_PRIO = 17,
+    CHAIN_PRIO_CALC_REPLAYMANAGER_SKIP_FRAMES = 18,
+};
+
+enum
+{
+    CHAIN_PRIO_DRAW_SUPERVISOR = 0,
+    CHAIN_PRIO_DRAW_SUPERVISOR_LOADING_VMS = 2,
+    CHAIN_PRIO_DRAW_MUSICROOM = 3,
+    CHAIN_PRIO_DRAW_TITLESCREEN = 3,
+    CHAIN_PRIO_DRAW_ENDING = 4,
+    CHAIN_PRIO_DRAW_GAMEMANAGER = 5,
+    CHAIN_PRIO_DRAW_BACKGROUND_HIGH_PRIO = 6,
+    CHAIN_PRIO_DRAW_BACKGROUND_LOW_PRIO = 7,
+    CHAIN_PRIO_DRAW_ENEMYMANAGER_HIGH_PRIO = 8,
+    CHAIN_PRIO_DRAW_PLAYER_HIGH_PRIO = 9,
+    CHAIN_PRIO_DRAW_PLAYER_LOW_PRIO = 10,
+    CHAIN_PRIO_DRAW_ENEMYMANAGER_LOW_PRIO = 11,
+    CHAIN_PRIO_DRAW_EFFECTMANAGER = 12,
+    CHAIN_PRIO_DRAW_BULLETMANAGER = 13,
+    CHAIN_PRIO_DRAW_ASCIIMANAGER_HIGH_PRIO = 14,
+    CHAIN_PRIO_DRAW_SPELLCARD = 15,
+    CHAIN_PRIO_DRAW_SUPERVISOR_DRAW_FPS_COUNTER = 16,
+    CHAIN_PRIO_DRAW_GUI = 17,
+    CHAIN_PRIO_DRAW_RESULTSCREEN = 18,
+    CHAIN_PRIO_DRAW_ASCIIMANAGER_LOW_PRIO = 20,
+    CHAIN_PRIO_DRAW_SCREENEFFECT = 21
+};
 
 // TODO: rename to funcChainInf
 class ChainElem

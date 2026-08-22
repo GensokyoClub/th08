@@ -376,7 +376,7 @@ void GameManager::AdvanceToNextStage()
         this->currentStage = STAGE3;
         break;
     case STAGE3:
-        switch (g_GameManager.shotType)
+        switch (g_GameManager.character)
         {
         case SHOT_REIMU_YUKARI:
         case SHOT_REIMU:

@@ -266,18 +266,18 @@ ZunResult AsciiManager::RegisterChain()
     g_AsciiManagerCalcChain.addedCallback = (ChainLifetimeCallback)AsciiManager::AddedCallback;
     g_AsciiManagerCalcChain.deletedCallback = (ChainLifetimeCallback)AsciiManager::DeletedCallback;
     g_AsciiManagerCalcChain.arg = ascii;
-    if (g_Chain.AddToCalcChain(&g_AsciiManagerCalcChain, 1) != ZUN_SUCCESS)
+    if (g_Chain.AddToCalcChain(&g_AsciiManagerCalcChain, CHAIN_PRIO_CALC_ASCIIMANAGER) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
 
     g_AsciiManagerDrawChainLowPrio.SetCallback((ChainCallback)AsciiManager::OnDrawLowPrio);
     g_AsciiManagerDrawChainLowPrio.arg = ascii;
-    g_Chain.AddToDrawChain(&g_AsciiManagerDrawChainLowPrio, 20);
+    g_Chain.AddToDrawChain(&g_AsciiManagerDrawChainLowPrio, CHAIN_PRIO_DRAW_ASCIIMANAGER_LOW_PRIO);
 
     g_AsciiManagerDrawChainHighPrio.SetCallback((ChainCallback)AsciiManager::OnDrawHighPrio);
     g_AsciiManagerDrawChainHighPrio.arg = ascii;
-    g_Chain.AddToDrawChain(&g_AsciiManagerDrawChainHighPrio, 14);
+    g_Chain.AddToDrawChain(&g_AsciiManagerDrawChainHighPrio, CHAIN_PRIO_DRAW_ASCIIMANAGER_HIGH_PRIO);
 
     return ZUN_SUCCESS;
 }
@@ -286,13 +286,13 @@ ZunResult AsciiManager::AddedCallback(AsciiManager *ascii)
 {
     memset(ascii, 0, sizeof(AsciiManager));
 
-    ascii->asciiAnm = g_AnmManager->PreloadAnm(1, "ascii.anm");
+    ascii->asciiAnm = g_AnmManager->PreloadAnm(ANM_FILE_ASCII, "ascii.anm");
     if (ascii->asciiAnm == NULL)
     {
         return ZUN_ERROR;
     }
 
-    ascii->captureAnm = g_AnmManager->PreloadAnm(3, "capture.anm");
+    ascii->captureAnm = g_AnmManager->PreloadAnm(ANM_FILE_CAPTURE, "capture.anm");
     if (ascii->captureAnm == NULL)
     {
         return ZUN_ERROR;
@@ -306,8 +306,8 @@ ZunResult AsciiManager::AddedCallback(AsciiManager *ascii)
 
 ZunResult AsciiManager::DeletedCallback(AsciiManager *ascii)
 {
-    g_AnmManager->ReleaseAnm(1);
-    g_AnmManager->ReleaseAnm(3);
+    g_AnmManager->ReleaseAnm(ANM_FILE_ASCII);
+    g_AnmManager->ReleaseAnm(ANM_FILE_CAPTURE);
 
     return ZUN_SUCCESS;
 }
@@ -1001,7 +1001,6 @@ i32 PauseMenu::OnUpdate()
             }
         }
         break;
-        break;
     case PAUSE_MENU_STATE_CLOSING:
         if (this->numFrames >= 20)
         {
@@ -1479,10 +1478,10 @@ i32 RetryMenu::OnUpdate()
             IncrementIfBelow(&g_GameManager.plst.playData[g_GameManager.difficulty].attemptsTotal, 999999);
             IncrementIfBelow(&g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].attemptsTotal, 999999);
             IncrementIfBelow(
-                &g_GameManager.plst.playData[g_GameManager.difficulty].attemptsPerCharacter[g_GameManager.shotType],
+                &g_GameManager.plst.playData[g_GameManager.difficulty].attemptsPerCharacter[g_GameManager.character],
                 999999);
             IncrementIfBelow(
-                &g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].attemptsPerCharacter[g_GameManager.shotType],
+                &g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].attemptsPerCharacter[g_GameManager.character],
                 999999);
             IncrementIfBelow(&g_GameManager.plst.playData[g_GameManager.difficulty].continues, 999999);
             IncrementIfBelow(&g_GameManager.plst.playData[MAX_DIFFICULTIES + 1].continues, 999999);
