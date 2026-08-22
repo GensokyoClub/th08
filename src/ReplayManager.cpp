@@ -67,7 +67,7 @@ ReplayData *ReplayManager::LoadReplayData(void *data, int fileSize)
     }
 
     decodedReplay = (ReplayData *)ZUN_ALLOC(replayData->header.decompressedSize + sizeof(ReplayDataHeader) +
-                                                    (fileSize - replayData->header.fileSize));
+                                            (fileSize - replayData->header.fileSize));
 
     memcpy(&decodedReplay->header, data, sizeof(ReplayDataHeader));
 

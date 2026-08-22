@@ -907,7 +907,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     i32 fileSize;
 
     memset(&g_Supervisor.cfg, 0, sizeof(GameConfiguration));
-    configFileBuffer = (GameConfiguration *) FileSystem::OpenFile(configFile, &fileSize, true);
+    configFileBuffer = (GameConfiguration *)FileSystem::OpenFile(configFile, &fileSize, true);
     if (configFileBuffer == NULL)
     {
         g_GameErrorContext.Log(TH_ERR_CONFIG_NOT_FOUND);

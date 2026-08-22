@@ -2563,10 +2563,10 @@ ChainCallbackResult ResultScreen::OnDraw(ResultScreen *result)
 
             if (result->currentState == RESULT_SCREEN_STATE_WRITING_REPLAY_NAME)
             {
-                g_AsciiManager.AddFormatText(
-                    &pos, "No.%.2d %8s %5s  %7s %9d0", i + 1, result->lastName, result->currentReplay.date,
-                    g_ResultsCharacterNames[g_GameManager.character + g_GameManager.shotType],
-                    result->currentReplay.spellcardScore);
+                g_AsciiManager.AddFormatText(&pos, "No.%.2d %8s %5s  %7s %9d0", i + 1, result->lastName,
+                                             result->currentReplay.date,
+                                             g_ResultsCharacterNames[g_GameManager.character + g_GameManager.shotType],
+                                             result->currentReplay.spellcardScore);
 
                 g_AsciiManager.SetColor(0xfff0f0ff);
 

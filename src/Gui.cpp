@@ -1903,7 +1903,8 @@ ZunResult Gui::ActualAddedCallback()
     {
         if (!g_GameManager.flags.isSpellPractice || g_GameManager.currentSpellCardNumber < 205)
         {
-            this->stageTextAnm = g_AnmManager->PreloadAnm(ANM_FILE_STAGE_TEXT, g_StageTextAnms[g_GameManager.currentStage]);
+            this->stageTextAnm =
+                g_AnmManager->PreloadAnm(ANM_FILE_STAGE_TEXT, g_StageTextAnms[g_GameManager.currentStage]);
             if (!this->stageTextAnm)
             {
                 return ZUN_ERROR;

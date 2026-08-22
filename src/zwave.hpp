@@ -29,8 +29,8 @@ class CWaveFile;
 //-----------------------------------------------------------------------------
 struct ThBgmFormat;
 
-#define ZWAV_MAGIC      MAKE_FOURCC('Z','W','A','V')
-#define ZWAV_VERSION    1
+#define ZWAV_MAGIC MAKE_FOURCC('Z', 'W', 'A', 'V')
+#define ZWAV_VERSION 1
 
 //-----------------------------------------------------------------------------
 // Typing macros

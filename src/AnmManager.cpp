@@ -203,16 +203,14 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
 
     while (instruction = vm->currentInstruction, instruction->time <= (int)vm->currentTimeInScript)
     {
-#define GET_ARG(type, argNumber)    ((type *)(instruction + 1))[argNumber]
-#define GET_INT_ARG(argNumber)      GET_ARG(i32, argNumber)
-#define GET_FLOAT_ARG(argNumber)    GET_ARG(float, argNumber)
-#define GET_BYTE_ARG(argNumber)     GET_ARG(u8, argNumber)
+#define GET_ARG(type, argNumber) ((type *)(instruction + 1))[argNumber]
+#define GET_INT_ARG(argNumber) GET_ARG(i32, argNumber)
+#define GET_FLOAT_ARG(argNumber) GET_ARG(float, argNumber)
+#define GET_BYTE_ARG(argNumber) GET_ARG(u8, argNumber)
 #define GET_INT_VAR(argNumber)                                                                                         \
-    ((instruction->varMask & (1 << argNumber)) ? vm->GetIntVar(GET_INT_ARG(argNumber))                                 \
-                                               : GET_INT_ARG(argNumber))
+    ((instruction->varMask & (1 << argNumber)) ? vm->GetIntVar(GET_INT_ARG(argNumber)) : GET_INT_ARG(argNumber))
 #define GET_FLOAT_VAR(argNumber)                                                                                       \
-    ((instruction->varMask & (1 << argNumber)) ? vm->GetFloatVar(GET_FLOAT_ARG(argNumber))                             \
-                                               : GET_FLOAT_ARG(argNumber))
+    ((instruction->varMask & (1 << argNumber)) ? vm->GetFloatVar(GET_FLOAT_ARG(argNumber)) : GET_FLOAT_ARG(argNumber))
 
 #define GET_INT_VAR_PTR(idx) vm->GetIntVarPtr(&GET_INT_ARG(idx), instruction->varMask, idx)
 
@@ -387,9 +385,8 @@ ZunBool AnmManager::ExecuteScript(AnmVm *vm)
         handleInterrupt:
             nextInstruction = NULL;
             instruction = vm->beginningOfScript;
-            while (
-                !(instruction->opcode == AnmOpcode_InterruptLabel && vm->pendingInterrupt == GET_INT_ARG(0)) &&
-                instruction->opcode != AnmOpcode_EndOfScript)
+            while (!(instruction->opcode == AnmOpcode_InterruptLabel && vm->pendingInterrupt == GET_INT_ARG(0)) &&
+                   instruction->opcode != AnmOpcode_EndOfScript)
             {
                 if (instruction->opcode == AnmOpcode_InterruptLabel && GET_INT_ARG(0) == -1)
                 {
@@ -1997,12 +1994,13 @@ void AnmManager::DrawTextCentered(AnmVm *vm, COLORREF textColor, COLORREF shadow
     vsprintf(buf, fmt, args);
     va_end(args);
 
-    x = vm->loadedSprite->startPixelInclusive.x + ((vm->loadedSprite->widthPx * vm->loadedSprite->scaleFactor.x) / 2.0f ) - ((strlen(buf) * (float) fontWidth * vm->loadedSprite->scaleFactor.x) / 4.0f);
+    x = vm->loadedSprite->startPixelInclusive.x +
+        ((vm->loadedSprite->widthPx * vm->loadedSprite->scaleFactor.x) / 2.0f) -
+        ((strlen(buf) * (float)fontWidth * vm->loadedSprite->scaleFactor.x) / 4.0f);
 
-    this->DrawTextInner(vm->loadedSprite->texture, x,
-                        vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width, vm->loadedSprite->height,
-                        fontWidth, vm->fontHeight, textColor, shadowColor, buf, vm->loadedSprite->scaleFactor.x,
-                        vm->loadedSprite->scaleFactor.y);
+    this->DrawTextInner(vm->loadedSprite->texture, x, vm->loadedSprite->startPixelInclusive.y, vm->loadedSprite->width,
+                        vm->loadedSprite->height, fontWidth, vm->fontHeight, textColor, shadowColor, buf,
+                        vm->loadedSprite->scaleFactor.x, vm->loadedSprite->scaleFactor.y);
 
     vm->visible = true;
 }

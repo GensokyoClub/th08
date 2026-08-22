@@ -28,9 +28,9 @@ namespace th08
     delete p;                                                                                                          \
     p = NULL;
 
-#define ZUN_ALLOC(size)                 g_ZunMemory.Alloc(size)
-#define ZUN_ALLOC_NAMED(size, name)     g_ZunMemory.Alloc(size, name)
-#define ZUN_FREE(p)                     g_ZunMemory.Free(p);
+#define ZUN_ALLOC(size) g_ZunMemory.Alloc(size)
+#define ZUN_ALLOC_NAMED(size, name) g_ZunMemory.Alloc(size, name)
+#define ZUN_FREE(p) g_ZunMemory.Free(p);
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480

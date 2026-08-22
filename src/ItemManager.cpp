@@ -119,7 +119,6 @@ Item *ItemManager::SpawnItem(Float3 *position, ItemType itemType, i32 state)
         item->prev = this->itemListTail;
         item->next = NULL;
         this->itemListTail = item;
-
     }
 
     return i < MAX_ITEMS ? item : &this->items[MAX_ITEMS];
