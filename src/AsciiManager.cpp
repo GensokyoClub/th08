@@ -1001,7 +1001,6 @@ i32 PauseMenu::OnUpdate()
             }
         }
         break;
-        break;
     case PAUSE_MENU_STATE_CLOSING:
         if (this->numFrames >= 20)
         {
