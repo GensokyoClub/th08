@@ -172,9 +172,432 @@ void GameManager::CollectExtend()
     }
 }
 
-// STUB: th08 0x439bc7
+#pragma var_order(sum, i, scoreIncrement)
 ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
 {
+    i32 i;
+    i32 sum;
+    u32 scoreIncrement;
+
+    g_GameManager.unk3DB94++;
+
+    if (gameManager->flags.unk5 != 0)
+    {
+        if (gameManager->flags.unk5 == 2)
+        {
+            gameManager->flags.unk5 = 3;
+            g_GameManager.loadState = GAME_LOAD_IN_PROGRESS;
+            g_GameManager.nextSupervisorState = SupervisorState_ExitGame;
+
+            if (!g_GameManager.IsReplay())
+            {
+                // Set the current stage as cleared.
+                if (g_GameManager.globals->numRetries == 0)
+                {
+                    g_GameManager.clrdData[g_GameManager.character].difficultiesClearedWithoutRetries[g_GameManager.difficulty] |= g_GameManager.stageMask;
+                    g_GameManager.clrdData[SHOT_ALL].difficultiesClearedWithoutRetries[g_GameManager.difficulty] |= g_GameManager.stageMask;
+                }
+                g_GameManager.clrdData[g_GameManager.character].difficultiesClearedWithRetries[g_GameManager.difficulty] |= g_GameManager.stageMask;
+                g_GameManager.clrdData[SHOT_ALL].difficultiesClearedWithRetries[g_GameManager.difficulty] |= g_GameManager.stageMask;
+            }
+
+            gameManager->globals->displayScore = gameManager->globals->score;
+
+            if (gameManager->IsPracticeMode())
+            {
+                g_GameManager.globals->displayScore = g_GameManager.globals->score;
+                g_GameManager.nextSupervisorState = SupervisorState_ResultScreenFromGame;
+
+                return CHAIN_CALLBACK_RESULT_BREAK;
+            }
+
+            if (g_GameManager.currentStage != STAGE6A
+                && g_GameManager.currentStage != STAGE6B
+                && g_GameManager.currentStage != EXTRASTAGE)
+            {
+                if (g_GameManager.IsReplay())
+                {
+                    i32 replayStage = 0;
+                    i32 i;
+
+                    // Find the next stage in the replay. Sometimes there
+                    // might be a stage missing from a replay.
+                    for (i = g_GameManager.currentStage + 1; i < MAX_STAGES; i++)
+                    {
+                        if (g_ReplayManager->IsStageInReplay(i))
+                        {
+                            replayStage = i;
+                            break;
+                        }
+                    }
+
+                    if (replayStage == 0)
+                    {
+                        g_Supervisor.curState = SupervisorState_FinishReplay;
+                    }
+                    else
+                    {
+                        g_GameManager.currentStage = replayStage;
+                        g_Supervisor.curState = SupervisorState_GameManagerReInit;
+                    }
+                }
+                else
+                {
+                    // Finish the game if the time exceeds 5:00 AM.
+                    if (g_GameManager.GetClockTime() >= CLOCK_TIME_5_00)
+                    {
+                        g_GameManager.flags.unk4 = 0;
+                        g_GameManager.nextSupervisorState = SupervisorState_Ending;
+
+                        return CHAIN_CALLBACK_RESULT_BREAK;
+                    }
+
+                    g_GameManager.AdvanceToNextStage();
+                    g_Supervisor.curState = SupervisorState_GameManagerReInit;
+                }
+            }
+            else if (g_GameManager.IsReplay())
+            {
+                g_GameManager.nextSupervisorState = SupervisorState_FinishReplay;
+            }
+            else
+            {
+                if (g_GameManager.difficulty >= EXTRA)
+                {
+                    if (g_GameManager.difficulty == EXTRA)
+                    {
+                        g_GameManager.clrdData[g_GameManager.character].difficultiesClearedWithoutRetries[g_GameManager.difficulty] |= SPELL_PRACTICE_UNLOCKED_FLAG;
+                        g_GameManager.clrdData[SHOT_ALL].difficultiesClearedWithRetries[g_GameManager.difficulty] |= SPELL_PRACTICE_UNLOCKED_FLAG;
+
+                    }
+
+                    g_GameManager.plst.playData[g_GameManager.difficulty].clears++;
+                    g_GameManager.flags.unk4 = 1;
+
+                    g_GameManager.globals->displayScore = g_GameManager.globals->score;
+                    g_GameManager.nextSupervisorState = SupervisorState_ResultScreenFromGame;
+
+                    return CHAIN_CALLBACK_RESULT_BREAK;
+                }
+
+                g_GameManager.flags.unk4 = 1;
+                g_GameManager.nextSupervisorState = SupervisorState_Ending;
+
+                return CHAIN_CALLBACK_RESULT_BREAK;
+            }
+
+            if (g_GameManager.nextSupervisorState < 0)
+            {
+                g_Gui.CaptureArcade();
+            }
+        }
+
+        // This is for the "Press Shot Button" prompt when you clear a stage.
+        // The other conditions are for automatically advancing the stage
+        // without user input.
+        if (WAS_PRESSED(TH_BUTTON_SELECTMENU)
+            || g_GameManager.IsReplay()
+            || g_GameManager.currentStage == STAGE6A
+            || g_GameManager.currentStage == STAGE6B
+            || g_GameManager.currentStage == EXTRASTAGE)
+        {
+            gameManager->flags.unk5 = 0;
+            if (g_GameManager.nextSupervisorState >= SupervisorState_Init)
+            {
+                g_Supervisor.curState = g_GameManager.nextSupervisorState;
+            }
+        }
+    }
+
+    if (gameManager->loadState != GAME_LOAD_FINISHED)
+    {
+        if (gameManager->loadState == GAME_LOAD_FAILED)
+        {
+            return CHAIN_CALLBACK_RESULT_EXIT_GAME_SUCCESS;
+        }
+        else
+        {
+            gameManager->loadFrames++;
+            return CHAIN_CALLBACK_RESULT_BREAK;
+        }
+
+    }
+
+    if (gameManager->unk3de28 != 0)
+    {
+        Gui::UpdateEnemyNameTexture();
+        g_AnmManager->ReleaseSurface(8);
+        g_Supervisor.loadingVmsHaveBeenSetup = 0;
+
+        if (gameManager->unk3de28 == 1)
+        {
+            if (!g_GameManager.IsSpellPractice())
+            {
+                g_Supervisor.PlayMusic(0, g_StageBgmIndices[g_GameManager.currentStage][0]);
+            }
+            else
+            {
+                i32 i = 0;
+
+                while (g_SpellcardMusicInfo[i].spellcardNumber >= 0)
+                {
+                    if (g_GameManager.currentSpellCardNumber <= g_SpellcardMusicInfo[i].spellcardNumber)
+                    {
+                        g_Supervisor.PlayMusic(0, g_SpellcardMusicInfo[i].songNumber);
+                        break;
+                    }
+
+                    i++;
+                }
+            }
+        }
+
+        gameManager->unk3de28 = 0;
+    }
+
+    // Pause menu
+    if (!gameManager->showRetryMenu
+        && !gameManager->showPauseMenu
+        && !gameManager->IsDemoMode()
+        && !gameManager->stickyInput
+        && WAS_PRESSED(TH_BUTTON_MENU))
+    {
+        gameManager->showPauseMenu = 1;
+
+        g_GameManager.arcadeRegionTopLeftPos.x = ARCADE_LEFT;
+        g_GameManager.arcadeRegionTopLeftPos.y = ARCADE_TOP;
+        g_GameManager.arcadeRegionSize.x = ARCADE_WIDTH;
+        g_GameManager.arcadeRegionSize.y = ARCADE_HEIGHT;
+
+        gameManager->unk3DB98 = 1;
+
+        g_SoundPlayer.Pause();
+        g_SoundPlayer.PlaySoundByIdx(SOUND_PAUSE, 0);
+
+        g_Supervisor.UpdateGameTime();
+
+        g_Rng.SaveSeed();
+
+        gameManager->hscr.numPauses++;
+        g_GameManager.UpdateAntiTamper();
+
+        g_Rng.RestoreSeed();
+    }
+
+    g_Supervisor.viewport.X = gameManager->arcadeRegionTopLeftPos.x;
+    g_Supervisor.viewport.Y = gameManager->arcadeRegionTopLeftPos.y;
+    g_Supervisor.viewport.Width = gameManager->arcadeRegionSize.x;
+    g_Supervisor.viewport.Height = gameManager->arcadeRegionSize.y;
+    g_Supervisor.viewport.MinZ = 0.0f;
+    g_Supervisor.viewport.MaxZ = 1.0f;
+
+    g_AnmManager->ClearCameraSettings();
+
+    if (g_GameManager.IsReplay()
+        && g_GameManager.replayMode == REPLAY_MODE_SLOWDOWN
+        && !g_Gui.IsDialoguePresent())
+    {
+        gameManager->playTimeSlowMode++;
+
+        if ((g_Supervisor.unk198 < 20 && gameManager->playTimeSlowMode % 3 != 0)
+            || ((g_Supervisor.unk198 >= 20 && g_Supervisor.unk198 < 30)
+                && gameManager->playTimeSlowMode % 2 != 0)
+            || ((g_Supervisor.unk198 >= 30 && g_Supervisor.unk198 < 40)
+                && gameManager->playTimeSlowMode % 3 == 0) ||
+            ((g_Supervisor.unk198 >= 40 && g_Supervisor.unk198 < 50)
+             && gameManager->playTimeSlowMode % 6 == 0))
+        {
+            return CHAIN_CALLBACK_RESULT_BREAK;
+        }
+    }
+
+    if (gameManager->IsDemoMode())
+    {
+        if (WAS_PRESSED(TH_BUTTON_ANY))
+        {
+            g_Supervisor.curState = SupervisorState_TitleScreen;
+        }
+
+        gameManager->demoFrameCount++;
+
+        // Fade out arcade and music in the demo play after a certain time
+        if ((gameManager->currentDemoReplay == 0 && gameManager->demoFrameCount == 6000)
+            || (gameManager->currentDemoReplay == 1 && gameManager->demoFrameCount == 4800)
+            || (gameManager->currentDemoReplay == 2 && gameManager->demoFrameCount == 4920)
+            || (gameManager->currentDemoReplay == 3 && gameManager->demoFrameCount == 6900))
+        {
+            ScreenEffect::RegisterChain(SCREEN_EFFECT_ARCADE_FADE_OUT, 120, 0, 0, 0, 21);
+            g_Supervisor.FadeOutMusic(3.0f);
+        }
+
+        // Go back to title screen in the demo play two seconds after the fade out starts
+        if ((gameManager->currentDemoReplay == 0 && gameManager->demoFrameCount >= 6000 + (2 * 60))
+            || (gameManager->currentDemoReplay == 1 && gameManager->demoFrameCount >= 4800 + (2 * 60))
+            || (gameManager->currentDemoReplay == 2 && gameManager->demoFrameCount >= 4920 + (2 * 60))
+            // Copy paste mistake? Given the context, it should be >=, not ==
+            || (gameManager->currentDemoReplay == 3 && gameManager->demoFrameCount == 6900 + (2 * 60)))
+        {
+            g_Supervisor.curState = SupervisorState_TitleScreen;
+            return CHAIN_CALLBACK_RESULT_BREAK;
+        }
+    }
+
+    g_GameManager.globals->antiTamperValue = g_GameManager.globals->rng1[2];
+    sum = gameManager->CalcAntiTamperChecksum();
+    g_GameManager.antiTamperExpectedValue = (f32)sum + (f32)g_GameManager.globals->rng7[3];
+
+    for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng1); i++)
+    {
+        if (gameManager->globals->rng1[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng1[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng3); i++)
+    {
+        if (gameManager->globals->rng3[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng3[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    gameManager->flags.unk2 = !(gameManager->showRetryMenu || gameManager->showPauseMenu);
+
+    for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng2); i++)
+    {
+        if (gameManager->globals->rng2[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng2[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng7); i++)
+    {
+        if (gameManager->globals->rng7[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng7[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    // ZUN bloat: only clearing the Z buffer but also providing the clear color?
+    g_Supervisor.d3dDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, g_Background.skyFog.color.d3dColor, 1.0f, 0.0);
+
+    // If pause or retry menu are active, interrupt normal gameplay.
+    if (gameManager->showPauseMenu == 1 || gameManager->showPauseMenu == 2 || gameManager->showRetryMenu)
+    {
+        return CHAIN_CALLBACK_RESULT_BREAK;
+    }
+
+    if (gameManager->globals->score >= MAX_SCORE + 1)
+    {
+        gameManager->globals->score = MAX_SCORE;
+    }
+
+    // Handle score increment
+    if (gameManager->globals->displayScore != gameManager->globals->score)
+    {
+        if (gameManager->globals->score < gameManager->globals->displayScore)
+        {
+            gameManager->globals->score = gameManager->globals->displayScore;
+        }
+
+        scoreIncrement = (gameManager->globals->score - gameManager->globals->displayScore) / 32;
+
+        if (scoreIncrement >= MAX_SCORE_INCREMENT)
+        {
+            scoreIncrement = MAX_SCORE_INCREMENT;
+        }
+        else if (scoreIncrement == 0)
+        {
+            scoreIncrement = 1;
+        }
+
+        if (gameManager->globals->scoreIncrement < scoreIncrement)
+        {
+            gameManager->globals->scoreIncrement = scoreIncrement;
+        }
+
+        if ((gameManager->globals->displayScore + gameManager->globals->scoreIncrement) > gameManager->globals->score)
+        {
+            gameManager->globals->scoreIncrement = gameManager->globals->score - gameManager->globals->displayScore;
+        }
+
+        gameManager->globals->displayScore += gameManager->globals->scoreIncrement;
+
+        if (gameManager->globals->displayScore >= gameManager->globals->score)
+        {
+            gameManager->globals->scoreIncrement = 0;
+            gameManager->globals->displayScore = gameManager->globals->score;
+        }
+
+        if (gameManager->globals->displayedHighScore < gameManager->globals->displayScore)
+        {
+            gameManager->globals->displayedHighScore = gameManager->globals->displayScore;
+            gameManager->globals->continuesUsedInHighScore = gameManager->globals->numRetries;
+        }
+    }
+
+    for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng4); i++)
+    {
+        if (gameManager->globals->rng4[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng4[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    for (i = 0; i < ARRAY_SIZE(g_GameManager.globals->rng5); i++)
+    {
+        if (gameManager->globals->rng5[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng5[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    for (i = 0; i < ARRAY_SIZE(g_GameManager.globals->rng8); i++)
+    {
+        if (gameManager->globals->rng8[i] < ANTITAMPER_RNG_ADD
+            || gameManager->globals->rng8[i] > ANTITAMPER_RNG_ADD + ANTITAMPER_RNG_RANGE)
+        {
+            g_GameManager.antiTamperExpectedValue = -9999;
+        }
+    }
+
+    if (g_GameManager.cfg->slowMode)
+    {
+        g_GameManager.stickyInput = 0;
+
+        gameManager->playTimeSlowMode++;
+
+        if ((g_BulletManager.numActiveBullets >= 320 && gameManager->playTimeSlowMode % 3 == 0)
+            || ((g_BulletManager.numActiveBullets < 320 && g_BulletManager.numActiveBullets >= 224)
+                && gameManager->playTimeSlowMode % 4 == 0)
+            || ((g_BulletManager.numActiveBullets < 224 && g_BulletManager.numActiveBullets >= 128)
+                && gameManager->playTimeSlowMode % 5 == 0))
+        {
+            g_GameManager.stickyInput = 1;
+            return CHAIN_CALLBACK_RESULT_BREAK;
+        }
+
+        if (g_BulletManager.numActiveBullets < 128)
+        {
+            gameManager->playTimeSlowMode = 0;
+        }
+    }
+
+    if (g_GameManager.IsTampered())
+    {
+        // ZUN commented out code here most likely as well
+    }
+
+    gameManager->unk3ddc0++;
+
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
@@ -262,7 +685,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
     GameManager *gameManager = &g_GameManager;
     i32 random;
 
-    gameManager->unk3c = 0;
+    gameManager->loadFrames = 0;
     g_Supervisor.systemTime = timeGetTime();
     gameManager->stageMask = ZUN_BIT(gameManager->currentStage);
     gameManager->currentStage2 = gameManager->currentStage;
@@ -282,6 +705,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
 
     gameManager->flags.unk10 = 0;
 
+
     if (IsInitialStageLoad() || gameManager->IsSpellPractice() || g_GameManager.IsPracticeMode() || g_GameManager.difficulty >= EXTRA)
     {
         if (gameManager->cfg != NULL)
@@ -293,6 +717,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
         {
             ZUN_DELETE(gameManager->globals);
         }
+
 
         random = g_Rng.GetRandomU32InRange(0xffff) + 16;
         gameManager->decoyBuffer = ZUN_ALLOC(random);
@@ -448,6 +873,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
             goto err;
         }
     }
+
 
     gameManager->subRank = 0;
     gameManager->globals->pointItemsCollectedInStage = 0;
@@ -709,14 +1135,14 @@ void GameManager::GameplaySetupThread(LPVOID param)
 
     if (g_GameManager.IsReplay())
     {
-        while (gameManager->unk3c < 80)
+        while (gameManager->loadFrames < 80)
         {
             Sleep(17);
         }
     }
     else
     {
-        while (gameManager->unk3c < 30)
+        while (gameManager->loadFrames < 30)
         {
             Sleep(17);
         }

@@ -18,6 +18,9 @@
 #define ANTITAMPER_RNG_RANGE 100000
 #define ANTITAMPER_RNG_ADD 6543
 
+#define MAX_SCORE               999999999
+#define MAX_SCORE_INCREMENT     578910
+
 namespace th08
 {
 
@@ -391,7 +394,7 @@ struct GameManager
     i32 difficulty;
     i32 difficultyMask;
     GameManagerLoadState loadState;
-    i32 unk3c;
+    i32 loadFrames;
     Catk catkData[SPELLCARD_COUNT_SPELLCARDS];
     Catk catkData2[SPELLCARD_COUNT_SPELLCARDS];
     Clrd clrdData[SHOT_ALL + 1];
@@ -400,7 +403,7 @@ struct GameManager
     Hscr hscr;
     i32 unk3DB94;
     i32 unk3DB98;
-    i32 unk3DB9C;
+    SupervisorState nextSupervisorState;
     i32 unk3DBA0;
     i32 unk3DBA4;
     u8 powerItemCountForScore;
@@ -438,7 +441,7 @@ struct GameManager
     i16 youkaiGaugeYoukaiTintThreshold;
 
     i32 unk3de04;
-    u32 unk3de08;
+    u32 playTimeSlowMode;
     u32 unk3de0c;
     u32 unk3de10;
     i32 unk3de14;

@@ -1576,7 +1576,7 @@ void Gui::CopyEnemyNameTexture(i32 param_1)
 }
 
 // STUB: th08 0x438046
-void Gui::FUN_00438046()
+void Gui::UpdateEnemyNameTexture()
 {
     // Not actually sure this is Gui related, but it's located nearby other Gui functions
 }

@@ -260,6 +260,16 @@ class Rng
         this->generationCount = 0;
     }
 
+    void SaveSeed()
+    {
+        this->seedBackup = this->seed;
+    }
+
+    void RestoreSeed()
+    {
+        this->seed = this->seedBackup;
+    }
+
     void SetSeed(u16 newSeed)
     {
         this->seed = newSeed;

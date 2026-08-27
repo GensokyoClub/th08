@@ -312,7 +312,7 @@ struct Supervisor
     MidiOutput *midiOutput;
     float lagNumerator;
     float lagDenominator;
-    u32 unk198;
+    i16 unk198;
     AnmLoaded *textAnm;
     AnmLoaded *loadingAnm;
     SupervisorFlags flags;
