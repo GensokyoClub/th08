@@ -601,9 +601,28 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
-// STUB: th08 0x43aa03
 ChainCallbackResult GameManager::OnDraw(GameManager *gameManager)
 {
+    if (gameManager->showPauseMenu != 0)
+    {
+        gameManager->showPauseMenu = 2;
+    }
+
+    if (g_Supervisor.curState != SupervisorState_GameManager)
+    {
+        return CHAIN_CALLBACK_RESULT_BREAK;
+    }
+
+    if (gameManager->flags.unk5 == 1)
+    {
+        return CHAIN_CALLBACK_RESULT_BREAK;
+    }
+
+    if (gameManager->loadState != GAME_LOAD_FINISHED)
+    {
+        return CHAIN_CALLBACK_RESULT_BREAK;
+    }
+
     return CHAIN_CALLBACK_RESULT_CONTINUE;
 }
 
