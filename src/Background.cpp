@@ -6,9 +6,17 @@ namespace th08
 {
 DIFFABLE_STATIC(Background, g_Background);
 
-// STUB: th08 0x4071a0
 Background::Background()
 {
+    memset(this, 0, sizeof(Background));
+
+    this->camera.unk0x0 = D3DXVECTOR3(0.0f, 0.0f, 1000.0f);
+    this->camera.unk0xc = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+    this->camera.unk0x18 = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+    this->camera.fov = D3DXToRadian(30);
+
+    this->cameraInterpFinal = this->camera;
+    this->cameraInterpInitial = this->camera;
 }
 
 // STUB: th08 0x407400
