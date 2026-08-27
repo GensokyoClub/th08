@@ -24,14 +24,22 @@
 namespace th08
 {
 
+enum
+{
+    GAME_STATE_DEFAULT,
+    GAME_STATE_SKIP_DRAWING,
+    GAME_STATE_STAGE_CLEAR,
+    GAME_STATE_FINISHING_STAGE
+};
+
 struct GameManagerFlags
 {
     u32 isPracticeMode : 1;
     u32 isDemoMode : 1;
-    u32 unk2 : 1;
+    u32 isActive : 1;       // Set to 0 if Pause or Retry menu are active, 1 otherwise
     u32 isReplay : 1;
     u32 unk4 : 1;
-    u32 unk5 : 2;
+    u32 gameState : 2;
     u32 unk7 : 2;
     u32 unk9 : 1;
     u32 unk10 : 1;

@@ -181,11 +181,11 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
 
     g_GameManager.unk3DB94++;
 
-    if (gameManager->flags.unk5 != 0)
+    if (gameManager->flags.gameState != GAME_STATE_DEFAULT)
     {
-        if (gameManager->flags.unk5 == 2)
+        if (gameManager->flags.gameState == GAME_STATE_STAGE_CLEAR)
         {
-            gameManager->flags.unk5 = 3;
+            gameManager->flags.gameState = GAME_STATE_FINISHING_STAGE;
             g_GameManager.loadState = GAME_LOAD_IN_PROGRESS;
             g_GameManager.nextSupervisorState = SupervisorState_ExitGame;
 
@@ -301,7 +301,7 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
             || g_GameManager.currentStage == STAGE6B
             || g_GameManager.currentStage == EXTRASTAGE)
         {
-            gameManager->flags.unk5 = 0;
+            gameManager->flags.gameState = GAME_STATE_DEFAULT;
             if (g_GameManager.nextSupervisorState >= SupervisorState_Init)
             {
                 g_Supervisor.curState = g_GameManager.nextSupervisorState;
@@ -464,7 +464,7 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
         }
     }
 
-    gameManager->flags.unk2 = !(gameManager->showRetryMenu || gameManager->showPauseMenu);
+    gameManager->flags.isActive = !(gameManager->showRetryMenu || gameManager->showPauseMenu);
 
     for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng2); i++)
     {
@@ -613,7 +613,7 @@ ChainCallbackResult GameManager::OnDraw(GameManager *gameManager)
         return CHAIN_CALLBACK_RESULT_BREAK;
     }
 
-    if (gameManager->flags.unk5 == 1)
+    if (gameManager->flags.gameState == GAME_STATE_SKIP_DRAWING)
     {
         return CHAIN_CALLBACK_RESULT_BREAK;
     }
@@ -679,9 +679,9 @@ ZunResult GameManager::AddedCallback(GameManager *gameManager)
         g_Supervisor.ShowLoadingVmsAndCapture(&pos);
     }
 
-    if (gameManager->flags.unk5 >= 2)
+    if (gameManager->flags.gameState >= GAME_STATE_STAGE_CLEAR)
     {
-        gameManager->flags.unk5 = 1;
+        gameManager->flags.gameState = GAME_STATE_SKIP_DRAWING;
     }
 
     g_Supervisor.ThreadStart((LPTHREAD_START_ROUTINE)GameManager::GameplaySetupThread, NULL);
@@ -723,7 +723,6 @@ void GameManager::GameplaySetupThread(LPVOID param)
     g_Supervisor.framerateMultiplier = 1.0f;
 
     gameManager->flags.unk10 = 0;
-
 
     if (IsInitialStageLoad() || gameManager->IsSpellPractice() || g_GameManager.IsPracticeMode() || g_GameManager.difficulty >= EXTRA)
     {
@@ -892,7 +891,6 @@ void GameManager::GameplaySetupThread(LPVOID param)
             goto err;
         }
     }
-
 
     gameManager->subRank = 0;
     gameManager->globals->pointItemsCollectedInStage = 0;
@@ -1120,7 +1118,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
     }
 
     gameManager->showRetryMenu = 0;
-    gameManager->flags.unk2 = 1;
+    gameManager->flags.isActive = 1;
 
     if (KeepStageResources()
         && g_GameManager.IsSpellPractice()
@@ -1169,7 +1167,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
 
     g_Supervisor.HideLoadingVms();
 
-    while (gameManager->flags.unk5)
+    while (gameManager->flags.gameState != GAME_STATE_DEFAULT)
     {
         Sleep(17);
     }
@@ -1356,7 +1354,7 @@ ZunResult GameManager::DeletedCallback(GameManager *gameManager)
     g_Supervisor.systemTime = 0;
     g_Supervisor.UpdatePlayTime();
 
-    gameManager->flags.unk2 = 0;
+    gameManager->flags.isActive = 0;
 
     g_AsciiManager.Reset();
 

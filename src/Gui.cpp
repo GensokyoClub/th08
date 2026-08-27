@@ -700,7 +700,7 @@ ZunResult GuiImpl::RunMsg()
             if (g_GameManager.currentStage == STAGE6A || g_GameManager.currentStage == STAGE6B ||
                 g_GameManager.currentStage == EXTRASTAGE)
             {
-                g_GameManager.flags.unk5 = 2;
+                g_GameManager.flags.gameState = GAME_STATE_STAGE_CLEAR;
             }
             goto SKIP_TIME_INCREMENT;
         case MsgOpcode_WaitSkippable:
@@ -1059,9 +1059,9 @@ void Gui::UpdateStageElements()
         this->impl->stageClearScreenCounter++;
     }
     if (g_GameManager.currentStage < 6 && this->impl->clearScreenDisplayedClockTime != 0 &&
-        this->impl->clearScreenDisplayedClockTime >= this->impl->clearScreenClockTime && g_GameManager.flags.unk5 == 0)
+        this->impl->clearScreenDisplayedClockTime >= this->impl->clearScreenClockTime && g_GameManager.flags.gameState == GAME_STATE_DEFAULT)
     {
-        g_GameManager.flags.unk5 = 2;
+        g_GameManager.flags.gameState = GAME_STATE_STAGE_CLEAR;
     }
     if (this->impl->clearScreenDisplayedClockTime != 0 &&
         this->impl->clearScreenDisplayedClockTime != this->impl->clearScreenClockTime)
