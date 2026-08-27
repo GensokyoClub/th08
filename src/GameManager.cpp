@@ -1383,6 +1383,19 @@ ZunResult GameManager::DeletedCallback(GameManager *gameManager)
     return ZUN_SUCCESS;
 }
 
+void GameManager::CutChain()
+{
+    g_Chain.Cut(&g_GameManagerCalcChain);
+    g_Chain.Cut(&g_GameManagerDrawChain);
+    if (g_GameManager.globals->score >= MAX_SCORE + 1)
+    {
+        g_GameManager.globals->score = MAX_SCORE;
+    }
+    g_GameManager.globals->displayScore = g_GameManager.globals->score;
+    g_Supervisor.framerateMultiplier = 1.0f;
+}
+
+
 void GameManager::IncreaseSubrank(int amount)
 {
     this->subRank += amount;
@@ -1459,18 +1472,6 @@ ZunBool GameManager::IsPhantasmUnlocked()
 ZunBool GameManager::IsReplayPractice()
 {
     return this->IsReplay() && g_ReplayManager->replayData->isPractice;
-}
-
-void GameManager::CutChain()
-{
-    g_Chain.Cut(&g_GameManagerCalcChain);
-    g_Chain.Cut(&g_GameManagerDrawChain);
-    if (g_GameManager.globals->score >= 1000000000)
-    {
-        g_GameManager.globals->score = 999999999;
-    }
-    g_GameManager.globals->displayScore = g_GameManager.globals->score;
-    g_Supervisor.framerateMultiplier = 1.0f;
 }
 
 i32 GameManager::GetClockTimeIncrement()
