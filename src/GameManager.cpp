@@ -118,10 +118,29 @@ i32 GameManager::GetSongNameSpriteIdx(i32 spellcardNumber)
     return FALSE;
 }
 
-// STUB: th08 0x4399ac
-ZunBool GameManager::IsWithinPlayfield()
+ZunBool GameManager::IsWithinPlayfield(float x, float y, float w, float h)
 {
-    return FALSE;
+    if ((w / 2) + x < 0)
+    {
+        return 0;
+    }
+
+    if (x - (w / 2) > ARCADE_WIDTH)
+    {
+        return 0;
+    }
+
+    if ((h / 2) + y < 0.0f)
+    {
+        return 0;
+    }
+
+    if (y - (h / 2) > ARCADE_HEIGHT)
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
 i32 GameManager::CalcAntiTamperChecksum()

@@ -89,7 +89,7 @@ struct GameManager
 
     static ZunBool ShouldPauseMusicInSpellPractice(i32 spellcardNumber);
     static i32 GetSongNameSpriteIdx(i32 spellcardNumber);
-    ZunBool IsWithinPlayfield();
+    ZunBool IsWithinPlayfield(float x, float y, float w, float h);
     i32 CalcAntiTamperChecksum();
     static i32 CalcChecksum(u8 *address, i32 size);
     void CollectExtend();
