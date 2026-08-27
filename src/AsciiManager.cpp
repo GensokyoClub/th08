@@ -1245,7 +1245,7 @@ i32 RetryMenu::OnUpdate()
         if (this->numFrames == 0)
         {
             if (!g_GameManager.IsSpellPractice() && g_GameManager.difficulty < EXTRA &&
-                (g_GameManager.GetClockTime() >= 11 || g_GameManager.currentStage == STAGE6B))
+                (g_GameManager.GetClockTime() >= CLOCK_TIME_4_30 || g_GameManager.currentStage == STAGE6B))
             {
                 g_GameManager.showRetryMenu = FALSE;
                 g_GameManager.globals->displayScore = g_GameManager.globals->score;

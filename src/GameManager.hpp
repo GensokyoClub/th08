@@ -55,6 +55,23 @@ enum GameManagerLoadState
     GAME_LOAD_FAILED,
 };
 
+enum ClockTime
+{
+    CLOCK_TIME_11_00,
+    CLOCK_TIME_11_30,
+    CLOCK_TIME_12_00,
+    CLOCK_TIME_12_30,
+    CLOCK_TIME_1_00,
+    CLOCK_TIME_1_30,
+    CLOCK_TIME_2_00,
+    CLOCK_TIME_2_30,
+    CLOCK_TIME_3_00,
+    CLOCK_TIME_3_30,
+    CLOCK_TIME_4_00,
+    CLOCK_TIME_4_30,
+    CLOCK_TIME_5_00,
+};
+
 struct GameManager
 {
     GameManager();
