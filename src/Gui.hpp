@@ -216,7 +216,7 @@ struct Gui
     void ShowPopupText(i32 fmtArg, i32 popupType);
     void ShowSpellcardBonus(i32 bonus);
     static void CopyEnemyNameTexture(i32 param_1);
-    static void FUN_00438046();
+    static void UpdateEnemyNameTexture();
     void DrawStageClearScreen();
     void DrawAsciiText();
     void CaptureArcade();
@@ -252,5 +252,6 @@ struct Gui
 C_ASSERT(sizeof(Gui) == 0x9c);
 
 DIFFABLE_EXTERN(Gui, g_Gui);
+DIFFABLE_EXTERN(i32, g_StageBgmIndices[][3]);
 
 } /* namespace th08 */

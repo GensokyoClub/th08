@@ -24,7 +24,7 @@ void EnemyManager::Initialize()
 // STUB: th08 0x42c590
 ZunResult EnemyManager::RegisterChain()
 {
-    return ZUN_ERROR;
+    return ZUN_SUCCESS;
 }
 
 // STUB: th08 0x42c660

@@ -1,5 +1,6 @@
 #include "th_pch.h"
 
+#include "Config.hpp"
 #include "GameManager.hpp"
 #include "ScoreDat.hpp"
 #include "SpellCard.hpp"
@@ -91,7 +92,7 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
 
     if (fileSize < sizeof(ScoreDat))
     {
-        utils::DebugPrint("warning : score.dat size is short\r\n");
+        utils::DebugPrint("warning : " SCORE_FILE_PATH " size is short\r\n");
         ZUN_FREE(scoreDat);
         goto recreate_score_file;
     }
@@ -127,7 +128,7 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
 
     if (scoreDat->checksum != checksum)
     {
-        utils::DebugPrint("warning : score.dat chksum error\r\n");
+        utils::DebugPrint("warning : " SCORE_FILE_PATH " chksum error\r\n");
         goto recreate_score_file;
     }
 
@@ -139,7 +140,7 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
 
     if (scoreDat->version != SCORE_DAT_VERSION)
     {
-        utils::DebugPrint("warning : score.dat version mismatch\r\n");
+        utils::DebugPrint("warning : " SCORE_FILE_PATH " version mismatch\r\n");
         goto recreate_score_file;
     }
 
@@ -167,22 +168,22 @@ ScoreDat *ScoreDat::OpenScore(const char *filename)
             vrsm = (Vrsm *)chapter;
             if (g_Supervisor.CheckVersion(vrsm->version, vrsm->exeSize, vrsm->exeChecksum) != ZUN_SUCCESS)
             {
-                utils::DebugPrint("warning : score.dat exesumcheck error\r\n");
+                utils::DebugPrint("warning : " SCORE_FILE_PATH " exesumcheck error\r\n");
                 goto recreate_score_file;
             }
         }
         if (chapter->th8kLen == 0)
         {
-            utils::DebugPrint("warning : score.dat chapter size is ZERO\r\n");
+            utils::DebugPrint("warning : " SCORE_FILE_PATH " chapter size is ZERO\r\n");
             goto recreate_score_file;
         }
         bytesToRead -= chapter->th8kLen;
         chapter = (Th8k *)(((u8 *)chapter) + chapter->th8kLen);
     }
 
-    if (!hasFoundTH8K || th8kChapter->version != 1)
+    if (!hasFoundTH8K || th8kChapter->version != VRSM_VERSION)
     {
-        utils::DebugPrint("warning : score.dat version mismatch\r\n");
+        utils::DebugPrint("warning : " SCORE_FILE_PATH " version mismatch\r\n");
         goto recreate_score_file;
     }
 

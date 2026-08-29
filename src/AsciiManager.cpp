@@ -117,7 +117,7 @@ ChainCallbackResult AsciiManager::OnUpdate(AsciiManager *ascii)
     AsciiManagerPopup *popup;
     i32 i;
 
-    if (!g_GameManager.showPauseMenu && !g_GameManager.showRetryMenu)
+    if (g_GameManager.pauseState == PAUSE_STATE_NOT_PAUSED && !g_GameManager.showRetryMenu)
     {
         popup = ascii->scorePopups;
 
@@ -157,7 +157,7 @@ ChainCallbackResult AsciiManager::OnUpdate(AsciiManager *ascii)
             }
         }
     }
-    else if (g_GameManager.showPauseMenu)
+    else if (g_GameManager.pauseState != PAUSE_STATE_NOT_PAUSED)
     {
         ascii->pauseMenu.OnUpdate();
     }
@@ -1006,7 +1006,7 @@ i32 PauseMenu::OnUpdate()
         {
             this->curState = 0;
 
-            g_GameManager.showPauseMenu = FALSE;
+            g_GameManager.pauseState = PAUSE_STATE_NOT_PAUSED;
 
             for (i = 0; i < ARRAY_SIZE(this->menuSprites); i++)
             {
@@ -1120,10 +1120,10 @@ i32 PauseMenu::OnUpdate()
             this->curState = 0;
 
             g_Supervisor.curState = SupervisorState_TitleScreen;
-            g_GameManager.showPauseMenu = FALSE;
+            g_GameManager.pauseState = PAUSE_STATE_NOT_PAUSED;
             g_Supervisor.systemTime = timeGetTime();
 
-            ResultScreen::RegisterChain(2);
+            ResultScreen::RegisterChain(RESULT_SCREEN_ACTION_SAVE_SCORE);
         }
         break;
     case PAUSE_MENU_STATE_RESTART_GAME:
@@ -1134,7 +1134,7 @@ i32 PauseMenu::OnUpdate()
             {
                 this->curState = PAUSE_MENU_STATE_INIT;
                 g_Supervisor.curState = SupervisorState_GameManagerRestartFromBeginning;
-                g_GameManager.showPauseMenu = FALSE;
+                g_GameManager.pauseState = PAUSE_STATE_NOT_PAUSED;
                 g_Supervisor.systemTime = timeGetTime();
             }
             else
@@ -1154,7 +1154,7 @@ i32 PauseMenu::OnUpdate()
 
                 g_Gui.CaptureArcade();
 
-                g_GameManager.showPauseMenu = FALSE;
+                g_GameManager.pauseState = PAUSE_STATE_NOT_PAUSED;
                 g_Supervisor.systemTime = timeGetTime();
 
                 return 0;
@@ -1182,7 +1182,7 @@ void PauseMenu::OnDraw()
 {
     i32 i;
 
-    if (g_GameManager.showPauseMenu)
+    if (g_GameManager.pauseState != PAUSE_STATE_NOT_PAUSED)
     {
         g_AnmManager->FlushVertexBuffer();
 
@@ -1208,6 +1208,14 @@ void PauseMenu::OnDraw()
                 g_AnmManager->DrawNoRotation(&this->menuSprites[i]);
             }
         }
+    }
+}
+
+static void IncrementIfBelow(u32 *value, u32 threshold)
+{
+    if (*value < threshold)
+    {
+        (*value)++;
     }
 }
 
@@ -1237,7 +1245,7 @@ i32 RetryMenu::OnUpdate()
         if (this->numFrames == 0)
         {
             if (!g_GameManager.IsSpellPractice() && g_GameManager.difficulty < EXTRA &&
-                (g_GameManager.GetClockTime() >= 11 || g_GameManager.currentStage == STAGE6B))
+                (g_GameManager.GetClockTime() >= CLOCK_TIME_4_30 || g_GameManager.currentStage == STAGE6B))
             {
                 g_GameManager.showRetryMenu = FALSE;
                 g_GameManager.globals->displayScore = g_GameManager.globals->score;

@@ -98,7 +98,7 @@ struct PlstPlayCounts
 {
     u32 attemptsTotal;
     u32 attemptsPerCharacter[SHOT_ALL];
-    unknown_fields(0x34, 0x4);
+    u32 restarts;
     u32 clears;
     u32 continues;
     u32 practices;

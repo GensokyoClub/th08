@@ -1,6 +1,7 @@
 #include "th_pch.h"
 
 #include "AsciiManager.hpp"
+#include "Config.hpp"
 #include "GameManager.hpp"
 #include "ScoreDat.hpp"
 #include "ScreenEffect.hpp"
@@ -563,7 +564,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
                 g_AnmManager->SetInterruptArray(this->vms, this->vmCount, 1);
                 if (g_Supervisor.cfg.musicMode == MIDI)
                 {
-                    g_Supervisor.midiOutput->PlayFile(30);
+                    g_Supervisor.midiOutput->PlayFile(MIDI_FILE_INIT);
                 }
                 break;
             }
@@ -827,7 +828,7 @@ ChainCallbackResult TitleScreen::OnUpdateOptions()
                 g_Supervisor.StopAudio();
                 if (g_Supervisor.cfg.musicMode == MIDI)
                 {
-                    g_Supervisor.midiOutput->PlayFile(30);
+                    g_Supervisor.midiOutput->PlayFile(MIDI_FILE_INIT);
                 }
                 if (g_Supervisor.cfg.musicMode == OFF)
                 {
@@ -3654,7 +3655,7 @@ ZunResult TitleScreen::ActualAddedCallback()
         this->DisplayInfoImage("title/info01.jpg");
     }
 
-    score = ScoreDat::OpenScore("score.dat");
+    score = ScoreDat::OpenScore(SCORE_FILE_PATH);
 
     ScoreDat::ParseCLRD(score, g_GameManager.clrdData);
     ScoreDat::ParsePSCR(score, g_GameManager.pscrData);
@@ -3909,7 +3910,7 @@ ZunResult TitleScreen::RegisterChain(int param)
     g_TitleScreen = titleScreen;
 
     memset(titleScreen, 0, sizeof(TitleScreen));
-    g_GameManager.showPauseMenu = FALSE;
+    g_GameManager.pauseState = PAUSE_STATE_NOT_PAUSED;
 
     titleScreen->calcChain = g_Chain.CreateElem((ChainCallback)TitleScreen::OnUpdate);
     titleScreen->calcChain->arg = titleScreen;

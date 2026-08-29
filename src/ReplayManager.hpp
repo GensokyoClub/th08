@@ -99,10 +99,23 @@ struct ReplayData
 
 C_ASSERT(sizeof(ReplayData) == 0x134);
 
+enum ReplayManagerAction
+{
+    REPLAY_MANAGER_ACTION_RECORD,
+    REPLAY_MANAGER_ACTION_PLAY,
+};
+
 struct ReplayManager
 {
+    static void StopRecording();
     static void SaveReplay(const char *replayPath, const char *replayName);
     static ReplayData *LoadReplayData(void *replayData, int fileSize);
+    static ZunResult RegisterChain(ReplayManagerAction action, const char *filename);
+
+    ZunBool IsStageInReplay(i32 stage)
+    {
+        return this->replayData->header.stageReplayData[stage] != NULL;
+    }
 
     unknown_fields(0x0, 0x8);
     ReplayData *replayData;

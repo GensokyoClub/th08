@@ -147,9 +147,9 @@ struct Supervisor
     ZunResult CheckVersion(const char *version, i32 exeSize, i32 exeChecksum);
 
     ZunResult LoadConfig(char *configFile);
-    ZunBool LoadMusic(int param_1, char *param_2);
+    i32 LoadMusic(i32 param_1, const char *param_2);
     ZunBool PlayMusic(i32 param_1, i32 param_2);
-    ZunResult PlayAudio(char *path, int param_2);
+    ZunResult PlayAudio(const char *path, int param_2);
     ZunResult StopAudio();
     ZunBool IsSlowModeEnabled();
     ZunResult FadeOutMusic(float param_1);
@@ -296,9 +296,11 @@ struct Supervisor
     i32 wantedState;
     i32 curState;
     i32 wantedState2;
+
     ZunBool isInitialStageLoad;
     ZunBool releaseResourcesOnRestart;
     ZunBool keepStageResources;
+
     i32 unk170;
     i32 unk174; // Commonly set for screen transitions and decremented once per frame, but never actually used for
                 // anything
@@ -310,7 +312,7 @@ struct Supervisor
     MidiOutput *midiOutput;
     float lagNumerator;
     float lagDenominator;
-    u32 unk198;
+    i16 unk198;
     AnmLoaded *textAnm;
     AnmLoaded *loadingAnm;
     SupervisorFlags flags;
@@ -450,6 +452,11 @@ struct ZunTimer
 inline ZunBool IsInitialStageLoad()
 {
     return g_Supervisor.isInitialStageLoad;
+}
+
+inline ZunBool IsStageReloading()
+{
+    return !IsInitialStageLoad();
 }
 
 inline ZunBool ReleaseResourcesOnRestart()

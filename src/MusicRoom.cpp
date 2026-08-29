@@ -1,6 +1,7 @@
 #include "th_pch.h"
 
 #include "AsciiManager.hpp"
+#include "Config.hpp"
 #include "GameManager.hpp"
 #include "MusicRoom.hpp"
 #include "SoundPlayer.hpp"
@@ -196,7 +197,7 @@ i32 MusicRoom::ProcessInput()
 
         if (g_Supervisor.IsMusicPreloadEnabled())
         {
-            g_SoundPlayer.StartBGM("thbgm.dat");
+            g_SoundPlayer.StartBGM(BGM_DAT_PATH);
         }
 
         g_Supervisor.PlayAudio(this->trackDescriptors[this->selectedSongIndex].path, 0);
@@ -230,7 +231,7 @@ i32 MusicRoom::ProcessInput()
     {
         if (g_Supervisor.IsMusicPreloadEnabled())
         {
-            g_SoundPlayer.StartBGM("thbgm.dat");
+            g_SoundPlayer.StartBGM(BGM_DAT_PATH);
         }
 
         g_Supervisor.PlayAudio(this->trackDescriptors[this->selectedSongIndex].path, 0);

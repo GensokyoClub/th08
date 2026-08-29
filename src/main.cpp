@@ -209,7 +209,7 @@ restart:
 awfulConditionalBreak:
     if (g_GameManager.plst.base.magic != 0)
     {
-        ResultScreen::RegisterChain(2);
+        ResultScreen::RegisterChain(RESULT_SCREEN_ACTION_SAVE_SCORE);
     }
 
     g_Chain.Release();
@@ -401,7 +401,7 @@ void GameWindow::Present()
         }
     }
 
-    if (g_Supervisor.unk174 != 0 && !g_GameManager.showPauseMenu)
+    if (g_Supervisor.unk174 != 0 && g_GameManager.pauseState != PAUSE_STATE_NOT_PAUSED)
     {
         g_Supervisor.unk174--;
     }

@@ -300,7 +300,7 @@ void ResultScreen::WriteScore(ResultScreen *result)
     encryptedData = (u8 *)FileSystem::Encrypt(scoreData, currentOffset, SCORE_DAT_XOR_VALUE,
                                               SCORE_DAT_XOR_VALUE_INCREMENT, SCORE_DAT_CHUNK_SIZE, SCORE_DAT_MAX_BYTES);
 
-    FileSystem::WriteDataToFile("score.dat", encryptedData, currentOffset);
+    FileSystem::WriteDataToFile(SCORE_FILE_PATH, encryptedData, currentOffset);
 
     ZUN_FREE(scoreData);
     ZUN_FREE(encryptedData);
@@ -2064,7 +2064,7 @@ i32 ResultScreen::DrawFinalStats()
     return 0;
 }
 
-ZunResult ResultScreen::RegisterChain(u32 unk)
+ZunResult ResultScreen::RegisterChain(ResultScreenAction action)
 {
     ResultScreen *resultScreen = ZUN_NEW(ResultScreen, "ResultSysInf");
 
@@ -2072,7 +2072,7 @@ ZunResult ResultScreen::RegisterChain(u32 unk)
 
     utils::GuiDebugPrint("Stg.PlayTimeAll = %d\r\n", g_GameManager.unk3de04);
 
-    if (unk == 1) // When writing the score after a game
+    if (action == RESULT_SCREEN_ACTION_GAME_RESULTS)
     {
         if (!g_GameManager.IsPracticeMode())
         {
@@ -2087,9 +2087,9 @@ ZunResult ResultScreen::RegisterChain(u32 unk)
             resultScreen->currentState = RESULT_SCREEN_STATE_PRACTICE;
         }
     }
-    else if (unk == 2) // Writing the score file for the first time
+    else if (action == RESULT_SCREEN_ACTION_SAVE_SCORE)
     {
-        resultScreen->currentState = RESULT_SCREEN_STATE_INITIAL_SCORE_SAVE;
+        resultScreen->currentState = RESULT_SCREEN_STATE_SCORE_SAVE;
         ResultScreen::AddedCallback(resultScreen);
 
         return ZUN_SUCCESS;
@@ -2127,7 +2127,7 @@ ChainCallbackResult ResultScreen::OnUpdate(ResultScreen *result)
     case RESULT_SCREEN_STATE_SPELL_PRACTICE:
         g_Supervisor.curState = SupervisorState_TitleScreen;
         return CHAIN_CALLBACK_RESULT_CONTINUE_AND_REMOVE_JOB;
-    case RESULT_SCREEN_STATE_INITIAL_SCORE_SAVE:
+    case RESULT_SCREEN_STATE_SCORE_SAVE:
         return CHAIN_CALLBACK_RESULT_CONTINUE_AND_REMOVE_JOB;
     case RESULT_SCREEN_STATE_INIT:
     result_init:
@@ -2656,7 +2656,7 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
         }
     }
 
-    if (result->currentState != RESULT_SCREEN_STATE_INITIAL_SCORE_SAVE)
+    if (result->currentState != RESULT_SCREEN_STATE_SCORE_SAVE)
     {
         if (g_AnmManager->LoadSurface(0, "result/result.jpg") != ZUN_SUCCESS)
         {
@@ -2706,7 +2706,7 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
     }
 
     result->unk0x20 = 0;
-    result->scoreDat = ScoreDat::OpenScore("score.dat");
+    result->scoreDat = ScoreDat::OpenScore(SCORE_FILE_PATH);
 
     for (i = 0; i < MAX_DIFFICULTIES; i++)
     {
@@ -2728,7 +2728,7 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
     if (result->currentState != RESULT_SCREEN_STATE_WRITING_HIGHSCORE_NAME &&
         result->currentState != RESULT_SCREEN_STATE_PRACTICE &&
         result->currentState != RESULT_SCREEN_STATE_SPELL_PRACTICE &&
-        result->currentState != RESULT_SCREEN_STATE_INITIAL_SCORE_SAVE)
+        result->currentState != RESULT_SCREEN_STATE_SCORE_SAVE)
     {
         ScoreDat::ParseCATK(result->scoreDat, g_GameManager.catkData);
         ScoreDat::ParseCLRD(result->scoreDat, g_GameManager.clrdData);
@@ -2811,7 +2811,7 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
         g_GameManager.plst.playData[HARD].clears + g_GameManager.plst.playData[LUNATIC].clears +
         g_GameManager.plst.playData[EXTRA].clears;
 
-    if (result->currentState == RESULT_SCREEN_STATE_INITIAL_SCORE_SAVE)
+    if (result->currentState == RESULT_SCREEN_STATE_SCORE_SAVE)
     {
         if (g_Supervisor.IsSlowModeEnabled() || g_Supervisor.IsSpeedhackDetected())
         {

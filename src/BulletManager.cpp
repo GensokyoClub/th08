@@ -15,7 +15,7 @@ void BulletManager::Initialize()
 }
 
 // STUB: th08 0x4311a0
-ZunResult BulletManager::RegisterChain()
+ZunResult BulletManager::RegisterChain(const char *filename)
 {
     return ZUN_SUCCESS;
 }
@@ -42,6 +42,11 @@ ZunResult BulletManager::AddedCallback(BulletManager *bulletManager)
 ZunResult BulletManager::DeletedCallback(BulletManager *bulletManager)
 {
     return ZUN_SUCCESS;
+}
+
+// STUB: th08 0x433850
+void BulletManager::CutChain()
+{
 }
 
 } /* namespace th08 */

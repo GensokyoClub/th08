@@ -28,6 +28,13 @@ struct MidiTimer
 };
 C_ASSERT(sizeof(MidiTimer) == 0x10);
 
+enum
+{
+    MIDI_FILE_INIT = 30, // Used for init.mid
+    MIDI_FILE_MAIN = 31, // Used for every other midi file
+    MIDI_MAX_FILES = 32,
+};
+
 enum MidiOpcode
 {
     MIDI_OPCODE_CHANNEL_1 = 0x01,
@@ -161,9 +168,9 @@ class MidiOutput : MidiTimer
 
   private:
     i32 midiFileIndex;
-    LPMIDIHDR midiHeaders[32];
+    LPMIDIHDR midiHeaders[MIDI_MAX_FILES];
     i32 midiHeadersCursor;
-    LPBYTE midiFileData[32];
+    LPBYTE midiFileData[MIDI_MAX_FILES];
     i32 numTracks;
     u32 format;
     i32 divisions;

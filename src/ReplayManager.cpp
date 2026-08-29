@@ -104,4 +104,14 @@ err2:
     return NULL;
 }
 
+ZunResult ReplayManager::RegisterChain(ReplayManagerAction action, const char *filename)
+{
+    return ZUN_SUCCESS;
+}
+
+// STUB: th08 0x4531a0
+void ReplayManager::StopRecording()
+{
+}
+
 } // namespace th08

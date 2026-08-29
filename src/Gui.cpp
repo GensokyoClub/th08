@@ -115,7 +115,7 @@ const char *g_MsgFiles[][12] = {{"msg1a.dat", "msg1b.dat", "msg1c.dat", "msg1d.d
 
 ChainCallbackResult Gui::OnUpdate(Gui *gui)
 {
-    if (g_GameManager.unk2C != 0)
+    if (g_GameManager.isTimeStopped != 0)
     {
         return CHAIN_CALLBACK_RESULT_CONTINUE;
     }
@@ -700,7 +700,7 @@ ZunResult GuiImpl::RunMsg()
             if (g_GameManager.currentStage == STAGE6A || g_GameManager.currentStage == STAGE6B ||
                 g_GameManager.currentStage == EXTRASTAGE)
             {
-                g_GameManager.flags.unk5 = 2;
+                g_GameManager.flags.gameState = GAME_STATE_STAGE_CLEAR;
             }
             goto SKIP_TIME_INCREMENT;
         case MsgOpcode_WaitSkippable:
@@ -1059,9 +1059,10 @@ void Gui::UpdateStageElements()
         this->impl->stageClearScreenCounter++;
     }
     if (g_GameManager.currentStage < 6 && this->impl->clearScreenDisplayedClockTime != 0 &&
-        this->impl->clearScreenDisplayedClockTime >= this->impl->clearScreenClockTime && g_GameManager.flags.unk5 == 0)
+        this->impl->clearScreenDisplayedClockTime >= this->impl->clearScreenClockTime &&
+        g_GameManager.flags.gameState == GAME_STATE_DEFAULT)
     {
-        g_GameManager.flags.unk5 = 2;
+        g_GameManager.flags.gameState = GAME_STATE_STAGE_CLEAR;
     }
     if (this->impl->clearScreenDisplayedClockTime != 0 &&
         this->impl->clearScreenDisplayedClockTime != this->impl->clearScreenClockTime)
@@ -1463,8 +1464,8 @@ void Gui::DrawStageElements()
         g_AsciiManager.AddFormatText(&pos, "%.2d", tmp);
         g_AsciiManager.SetColor(0xffffffff);
         this->previousSpellcardSecondsRemaining = this->spellcardSecondsRemaining;
-        if (!g_GameManager.showPauseMenu && !g_GameManager.showRetryMenu && !g_GameManager.flags.unk10 &&
-            g_EnemyManager.bossIds[0])
+        if (g_GameManager.pauseState == PAUSE_STATE_NOT_PAUSED && !g_GameManager.showRetryMenu &&
+            !g_GameManager.flags.unk10 && g_EnemyManager.bossIds[0])
         {
             pos = Float3(2.0f, 29.0f, 0.0f);
             g_AsciiManager.SetScale(1.0f, 1.0f);
@@ -1576,7 +1577,7 @@ void Gui::CopyEnemyNameTexture(i32 param_1)
 }
 
 // STUB: th08 0x438046
-void Gui::FUN_00438046()
+void Gui::UpdateEnemyNameTexture()
 {
     // Not actually sure this is Gui related, but it's located nearby other Gui functions
 }
@@ -1617,7 +1618,7 @@ void Gui::DrawStageClearScreen()
     pos.y += 16.0f;
     g_AsciiManager.AddFormatText(&pos, "over 80%% = %3d.%.2d%%", g_GameManager.unk3de20 * 100 / g_GameManager.unk3de14,
                                  (g_GameManager.unk3de20 * 10000 / g_GameManager.unk3de14) % 100);
-    if (g_GameManager.currentStage >= 6 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsReplayPractice())
+    if (g_GameManager.currentStage >= 6 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsPracticeReplay())
     {
         pos.y += 16.0f;
         g_AsciiManager.SetColor(0xffffff80);
@@ -1625,7 +1626,7 @@ void Gui::DrawStageClearScreen()
         pos.y += 16.0f;
         g_AsciiManager.SetColor(0xffffff80);
         g_AsciiManager.AddFormatText(&pos, "Bomb   = %7d0", g_GameManager.GetBombsRemaining() * 500000);
-        if (g_GameManager.currentStage == 7 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsReplayPractice())
+        if (g_GameManager.currentStage == 7 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsPracticeReplay())
         {
             pos.y += 16.0f;
             g_AsciiManager.SetColor(0xffffff80);
