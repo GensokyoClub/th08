@@ -1,6 +1,7 @@
 #include "th_pch.h"
 
 #include "AsciiManager.hpp"
+#include "Config.hpp"
 #include "GameManager.hpp"
 #include "ScoreDat.hpp"
 #include "ScreenEffect.hpp"
@@ -3654,7 +3655,7 @@ ZunResult TitleScreen::ActualAddedCallback()
         this->DisplayInfoImage("title/info01.jpg");
     }
 
-    score = ScoreDat::OpenScore("score.dat");
+    score = ScoreDat::OpenScore(SCORE_FILE_PATH);
 
     ScoreDat::ParseCLRD(score, g_GameManager.clrdData);
     ScoreDat::ParsePSCR(score, g_GameManager.pscrData);

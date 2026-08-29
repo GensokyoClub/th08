@@ -300,7 +300,7 @@ void ResultScreen::WriteScore(ResultScreen *result)
     encryptedData = (u8 *)FileSystem::Encrypt(scoreData, currentOffset, SCORE_DAT_XOR_VALUE,
                                               SCORE_DAT_XOR_VALUE_INCREMENT, SCORE_DAT_CHUNK_SIZE, SCORE_DAT_MAX_BYTES);
 
-    FileSystem::WriteDataToFile("score.dat", encryptedData, currentOffset);
+    FileSystem::WriteDataToFile(SCORE_FILE_PATH, encryptedData, currentOffset);
 
     ZUN_FREE(scoreData);
     ZUN_FREE(encryptedData);
@@ -2706,7 +2706,7 @@ ZunResult ResultScreen::AddedCallback(ResultScreen *result)
     }
 
     result->unk0x20 = 0;
-    result->scoreDat = ScoreDat::OpenScore("score.dat");
+    result->scoreDat = ScoreDat::OpenScore(SCORE_FILE_PATH);
 
     for (i = 0; i < MAX_DIFFICULTIES; i++)
     {

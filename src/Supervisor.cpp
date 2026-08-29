@@ -458,7 +458,7 @@ int Supervisor::AddedCallback(Supervisor *s)
 {
     g_Supervisor.framerateMultiplier = 1.0f;
 
-    ScoreDat *score = ScoreDat::OpenScore("score.dat");
+    ScoreDat *score = ScoreDat::OpenScore(SCORE_FILE_PATH);
 
     memset(&g_GameManager.plst, 0, sizeof(g_GameManager.plst));
     g_GameManager.plst.base.unkLen = g_GameManager.plst.base.th8kLen = sizeof(Plst);
@@ -513,7 +513,7 @@ int Supervisor::AddedCallback(Supervisor *s)
 
 ZunResult Supervisor::LoadDat()
 {
-    if (g_PbgArchive.Load("th08.dat"))
+    if (g_PbgArchive.Load(GAME_ARCHIVE_PATH))
     {
 #pragma var_order(fileSize, versionFileName)
         i32 fileSize;
@@ -630,23 +630,23 @@ void Supervisor::StartupThread(Supervisor *s)
     {
         if (!g_Supervisor.IsMusicPreloadEnabled())
         {
-            g_SoundPlayer.StartBGM("thbgm.dat");
+            g_SoundPlayer.StartBGM(BGM_DAT_PATH);
         }
         else
         {
-            strcpy(g_SoundPlayer.currentBgmFileName, "thbgm.dat");
+            strcpy(g_SoundPlayer.currentBgmFileName, BGM_DAT_PATH);
         }
     }
     else if (!g_Supervisor.IsMusicPreloadEnabled())
     {
-        g_SoundPlayer.StartBGM("th08.dat");
+        g_SoundPlayer.StartBGM(GAME_ARCHIVE_PATH);
     }
     else
     {
-        strcpy(g_SoundPlayer.currentBgmFileName, "th08.dat");
+        strcpy(g_SoundPlayer.currentBgmFileName, GAME_ARCHIVE_PATH);
     }
 
-    if (g_Supervisor.flags.unk8 && ((scoreFile = FileSystem::OpenFile("score.dat", &scoreFileSize, TRUE)) != NULL))
+    if (g_Supervisor.flags.unk8 && ((scoreFile = FileSystem::OpenFile(SCORE_FILE_PATH, &scoreFileSize, TRUE)) != NULL))
     {
         scoreBackupFileName = "score_4.??????.bak";
 
@@ -918,7 +918,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
         g_Supervisor.cfg.version = CONFIG_VERSION;
         g_Supervisor.cfg.padXAxis = 600;
         g_Supervisor.cfg.padYAxis = 600;
-        bgmHandle = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+        bgmHandle = CreateFileA("./" BGM_DAT_PATH, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle != INVALID_HANDLE_VALUE)
         {
@@ -951,7 +951,7 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     {
         g_Supervisor.cfg = *configFileBuffer;
         ZUN_FREE(configFileBuffer);
-        bgmHandle2 = CreateFileA("./thbgm.dat", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+        bgmHandle2 = CreateFileA("./" BGM_DAT_PATH, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                                  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (bgmHandle2 != INVALID_HANDLE_VALUE)
         {

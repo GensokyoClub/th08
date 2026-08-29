@@ -2,6 +2,10 @@
 
 #define CONFIG_FILENAME "th08.cfg"
 
+#define GAME_ARCHIVE_PATH "th08.dat"
+#define BGM_DAT_PATH     "thbgm.dat"
+#define SCORE_FILE_PATH  "score.dat"
+
 #define GAME_MAJOR_VERSION 0x100
 #define GAME_MINOR_VERSION 'd'
 

@@ -6,6 +6,7 @@
 #include "EffectManager.hpp"
 
 #include "BulletManager.hpp"
+#include "Config.hpp"
 #include "GameManager.hpp"
 #include "Global.hpp"
 #include "Gui.hpp"
@@ -1288,7 +1289,7 @@ ZunResult GameManager::InitScore()
         }
     }
 
-    scoreDat = ScoreDat::OpenScore("score.dat");
+    scoreDat = ScoreDat::OpenScore(SCORE_FILE_PATH);
     if (scoreDat == NULL)
     {
         g_GameErrorContext.Log(TH_ERR_GAMEMANAGER_FAILED_TO_READ_SCORE);
