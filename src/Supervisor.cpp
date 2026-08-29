@@ -1055,6 +1055,9 @@ ZunResult Supervisor::LoadConfig(char *configFile)
     return ZUN_SUCCESS;
 }
 
+// These music related return a value but they are not used. It doesn't
+// logically seem to be a boolean value. Maybe result 0 means MIDI was
+// used, and 1 means everything else (WAV + no sound)?
 #pragma var_order(periodLoc, wavPathBuf)
 i32 Supervisor::LoadMusic(i32 param_1, const char *path)
 {
