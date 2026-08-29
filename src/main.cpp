@@ -209,7 +209,7 @@ restart:
 awfulConditionalBreak:
     if (g_GameManager.plst.base.magic != 0)
     {
-        ResultScreen::RegisterChain(2);
+        ResultScreen::RegisterChain(RESULT_SCREEN_ACTION_SAVE_SCORE);
     }
 
     g_Chain.Release();

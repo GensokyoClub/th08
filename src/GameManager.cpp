@@ -1272,7 +1272,7 @@ ZunResult GameManager::InitScore()
     Catk *catk = &g_GameManager.catkData[0];
     ScoreDat *scoreDat;
 
-    ResultScreen::RegisterChain(2);
+    ResultScreen::RegisterChain(RESULT_SCREEN_ACTION_SAVE_SCORE);
 
     memset(g_GameManager.catkData, 0, sizeof(g_GameManager.catkData));
 

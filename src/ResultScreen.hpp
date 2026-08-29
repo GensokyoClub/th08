@@ -31,11 +31,18 @@ enum ResultScreenState
     RESULT_SCREEN_STATE_STATS_SCREEN = 15,
     RESULT_SCREEN_STATE_STATS_TO_SAVE_TRANSITION = 16,
     RESULT_SCREEN_STATE_PRACTICE = 17,
-    RESULT_SCREEN_STATE_INITIAL_SCORE_SAVE = 18,
+    RESULT_SCREEN_STATE_SCORE_SAVE = 18,
     RESULT_SCREEN_STATE_OTHER_STATS_SCREEN_INIT = 19,
     RESULT_SCREEN_STATE_OTHER_STATS_SCREEN = 20,
     RESULT_SCREEN_STATE_OTHER_STATS_TO_INIT_TRANSITION = 21,
     RESULT_SCREEN_STATE_SPELL_PRACTICE = 22,
+};
+
+enum ResultScreenAction
+{
+    RESULT_SCREEN_ACTION_TITLESCREEN,
+    RESULT_SCREEN_ACTION_GAME_RESULTS,
+    RESULT_SCREEN_ACTION_SAVE_SCORE
 };
 
 #define RESULT_REPLAY_MAX_RESULTS 15
@@ -86,7 +93,7 @@ struct ResultScreen
     i32 HandleOtherStatsScreen();
     i32 DrawFinalStats();
 
-    static ZunResult RegisterChain(u32 unk);
+    static ZunResult RegisterChain(ResultScreenAction action);
     static ChainCallbackResult OnUpdate(ResultScreen *resultScreen);
     static ChainCallbackResult OnDraw(ResultScreen *resultScreen);
     static ZunResult AddedCallback(ResultScreen *resultScreen);
