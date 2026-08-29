@@ -1617,7 +1617,7 @@ void Gui::DrawStageClearScreen()
     pos.y += 16.0f;
     g_AsciiManager.AddFormatText(&pos, "over 80%% = %3d.%.2d%%", g_GameManager.unk3de20 * 100 / g_GameManager.unk3de14,
                                  (g_GameManager.unk3de20 * 10000 / g_GameManager.unk3de14) % 100);
-    if (g_GameManager.currentStage >= 6 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsReplayPractice())
+    if (g_GameManager.currentStage >= 6 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsPracticeReplay())
     {
         pos.y += 16.0f;
         g_AsciiManager.SetColor(0xffffff80);
@@ -1625,7 +1625,7 @@ void Gui::DrawStageClearScreen()
         pos.y += 16.0f;
         g_AsciiManager.SetColor(0xffffff80);
         g_AsciiManager.AddFormatText(&pos, "Bomb   = %7d0", g_GameManager.GetBombsRemaining() * 500000);
-        if (g_GameManager.currentStage == 7 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsReplayPractice())
+        if (g_GameManager.currentStage == 7 && !g_GameManager.IsPracticeMode() && !g_GameManager.IsPracticeReplay())
         {
             pos.y += 16.0f;
             g_AsciiManager.SetColor(0xffffff80);

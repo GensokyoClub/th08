@@ -177,7 +177,7 @@ struct GameManager
     void AddToYoukaiGauge(u16 param_1, i32 param_2);
 
     ZunBool IsPhantasmUnlocked();
-    ZunBool IsReplayPractice();
+    ZunBool IsPracticeReplay();
 
     /* I know it's dumb but this is the only way to get it matching */
     void SetIsReplayWeird(ZunBool value)

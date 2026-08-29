@@ -1469,7 +1469,7 @@ ZunBool GameManager::IsPhantasmUnlocked()
     return FALSE;
 }
 
-ZunBool GameManager::IsReplayPractice()
+ZunBool GameManager::IsPracticeReplay()
 {
     return this->IsReplay() && g_ReplayManager->replayData->isPractice;
 }
