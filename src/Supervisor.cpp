@@ -760,7 +760,7 @@ ZunResult Supervisor::DeletedCallback(Supervisor *s)
     g_SoundPlayer.QueueCommand(4, 0, "dummy");
     if (g_Supervisor.cfg.musicMode == MIDI && g_Supervisor.midiOutput != NULL)
     {
-        g_Supervisor.midiOutput->PlayFile(30);
+        g_Supervisor.midiOutput->PlayFile(MIDI_FILE_INIT);
     }
 
     ReplayManager::SaveReplay(NULL, NULL);

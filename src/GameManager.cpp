@@ -1347,7 +1347,7 @@ ZunResult GameManager::DeletedCallback(GameManager *gameManager)
 
         if (g_Supervisor.cfg.musicMode == MIDI && g_Supervisor.midiOutput != NULL)
         {
-            g_Supervisor.midiOutput->PlayFile(30);
+            g_Supervisor.midiOutput->PlayFile(MIDI_FILE_INIT);
         }
     }
 

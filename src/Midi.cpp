@@ -326,13 +326,13 @@ ZunResult MidiOutput::ParseFile(int fileIdx)
 
 ZunResult MidiOutput::LoadFile(LPCSTR midiPath)
 {
-    if (ReadFileData(0x1f, midiPath) != ZUN_SUCCESS)
+    if (ReadFileData(MIDI_FILE_MAIN, midiPath) != ZUN_SUCCESS)
     {
         return ZUN_ERROR;
     }
 
-    ParseFile(0x1f);
-    ReleaseFileData(0x1f);
+    ParseFile(MIDI_FILE_MAIN);
+    ReleaseFileData(MIDI_FILE_MAIN);
 
     return ZUN_SUCCESS;
 }

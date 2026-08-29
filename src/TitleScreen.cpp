@@ -564,7 +564,7 @@ ChainCallbackResult TitleScreen::OnUpdateStartMenu()
                 g_AnmManager->SetInterruptArray(this->vms, this->vmCount, 1);
                 if (g_Supervisor.cfg.musicMode == MIDI)
                 {
-                    g_Supervisor.midiOutput->PlayFile(30);
+                    g_Supervisor.midiOutput->PlayFile(MIDI_FILE_INIT);
                 }
                 break;
             }
@@ -828,7 +828,7 @@ ChainCallbackResult TitleScreen::OnUpdateOptions()
                 g_Supervisor.StopAudio();
                 if (g_Supervisor.cfg.musicMode == MIDI)
                 {
-                    g_Supervisor.midiOutput->PlayFile(30);
+                    g_Supervisor.midiOutput->PlayFile(MIDI_FILE_INIT);
                 }
                 if (g_Supervisor.cfg.musicMode == OFF)
                 {
