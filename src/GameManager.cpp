@@ -377,12 +377,12 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
 
     // Pause menu
     if (!gameManager->showRetryMenu
-        && !gameManager->showPauseMenu
+        && !gameManager->pauseState
         && !gameManager->IsDemoMode()
         && !gameManager->stickyInput
         && WAS_PRESSED(TH_BUTTON_MENU))
     {
-        gameManager->showPauseMenu = 1;
+        gameManager->pauseState = PAUSE_STATE_PAUSE_HIT;
 
         g_GameManager.arcadeRegionTopLeftPos.x = ARCADE_LEFT;
         g_GameManager.arcadeRegionTopLeftPos.y = ARCADE_TOP;
@@ -484,7 +484,7 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
         }
     }
 
-    gameManager->flags.isActive = !(gameManager->showRetryMenu || gameManager->showPauseMenu);
+    gameManager->flags.isActive = (!gameManager->showRetryMenu && gameManager->pauseState != PAUSE_STATE_NOT_PAUSED);
 
     for (i = 0; i < ARRAY_SIZE(gameManager->globals->rng2); i++)
     {
@@ -508,7 +508,9 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
     g_Supervisor.d3dDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, g_Background.skyFog.color.d3dColor, 1.0f, 0.0);
 
     // If pause or retry menu are active, interrupt normal gameplay.
-    if (gameManager->showPauseMenu == 1 || gameManager->showPauseMenu == 2 || gameManager->showRetryMenu)
+    if (gameManager->pauseState == PAUSE_STATE_PAUSE_HIT
+        || gameManager->pauseState == PAUSE_STATE_PAUSED
+        || gameManager->showRetryMenu)
     {
         return CHAIN_CALLBACK_RESULT_BREAK;
     }
@@ -623,9 +625,9 @@ ChainCallbackResult GameManager::OnUpdate(GameManager *gameManager)
 
 ChainCallbackResult GameManager::OnDraw(GameManager *gameManager)
 {
-    if (gameManager->showPauseMenu != 0)
+    if (gameManager->pauseState != PAUSE_STATE_NOT_PAUSED)
     {
-        gameManager->showPauseMenu = 2;
+        gameManager->pauseState = PAUSE_STATE_PAUSED;
     }
 
     if (g_Supervisor.curState != SupervisorState_GameManager)
@@ -915,7 +917,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
     gameManager->subRank = 0;
     gameManager->globals->pointItemsCollectedInStage = 0;
     gameManager->globals->grazeInStage = 0;
-    gameManager->showPauseMenu = 0;
+    gameManager->pauseState = PAUSE_STATE_NOT_PAUSED;
     gameManager->flags.unk7 = 0;
     gameManager->flags.unk13 = 0;
     gameManager->unk3de14 = 0;

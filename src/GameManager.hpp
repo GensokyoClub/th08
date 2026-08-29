@@ -32,6 +32,13 @@ enum
     GAME_STATE_FINISHING_STAGE
 };
 
+enum
+{
+    PAUSE_STATE_NOT_PAUSED,
+    PAUSE_STATE_PAUSE_HIT,
+    PAUSE_STATE_PAUSED,
+};
+
 struct GameManagerFlags
 {
     u32 isPracticeMode : 1;
@@ -420,7 +427,7 @@ struct GameManager
     u8 characterShotType;
     GameManagerFlags flags;
     i16 currentSpellCardNumber;
-    u8 showPauseMenu;
+    u8 pauseState;
     u8 showRetryMenu;
     u8 currentDemoReplay;
     u8 replayMode;

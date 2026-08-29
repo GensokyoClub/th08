@@ -3910,7 +3910,7 @@ ZunResult TitleScreen::RegisterChain(int param)
     g_TitleScreen = titleScreen;
 
     memset(titleScreen, 0, sizeof(TitleScreen));
-    g_GameManager.showPauseMenu = FALSE;
+    g_GameManager.pauseState = PAUSE_STATE_NOT_PAUSED;
 
     titleScreen->calcChain = g_Chain.CreateElem((ChainCallback)TitleScreen::OnUpdate);
     titleScreen->calcChain->arg = titleScreen;

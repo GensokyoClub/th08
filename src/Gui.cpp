@@ -1463,7 +1463,7 @@ void Gui::DrawStageElements()
         g_AsciiManager.AddFormatText(&pos, "%.2d", tmp);
         g_AsciiManager.SetColor(0xffffffff);
         this->previousSpellcardSecondsRemaining = this->spellcardSecondsRemaining;
-        if (!g_GameManager.showPauseMenu && !g_GameManager.showRetryMenu && !g_GameManager.flags.unk10 &&
+        if (g_GameManager.pauseState == PAUSE_STATE_NOT_PAUSED && !g_GameManager.showRetryMenu && !g_GameManager.flags.unk10 &&
             g_EnemyManager.bossIds[0])
         {
             pos = Float3(2.0f, 29.0f, 0.0f);
