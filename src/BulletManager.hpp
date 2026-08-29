@@ -52,14 +52,14 @@ struct Bullet
     Float3 velocity;
     Float3 ex4Acceleration; // Leftover from EoSD
     float speed;
-    float ex5Float0; // Leftover from EoSD
+    float ex5Float0;      // Leftover from EoSD
     float dirChangeSpeed; // Leftover from EoSD
     float angle;
-    float ex5Float1; // Leftover from EoSD
+    float ex5Float1;         // Leftover from EoSD
     float dirChangeRotation; // Leftover from EoSD
     ZunTimer timeSinceBulletFired;
     ZunTimer timeActive;
-    i32 ex5Int0;  // Leftover from EoSD
+    i32 ex5Int0;           // Leftover from EoSD
     i32 dirChangeInterval; // Leftover from EoSD
     i32 dirChangeNumTimes; // Leftover from EoSD
     i32 dirChangeMaxTimes; // Leftover from EoSD
@@ -110,10 +110,10 @@ struct Laser
 
 C_ASSERT(sizeof(Laser) == 0x59c);
 
-#define NUM_ENEMY_BULLET_TYPES  32
-#define MAX_ENEMY_BULLETS       0x600
-#define MAX_ENEMY_LASERS        0x100
-#define NUM_BULLET_LAYERS       6
+#define NUM_ENEMY_BULLET_TYPES 32
+#define MAX_ENEMY_BULLETS 0x600
+#define MAX_ENEMY_LASERS 0x100
+#define NUM_BULLET_LAYERS 6
 
 struct BulletManager
 {

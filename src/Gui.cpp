@@ -1059,7 +1059,8 @@ void Gui::UpdateStageElements()
         this->impl->stageClearScreenCounter++;
     }
     if (g_GameManager.currentStage < 6 && this->impl->clearScreenDisplayedClockTime != 0 &&
-        this->impl->clearScreenDisplayedClockTime >= this->impl->clearScreenClockTime && g_GameManager.flags.gameState == GAME_STATE_DEFAULT)
+        this->impl->clearScreenDisplayedClockTime >= this->impl->clearScreenClockTime &&
+        g_GameManager.flags.gameState == GAME_STATE_DEFAULT)
     {
         g_GameManager.flags.gameState = GAME_STATE_STAGE_CLEAR;
     }
@@ -1463,8 +1464,8 @@ void Gui::DrawStageElements()
         g_AsciiManager.AddFormatText(&pos, "%.2d", tmp);
         g_AsciiManager.SetColor(0xffffffff);
         this->previousSpellcardSecondsRemaining = this->spellcardSecondsRemaining;
-        if (g_GameManager.pauseState == PAUSE_STATE_NOT_PAUSED && !g_GameManager.showRetryMenu && !g_GameManager.flags.unk10 &&
-            g_EnemyManager.bossIds[0])
+        if (g_GameManager.pauseState == PAUSE_STATE_NOT_PAUSED && !g_GameManager.showRetryMenu &&
+            !g_GameManager.flags.unk10 && g_EnemyManager.bossIds[0])
         {
             pos = Float3(2.0f, 29.0f, 0.0f);
             g_AsciiManager.SetScale(1.0f, 1.0f);

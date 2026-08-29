@@ -1083,7 +1083,6 @@ i32 Supervisor::LoadMusic(i32 param_1, const char *path)
         periodLoc[3] = 'v';
 
         g_SoundPlayer.QueueCommand(1, param_1, wavPathBuf);
-
     }
 
     return 1;

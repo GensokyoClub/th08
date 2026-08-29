@@ -18,8 +18,8 @@
 #define ANTITAMPER_RNG_RANGE 100000
 #define ANTITAMPER_RNG_ADD 6543
 
-#define MAX_SCORE               999999999
-#define MAX_SCORE_INCREMENT     578910
+#define MAX_SCORE 999999999
+#define MAX_SCORE_INCREMENT 578910
 
 namespace th08
 {
@@ -43,7 +43,7 @@ struct GameManagerFlags
 {
     u32 isPracticeMode : 1;
     u32 isDemoMode : 1;
-    u32 isActive : 1;       // Set to 0 if Pause or Retry menu are active, 1 otherwise
+    u32 isActive : 1; // Set to 0 if Pause or Retry menu are active, 1 otherwise
     u32 isReplay : 1;
     u32 unk4 : 1;
     u32 gameState : 2;
@@ -346,7 +346,9 @@ struct GameManager
 
     ZunBool IsSpellNumberInRange(i32 min, i32 max)
     {
-        return this->flags.isSpellPractice ? (this->currentSpellCardNumber >= min && this->currentSpellCardNumber <= max) : FALSE;
+        return this->flags.isSpellPractice
+                   ? (this->currentSpellCardNumber >= min && this->currentSpellCardNumber <= max)
+                   : FALSE;
     }
 
     i32 GetPower()

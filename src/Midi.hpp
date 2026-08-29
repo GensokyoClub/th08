@@ -30,8 +30,8 @@ C_ASSERT(sizeof(MidiTimer) == 0x10);
 
 enum
 {
-    MIDI_FILE_INIT = 30,        // Used for init.mid
-    MIDI_FILE_MAIN = 31,        // Used for every other midi file
+    MIDI_FILE_INIT = 30, // Used for init.mid
+    MIDI_FILE_MAIN = 31, // Used for every other midi file
     MIDI_MAX_FILES = 32,
 };
 
