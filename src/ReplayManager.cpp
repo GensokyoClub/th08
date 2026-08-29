@@ -104,7 +104,7 @@ err2:
     return NULL;
 }
 
-ZunResult ReplayManager::RegisterChain(u32 state, const char *filename)
+ZunResult ReplayManager::RegisterChain(ReplayManagerAction action, const char *filename)
 {
     return ZUN_SUCCESS;
 }

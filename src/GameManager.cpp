@@ -993,7 +993,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
     {
         InitRankParams(gameManager);
 
-        ReplayManager::RegisterChain(1, g_GameManager.replayFilename);
+        ReplayManager::RegisterChain(REPLAY_MANAGER_ACTION_PLAY, g_GameManager.replayFilename);
 
         u16 seed = g_Rng.GetSeed();
 
@@ -1072,7 +1072,7 @@ void GameManager::GameplaySetupThread(LPVOID param)
 
     if (!g_GameManager.IsReplay())
     {
-        ReplayManager::RegisterChain(0, "replay/th8_00.rpy");
+        ReplayManager::RegisterChain(REPLAY_MANAGER_ACTION_RECORD, "replay/th8_00.rpy");
     }
 
     if (g_GameManager.IsSpellPractice())
