@@ -11,6 +11,32 @@
 
 This project aims to perfectly reconstruct the source code of [Touhou Eiyashou ~ Imperishable Night 1.00d](https://en.touhouwiki.net/wiki/Imperishable_Night) by Team Shanghai Alice.
 
+**NOTICE**: As of 5 September 2026, future decompilation of th08
+will be done in private, and will be made public **until the
+decompilation is completed**, due to the actions of certain bad
+actors in this space, notably vibecoders and other grifters.
+
+We work hard in our free time to provide code that reconstructs
+Touhou 8's original source to the best of our knowledge. We believe
+that we offer the highest quality code that accurately matches
+the original binary.
+
+The rise of grifters (AI decompilations and ports) in this space
+taking from our work paints a bad image for future decompilation
+efforts and has also taken a toll on us psychologically.
+
+Therefore, we have decided to continue decompilation work in
+private until it has concluded. We apologize for the inconvenience
+but we believe that this drastic action is necessary given the
+current circumstances.
+
+Don't worry, when the decompilation is concluded, all the code,
+as well as the commit history, pull requests, will be available.
+For the time being, this repo serves as a snapshot before
+decompilation was made private, and progress updates will be given.
+
+Stay tuned for the full code release of th08.
+
 **This project is still highly work in progress and in its early stages.**
 
 
