@@ -10,6 +10,15 @@
 [discord-badge]: https://img.shields.io/discord/1147558514840064030?color=%237289DA&logo=discord&logoColor=%23FFFFFF
 
 ## Important notice
+**Update 24 November 2026**: The decompilation continued in private
+is now finished, every function (except one small diff) is matching
+with the original, but we have decided to keep the code private to
+do some much needed cleanup and attempt bytematching, like what was
+done for th06. If that takes too long, then we will make it public
+before that happens. Once again, stay tuned for the full code
+release for th08.
+
+### Original notice
 As of 5 September 2026, future decompilation of th08
 will be done in private, and will be made public **until the
 decompilation is completed**, due to the actions of certain bad
